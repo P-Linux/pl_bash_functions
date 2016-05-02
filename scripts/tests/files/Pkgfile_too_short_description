@@ -1,0 +1,13 @@
+pkgpackager="Package 'Packager' variable MUST NOT be empty."
+pkgdesc="short"
+pkgurl=""
+pkgdeps=()
+
+pkgvers=0.1.0 
+pkgrel=1
+pkgsources=()
+pkgmd5sums=()
+
+build() {
+    _a="Package 'build' function is REQUIRED."
+}

@@ -1,0 +1,17 @@
+# Packager: peter1000 oldstyle @ nomail dot com
+# Description: Old Comment Style Variables.   
+# URL: https://dummy.download.org/oldstyle_pkgfile_variables
+# Depends on: subversion libarchive,gzip, bzip2 xz
+
+version=0.1.7
+release=3
+source=("https://dummy.download.org/none_existing/${CMK_NAME}.tar.xz")
+source=("https://dummy.download.org/none_existing/${CMK_NAME}.tar.xz")
+md5sums=("SKIP")
+
+build() {
+    cd "$SRC/$CMK_NAME"
+
+    make all
+    make DESTDIR=$PKG install
+}

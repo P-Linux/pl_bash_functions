@@ -1,0 +1,27 @@
+# Example Pkgfile
+
+pkgpackager="peter1000 <https://github.com/peter1000>"
+pkgdesc="Bash functions used by other P-Linux packages."
+pkgurl="https://github.com/P-Linux/pl_bash_functions"
+pkgdeps=(
+    libarchive 
+    "gzip" # Inline comment
+    # Comment Line
+    'bzip2' 
+    # Empty Line Below
+    
+    xz git subversion mercurial 
+    bzr
+)
+
+pkgvers=0.1.0.r1.2f12e1a 
+pkgrel=4
+pkgsources=("pl_bash_functions::https://github.com/P-Linux/pl_bash_functions.git")
+pkgmd5sums=("SKIP")
+
+build() {
+    cd "$SRC/$CMK_NAME"
+
+    make all
+    make DESTDIR=$PKG install
+}

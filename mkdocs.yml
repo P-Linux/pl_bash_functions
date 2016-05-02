@@ -1,0 +1,30 @@
+site_name: pl_bash_functions
+site_url: https://p-linux.github.io/pl_bash_functions/
+site_description: Bash functions used by other P-Linux packages.
+site_author: peter1000
+site_favicon: images/p_linux_favicon.ico
+
+repo_url: https://github.com/P-Linux/pl_bash_functions/
+
+pages:
+- Home: index.md
+- User Guide:
+    - How To: user_guide/00_how_to.md
+    - Pkgfile Format: user_guide/01_pkgfile_format.md
+    - Code Style: user_guide/02_code_style.md
+- About:
+    - Readme: about/readme.md
+    - License: about/license.md
+    - Release Notes: about/release-notes.md
+
+markdown_extensions:
+    - toc:
+        permalink: 
+    - admonition:
+
+extra_css: [css/extra.css]
+
+use_directory_urls: true
+copyright: Copyright (c) 2016, <a href="https://github.com/peter1000"><strong>peter1000</strong></a>
+
+theme: 'bootstrap'

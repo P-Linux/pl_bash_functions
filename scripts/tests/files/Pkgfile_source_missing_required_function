@@ -1,0 +1,13 @@
+pkgpackager="Package 'Packager' variable MUST NOT be empty."
+pkgdesc="Package 'Description variable MUST NOT be empty."
+pkgurl=""
+pkgdeps=()
+
+pkgvers=0.1.0 
+pkgrel=1
+pkgsources=()
+pkgmd5sums=()
+
+customary_group_function() {
+    local _a="example"
+}

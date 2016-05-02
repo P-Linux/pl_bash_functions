@@ -1,0 +1,6 @@
+*.[oa]
+*~
+*.geany
+
+# MkDocs
+site/
