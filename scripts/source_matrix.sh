@@ -30,7 +30,7 @@ shopt -s extglob
 #
 #       The source ENTRY is divided into four components:
 #
-#           1.  `NOEXTRACT` (optional): If the entry starts with `NOEXTRACT` it will not be extracted `::` is used as separator
+#           1. `NOEXTRACT` (optional): If the entry starts with `NOEXTRACT` it will not be extracted `::` is used as separator
 #           2. `PREFIX`     (optional): A user specified destination name for the downloaded source. Useful for renaming.
 #                                       `::` is used as separator.
 #           3. `URI`        (required): MAY ONLY contain 1 (+) to prefixing the URL with a VCS type,
@@ -53,7 +53,7 @@ shopt -s extglob
 #
 #   ARGUMENTS: for test purpose: `_pkgfile_fullpath` and `_srcdst_dir` do not need to point to existing paths.
 #
-#       `_ret_matrix`: a reference var: an associative array which will be updated with the resulting data fields:
+#       `_ret_matrix`: a reference var: an associative array which will be updated with the resulting data fields
 #       `_in_entries`: a reference var: an indexed array of valid source entries
 #       `_in_checksums`: a reference var: an indexed array of corresponding source checksums
 #       `_pkgfile_fullpath`: absolute path to the pkgfile: for test purpose it is not required that the path exists
@@ -169,8 +169,9 @@ so_prepare_src_matrix() {
     local -n _in_entries=$2
     local -n _in_checksums=$3
     local _pkgfile_fullpath=$4
-    local _supported_protocols=("ftp" "http" "https" "git" "svn" "hg" "bzr" "local")
-    local _supported_vclplus_schemes=("http" "https" "lp")
+    # use an associative array which is faster for lookups
+    declare -A _supported_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0 ["local"]=0)
+    declare -A _supported_vclplus_schemes=(["http"]=0 ["https"]=0 ["lp"]=0)
     if [[ -n $5 ]]; then
         local _srcdst_dir=$5
     else
@@ -241,7 +242,7 @@ so_prepare_src_matrix() {
         ut_get_postfix_longest_all _uri "$_tmp_uri" "+"
         if [[ $_tmp_uri == *"+"* ]]; then
             ut_get_prefix_shortest_all _vclplus_schemes "$_uri" ":"
-            if ! ut_in_array "$_vclplus_schemes" _supported_vclplus_schemes; then
+            if [[ ! -v _supported_vclplus_schemes["$_vclplus_schemes"] ]]; then
                 ms_abort "$_fn" "$(gettext "Supported vclplus_schemes: 'http' 'https' 'lp'. Got '%s'.  ENTRY: <%s>")" \
                     "$_vclplus_schemes" "$_entry"
             fi
@@ -252,7 +253,7 @@ so_prepare_src_matrix() {
         ut_get_prefix_shortest_all _protocol "$_protocol" "+"
         [[ $_protocol == $_tmp_uri ]] && _protocol="local"
 
-        if ! ut_in_array "$_protocol" _supported_protocols; then
+        if [[ ! -v _supported_protocols["$_protocol"] ]]; then
             ms_abort "$_fn" "$(gettext "The protocol: '%s' is not supported. ENTRY: <%s>")" "$_protocol" "$_entry"
         fi
 
