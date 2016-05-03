@@ -78,6 +78,77 @@ do_got_download_programs_abort() {
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
+# Download downloadable sources by protocol filter.
+#
+#   ARGUMENTS
+#       `_in_do_scrmtx`: reference var: Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
+#
+#   OPTIONAL ARGS:
+#       `_verify`: yes/no if "yes" and a CHKSUM is specified for an entry the file will be checked: Default: "no"
+#       `_in_dl_mirrors`: reference var: Array of mirror sites which will be checked first to download ftp|http|https sources
+#       `_in_filter_protocols`: a reference var: An associative array with `PROTOCOL` names as keys.
+#           Only these protocols sources will be deleted:
+#           DEFAULTS TO: declare -A FILTER=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+#       `_download_prog`:       The download agent used to fetch ftp|http|https source files: `curl` or `wget`
+#       `_download_prog_opts`:  Options to pass to the download agent: see function 'do_download_file()'
+#
+#   USAGE
+#       declare -A FILTER=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+#       do_downloadable_source SCRMTX
+#       do_downloadable_source SCRMTX "$VERIFY_CHKSUM" DOWNLOAD_MIRRORS FILTER
+#       do_downloadable_source SCRMTX "$VERIFY_CHKSUM" DOWNLOAD_MIRRORS FILTER "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
+#******************************************************************************************************************************
+do_downloadable_source() {
+    local _fn="do_downloadable_source"
+    local -n _in_do_scrmtx=$1
+    local _verify=${2:-"no"}
+    if [[ -n $3 ]]; then
+        local -n _in_dl_mirrors=$3
+    else
+        local _in_dl_mirrors=()
+    fi
+    if [[ -n $4 ]]; then
+        local -n _in_filter_protocols=$4
+    else
+        declare -A _in_filter_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+    fi
+    local _download_prog=${5:-"wget"}
+    local _download_prog_opts=${6:-""}
+    declare -i _n
+    local _in_filter_protocols_keys_string _entry _protocol _destpath _file_checksum
+
+    if [[ -v _in_filter_protocols["local"] ]]; then
+        _in_filter_protocols_keys_string=${!_in_filter_protocols[@]}
+        ms_abort "$_fn" "$(gettext "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <%s>")" \
+            "$_in_filter_protocols_keys_string"
+    fi
+
+    if [[ ! -v _in_do_scrmtx[NUM_IDX] ]]; then
+        ms_abort "$_fn" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+    fi
+
+    for (( _n=1; _n <= ${_in_do_scrmtx[NUM_IDX]}; _n++ )); do
+        _entry=${_in_do_scrmtx[$_n:ENTRY]}
+        _destpath=${_in_do_scrmtx[$_n:DESTPATH]}
+        _protocol="${_in_do_scrmtx[$_n:PROTOCOL]}"
+        if [[ -v _in_filter_protocols["$_protocol"] ]]; then
+            case "$_protocol" in
+                ftp|http|https)
+                     do_download_file $_n _in_do_scrmtx "$_verify" _in_dl_mirrors "$_download_prog" "$_download_prog_opts" ;;
+                git) do_download_git $_n  _in_do_scrmtx ;;
+                svn) do_download_svn $_n  _in_do_scrmtx ;;
+                hg)  do_download_hg $_n  _in_do_scrmtx  ;;
+                bzr) do_download_bzr $_n  _in_do_scrmtx ;;
+                *) _in_filter_protocols_keys_string=${!_in_filter_protocols[@]}
+                    ms_abort "$_fn" "$(gettext "The protocol: '%s' is not in the '_in_filter_protocol array keys': <%s>")" \
+                        "$_protocol" "$_in_filter_protocols_keys_string"
+            esac
+        fi
+    done
+}
+
+
+#******************************************************************************************************************************
 # Main download entry function:     IMPORTANT: for more info see the individual download functions and the tests folder.
 #
 #   ARGUMENTS
@@ -351,8 +422,8 @@ do_download_svn() {
     local _ref="HEAD"
     local _origin_uri=""
     local _tmp_var
-    
-    
+
+
     if [[ ${_in_do_scrmtx_s[$_idx:PROTOCOL]} != svn ]]; then
         ms_abort "$_fn" "$(gettext "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_in_do_scrmtx_s[$_idx:PROTOCOL]}" "$_entry"
     fi

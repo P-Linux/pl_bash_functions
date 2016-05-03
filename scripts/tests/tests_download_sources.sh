@@ -31,6 +31,90 @@ do_got_download_programs_abort
 
 
 #******************************************************************************************************************************
+# TEST: do_downloadable_source()
+#******************************************************************************************************************************
+ts_do___do_downloadable_source() {
+    te_print_function_msg "ts_do___do_downloadable_source()"
+    local _fn="ts_do___do_downloadable_source"
+    local _tmp_dir=$(mktemp -d)
+    local _pkgfile_fullpath="${_tmp_dir}/ports/dummy/Pkgfile"
+    local _srcdst_dir="${_tmp_dir}/cards_mk/sources"
+    local _srcdst_dir2="${_tmp_dir}/cards_mk2/sources"
+    local _output _sources _checksums _download_mirrors
+    declare -A _scrmtx
+    declare -A _protocol_filter
+    declare -i _n
+
+    # Create files/folders
+    mkdir -p "$(dirname $_pkgfile_fullpath)"
+    touch "$_pkgfile_fullpath"
+    mkdir -p "$_srcdst_dir"
+    mkdir -p "$_srcdst_dir2"
+
+    _scrmtx=()
+    _sources=("http://dummy_uri.existing.files/md5sum_testfile.txt")
+    _checksums=("251aadc2351abf85b3dbfe7261f06218")
+    _output=$((do_downloadable_source _scrmtx "yes") 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output"\
+        "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'"
+
+    _download_mirrors=()
+    _protocol_filter=(["ftp"]=0 ["local"]=0)
+    _output=$((do_downloadable_source _scrmtx  "yes" _download_mirrors _protocol_filter) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output" \
+        "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <ftp local>"
+
+    _scrmtx=()
+    _sources=("http://dummy_uri.existing.files/md5sum_testfile.txt")
+    _checksums=("251aadc2351abf85b3dbfe7261f06218")
+    so_prepare_src_matrix _scrmtx _sources _checksums "$_pkgfile_fullpath" "$_srcdst_dir" &> /dev/null
+    # need to redo 'cp' as it gets removed if there was an error
+    cp -f "${_TEST_SCRIPT_DIR}/files/md5sum_testfile.txt" "${_srcdst_dir}/md5sum_testfile.txt"
+    _output=$((do_downloadable_source _scrmtx "yes") 2>&1)
+    te_find_info_msg _COUNT_OK _COUNT_FAILED "$_output" "====> Found ftp|http|https source file" \
+        "Test existing file source correct checksum (verify checksum yes)."
+
+    # use _srcdst_dir2
+    _scrmtx=()
+    _sources=("NOEXTRACT::http://download.savannah.gnu.org/releases/acl/acl-2.2.52.src.tar.gz")
+    _checksums=("a61415312426e9c2212bd7dc7929abda")
+    _protocol_filter=(["ftp"]=0 ["http"]=0)
+    so_prepare_src_matrix _scrmtx _sources _checksums "$_pkgfile_fullpath" "$_srcdst_dir2" &> /dev/null
+    _output=$((do_downloadable_source _scrmtx "yes" _download_mirrors _protocol_filter) 2>&1)
+    _ret=$?
+    if [[ $_output == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
+        te_warn "$_fn" "Internet access is REQUIRED for this test."
+    fi
+    te_retval_0 _COUNT_OK _COUNT_FAILED $_ret "Test checksum verification but no download_mirrors."
+    _destpath=${_scrmtx[1:DESTPATH]}
+
+    rm -rf "$_destpath"
+    if [[ -f $_destpath ]]; then
+        te_warn "$_fn" "File should not exist for this test: <_destpath>"
+    fi
+
+    _scrmtx=()
+    _sources=("NOEXTRACT::http://download.savannah.gnu.org/releases/acl/acl-2.2.52.src.tar.gz")
+    _checksums=("a61415312426e9c2212bd7dc7929abda")
+    _protocol_filter=(["ftp"]=0)
+    so_prepare_src_matrix _scrmtx _sources _checksums "$_pkgfile_fullpath" "$_srcdst_dir2" &> /dev/null
+    _output=$((do_downloadable_source _scrmtx "no" _download_mirrors _protocol_filter) 2>&1)
+    _ret=$?
+    if [[ $_output == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
+        te_warn "$_fn" "Internet access is REQUIRED for this test."
+    fi
+    te_retval_0 _COUNT_OK _COUNT_FAILED $_ret "Test protocol not in _protocol_filter."
+    _destpath=${_scrmtx[1:DESTPATH]}
+    [[ -f $_destpath ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test protocol not in _protocol_filter.: file should not have been downloaded."
+
+    # CLEAN UP
+    rm -rf "$_tmp_dir"
+}
+ts_do___do_downloadable_source
+
+
+#******************************************************************************************************************************
 # TEST: do_download_source() file general
 #******************************************************************************************************************************
 ts_do___do_download_source_file_general() {
