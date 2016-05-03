@@ -1,0 +1,3 @@
+if [[ "a" == "a" ]]; then
+    echo "DUMMY example_port.pre-install"
+fi

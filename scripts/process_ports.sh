@@ -118,5 +118,53 @@ pr_remove_existing_pkg_archives() {
 
 
 #******************************************************************************************************************************
+# Remove downloaded sources.
+#
+#   ARGUMENTS
+#       `_in_pr_rds_scrmtx`: reference var: Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
+#
+#   OPTIONAL ARGUMENTS
+#       `_in_filter_protocols`: a reference var: An associative array with `PROTOCOL` names as keys.
+#           Only these protocols sources will be deleted: 
+#           DEFAULTS TO: declare -A FILTER=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+#
+#   USAGE
+#       declare -A FILTER=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+#       pr_remove_downloaded_sources SCRMTX FILTER
+#******************************************************************************************************************************
+pr_remove_downloaded_sources() {
+    local _fn="pr_remove_downloaded_sources"
+    local -n _in_pr_rds_scrmtx=$1
+    if [[ -n $2 ]]; then
+        local -n _in_filter_protocols=$2
+    else
+        declare -A _in_filter_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+    fi
+    local _in_filter_protocols_keys_string _destpath _protocol
+    declare -i _n
+
+    if [[ -v _in_filter_protocols["local"] ]]; then
+        _in_filter_protocols_keys_string=${!_in_filter_protocols[@]}
+        ms_abort "$_fn" "$(gettext "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <%s>")" \
+            "$_in_filter_protocols_keys_string"
+    fi
+
+    if [[ ! -v _in_pr_rds_scrmtx[NUM_IDX] ]]; then
+        ms_abort "$_fn" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+    fi
+
+    for (( _n=1; _n <= ${_in_pr_rds_scrmtx[NUM_IDX]}; _n++ )); do
+        if [[ -v _in_filter_protocols["${_in_pr_rds_scrmtx[$_n:PROTOCOL]}"] ]]; then
+            _destpath=${_in_pr_rds_scrmtx[$_n:DESTPATH]}
+            if [[ -e "$_destpath" ]]; then
+                ms_more_i "$(gettext "Removing source <%s>")" "$_destpath"
+                rm -rf "$_destpath"
+            fi
+        fi
+    done
+}
+
+
+#******************************************************************************************************************************
 # End of file
 #******************************************************************************************************************************

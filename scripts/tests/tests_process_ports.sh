@@ -21,6 +21,7 @@ source "${_TEST_SCRIPT_DIR}/../msg.sh"
 ms_format "$_THIS_SCRIPT_PATH"
 
 source "${_TEST_SCRIPT_DIR}/../utilities.sh"
+ut_source_safe_abort "${_TEST_SCRIPT_DIR}/../source_matrix.sh"
 ut_source_safe_abort "${_TEST_SCRIPT_DIR}/../process_ports.sh"
 
 declare -i _COUNT_OK=0
@@ -172,6 +173,74 @@ ts_pk___pr_remove_existing_pkg_archives() {
 }
 ts_pk___pr_remove_existing_pkg_archives
 
+
+#******************************************************************************************************************************
+# TEST: pr_remove_downloaded_sources()
+#******************************************************************************************************************************
+ts_pk___pr_remove_downloaded_sources() {
+    te_print_function_msg "pr_remove_downloaded_sources()"
+    local _fn="ts_pk___pr_remove_downloaded_sources"
+    local _tmp_dir=$(mktemp -d)
+    local _ports_dir="${_tmp_dir}/ports"
+    local _pkgfile_fullpath="${_tmp_dir}/${_ports_dir}/example_port/Pkgfile"
+    local _srcdst_dir="${_tmp_dir}/cards_mk/sources"
+    local _output _sources _checksums
+    declare -A _scrmtx
+    declare -A _filter
+    declare -i _n
+
+    # Create files/folders
+    mkdir -p "$_ports_dir"
+    mkdir -p "$_srcdst_dir"
+    cp -rf "${_TEST_SCRIPT_DIR}/files/example_port" "${_tmp_dir}/ports"
+
+    _scrmtx=()
+    _sources=("ftp://dummy_uri.existing.files/dummy_source_file.tar.xz"
+        "dummy_source_file2.tar.bz2::http://dummy_uri.existing.files/dummy_source_file-1.2.34.tar.bz2"
+        "example_port.patch1")
+    _checksums=("2987a55e31c80f189a2868ada1cf31df"
+        "fd096ad1c3fa5975c5619488165c625b"
+        "01530b8c0b67b5a2a2a46f4c5943a345")
+    so_prepare_src_matrix _scrmtx _sources _checksums "$_pkgfile_fullpath" "$_srcdst_dir" &> /dev/null
+    
+    # need to redo 'cp' as it gets removed if there was an error
+    cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file.tar.xz" "${_srcdst_dir}/dummy_source_file.tar.xz"
+    cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file2.tar.bz2" "${_srcdst_dir}/dummy_source_file2.tar.bz2"
+    if [[ ! -f "${_srcdst_dir}/dummy_source_file.tar.xz" || ! -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]; then
+        te_warn "$_fn" "Can not find the expected testfile for this test-case."
+    fi
+    (pr_remove_downloaded_sources _scrmtx) &> /dev/null
+    [[ -f "${_srcdst_dir}/dummy_source_file.tar.xz" || -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test the 2 source files are removed."
+
+    # need to redo 'cp' as it gets removed if there was an error
+    cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file.tar.xz" "${_srcdst_dir}/dummy_source_file.tar.xz"
+    cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file2.tar.bz2" "${_srcdst_dir}/dummy_source_file2.tar.bz2"
+    if [[ ! -f "${_srcdst_dir}/dummy_source_file.tar.xz" || ! -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]; then
+        te_warn "$_fn" "Can not find the expected testfile for this test-case."
+    fi
+    _filter=(["ftp"]=0)
+    (pr_remove_downloaded_sources _scrmtx _filter) &> /dev/null
+    [[ -f "${_srcdst_dir}/dummy_source_file.tar.xz" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test the 1 source file which is in protocol _filter is removed."
+
+    [[ -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test the 1 source file which is not in protocol _filter is kept."
+
+    _filter=(["ftp"]=0 ["local"]=0)
+    _output=$((pr_remove_downloaded_sources _scrmtx _filter) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output" \
+        "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <ftp local>"
+
+    _scrmtx=()
+    _output=$((pr_remove_downloaded_sources _scrmtx) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output"\
+        "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'"
+
+    # CLEAN UP
+    rm -rf "$_tmp_dir"
+}
+ts_pk___pr_remove_downloaded_sources
 
 
 #******************************************************************************************************************************

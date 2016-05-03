@@ -1,0 +1,18 @@
+pkgpackager="Package 'Packager' variable MUST NOT be empty."
+pkgdesc="Package 'Description variable MUST NOT be empty."
+pkgurl=""
+pkgdeps=()
+
+pkgvers=0.1.0 
+pkgrel=1
+pkgsources=("ftp://dummy_uri.existing.files/dummy_source_file.tar.xz"
+    "dummy_source_file2.tar.bz2::http://dummy_uri.existing.files/dummy_source_file-1.2.34.tar.bz2"
+    "example_port.patch1")
+    
+pkgmd5sums=("2987a55e31c80f189a2868ada1cf31df"
+    "fd096ad1c3fa5975c5619488165c625b"
+    "01530b8c0b67b5a2a2a46f4c5943a345")
+
+build() {
+    _a="Package 'build' function is REQUIRED."
+}
