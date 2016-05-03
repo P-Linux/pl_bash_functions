@@ -42,7 +42,6 @@ pk_unset_official_pkgfile_variables() {
 #
 #   ARGUMENTS
 #       `_ret_collection_ports_lookup`: a reference var: an empty associative array which will be updated with the ports names
-#                                      if not empty it will be first overwritten with an empty one.
 #       `_reference_pkgfile_name`: A reference Pkgfile name which must exist in a valid port folder
 #       `_in_registered_collections_l` a reference var
 #               A `REGISTERED_COLLECTIONS` array item must specify the full path to a collection of ports directories. e.g
@@ -164,7 +163,6 @@ pk_prepare_collections_lookup() {
 #
 #   ARGUMENTS
 #       `_ret_pkgfiles_to_process`: a reference var: an empty index array which will be updated with absolute Pkgfile path.
-#                                      if not empty it will be first overwritten with an empty one.
 #       `_reference_pkgfile_name`: A reference name for a pkgfile - used to search for valid ports
 #       `_in_portslist`: a reference var: a array of registered collection port names or absolute path to ports: e.g.
 #               CMK_PORTSLIST=(
@@ -473,7 +471,6 @@ pk_source_validate_pkgfile() {
         fi
     done
 }
-
 
 
 #******************************************************************************************************************************
