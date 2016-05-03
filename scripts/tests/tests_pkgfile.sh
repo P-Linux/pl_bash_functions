@@ -367,7 +367,7 @@ ts_pk___pk_source_validate_pkgfile() {
     te_print_function_msg "pk_source_validate_pkgfile()"
     local _testdir="${_TEST_SCRIPT_DIR}"
     local  _required_func_names=("build")
-    local _cmk_groups_func_names=("lib" "devel" "doc" "man" "service")
+    declare -A _cmk_groups_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
     local _output _pkgfile
     declare -a _cmk_groups
 

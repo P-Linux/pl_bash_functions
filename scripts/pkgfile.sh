@@ -384,8 +384,10 @@ pk_validate_pkgfile_port_path_name() {
 #   ARGUMENTS
 #       `_pkgfile_path`: absolute path to the pkgfile: for test purpose it is not required that the path exists
 #       `_in_cmk_required_function_names`: a reference var: An index array with the required `Pkgfile` function names
-#       `_in__cmk_groups_default_function_names`: a reference var: An index array with the default `CMK_GROUP` function names
-#
+#       `_in__cmk_groups_default_function_names`: a reference var: An associative array with the default `CMK_GROUP` function 
+#           names as keys. 
+#           e.g. declare -A _cmk_groups_default_function_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
+#   
 #   OPTIONAL ARGS:
 #       `_in_cmk_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile:
 #                         will be validated
@@ -411,7 +413,7 @@ pk_source_validate_pkgfile() {
     # unset all official related variable
     pk_unset_official_pkgfile_variables
     ut_unset_functions _in_cmk_required_function_names
-    ut_unset_functions _in__cmk_groups_default_function_names
+    ut_unset_functions2 _in__cmk_groups_default_function_names  # NEED ut_unset_functions2 for associative array
 
     ut_source_safe_abort "$_pkgfile_path"
 
@@ -459,7 +461,7 @@ pk_source_validate_pkgfile() {
 
     #### Check CMK_GROUPS function exist
     for _func in "${_in_cmk_groups[@]}"; do
-        if ! ut_got_function "$_func" && ! ut_in_array "$_func" _in__cmk_groups_default_function_names; then
+        if ! ut_got_function "$_func" && [[ ! -v _in__cmk_groups_default_function_names["$_func"] ]]; then
             ms_abort "$_fn" "$(gettext "CMK_GROUPS Function '%s' not specified in File: <%s>")" "$_func" "$_pkgfile_path"
         fi
     done
