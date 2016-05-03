@@ -6,6 +6,9 @@
 
 ## v0.9.1 (xxxx-xx-xx)
 
+* some speed improvements
+* new `process_ports` functions
+
 
 ## v0.9.0 (2016-05-02)
 
