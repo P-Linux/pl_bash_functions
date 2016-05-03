@@ -91,7 +91,7 @@ do_got_download_programs_abort() {
 #
 #   USAGE
 #       do_download_source SCRMTX
-#       do_download_source SCRMTX "$VERYFY_CHKSUM" DOWNLOAD_MIRRORS "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
+#       do_download_source SCRMTX "$VERIFY_CHKSUM" DOWNLOAD_MIRRORS "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
 #******************************************************************************************************************************
 do_download_source() {
     local _fn="do_download_source"
@@ -159,8 +159,8 @@ do_download_source() {
 #       `_download_prog_opts`:  Options to pass to the download agent: see function 'do_download_file()'
 #
 #   USAGE
-#       do_download_file $NUM_IDX SCRMTX "$VERYFY_CHKSUM"
-#       do_download_file  $NUM_IDX SCRMTX "$VERYFY_CHKSUM" DOWNLOAD_MIRRORS "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
+#       do_download_file $NUM_IDX SCRMTX "$VERIFY_CHKSUM"
+#       do_download_file  $NUM_IDX SCRMTX "$VERIFY_CHKSUM" DOWNLOAD_MIRRORS "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
 #******************************************************************************************************************************
 do_download_file() {
 
