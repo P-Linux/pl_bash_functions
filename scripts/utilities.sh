@@ -1083,7 +1083,7 @@ ut_got_function() {
 
 
 #******************************************************************************************************************************
-# Unset functions.
+# Unset functions by names: using an index array.
 #
 #   ARGUMENTS
 #           `_function_names`: a reference var: An index array with the function names
@@ -1097,6 +1097,26 @@ ut_unset_functions() {
     local _func_name
 
     for _func_name in "${_in_array[@]}"; do
+        unset -f $_func_name
+    done
+}
+
+
+#******************************************************************************************************************************
+# Unset functions by names: using an associative array keys name.
+#
+#   ARGUMENTS
+#           `_function_names`: a reference var: An associative array with the function names as keys
+#
+#   USAGE
+#       declare -A FUNCTIONS_TO_UNSET=([prepare]=0 [build]=0 [pack]=0)
+#       ut_unset_functions FUNCTIONS_TO_UNSET
+#******************************************************************************************************************************
+ut_unset_functions2() {
+    local -n _in_array=$1
+    local _func_name
+
+    for _func_name in "${!_in_array[@]}"; do
         unset -f $_func_name
     done
 }

@@ -1115,6 +1115,46 @@ ts_ut___ut_unset_functions
 
 
 #******************************************************************************************************************************
+# TEST: ut_unset_functions2()
+#******************************************************************************************************************************
+ts_ut___ut_unset_functions2() {
+    te_print_function_msg "ut_unset_functions2()"
+    local _fn="ts_ut___ut_unset_functions2"
+    declare -A _functions_to_unset=(["test_func1"]=0 ["test_func3"]=0 ["undefined_function"]=0)
+
+    unset -f test_func1 test_func2 test_func3 undefined_function
+
+    test_func1() {
+        local _a="test function 1"
+    }
+
+    test_func2() {
+        local _a="test function 2"
+    }
+
+    test_func3() {
+        local _a="test function 3"
+    }
+
+    # Check we got all 3 functions
+    ut_got_function "test_func1" || ms_warn2 "$_fn" Expected to have a function named: "test_func1"
+    ut_got_function "test_func2" || ms_warn2 "$_fn" Expected to have a function named: "test_func2"
+    ut_got_function "test_func3" || ms_warn2 "$_fn" Expected to have a function named: "test_func3"
+
+    ut_unset_functions2 _functions_to_unset
+
+    (ut_got_function "test_func1")
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "unset <test_func1> defined in array: Test if it is afterwards set?."
+
+    (ut_got_function "test_func2")
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "unset <test_func2> not defined in array: Test if it is afterwards still set?."
+
+    unset -f test_func1 test_func2 test_func3 undefined_function
+}
+ts_ut___ut_unset_functions2
+
+
+#******************************************************************************************************************************
 # TEST: ut_source_safe_abort()
 #******************************************************************************************************************************
 ts_ut___ut_source_safe_abort() {
