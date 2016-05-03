@@ -105,7 +105,7 @@ do_download_source() {
     local _download_prog=${4:-"wget"}
     local _download_prog_opts=${5:-""}
     declare -i _n
-    local _entry _protocol _destpath _file_checksum
+    local _entry _destpath _file_checksum
 
     if [[ ! -v _in_do_scrmtx[NUM_IDX] ]]; then
         ms_abort "$_fn" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
