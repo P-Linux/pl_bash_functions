@@ -74,13 +74,13 @@ _dir=`dirname "/home/me/test/myscript.sh"`
 _a="yes exit"
 
 # YES
-if [[ $_a == "yes exit" ]]; then exit 1; fi
+if [[ ${_a} == "yes exit" ]]; then exit 1; fi
 
 # NO
-if [ "$_a" == "yes exit" ]; then exit 1; fi
+if [ "${_a}" == "yes exit" ]; then exit 1; fi
 
 # ERROR: too many arguments
-if [ $_a == "yes exit" ]; then exit 1; fi
+if [ ${_a} == "yes exit" ]; then exit 1; fi
 ```
 
 
@@ -95,7 +95,7 @@ _a="test"
 if [[ ${_a} == "yes exit" ]]; then exit 1; fi
 
 # NO
-if [ $_a == "yes exit" ]; then exit 1; fi
+if [[ $_a == "yes exit" ]]; then exit 1; fi
 ```
 
 
@@ -124,16 +124,17 @@ _a="yes exit"
 _b=$_a
 
 # YES
-if [[ $_a == "yes exit" ]]; then exit 1; fi
+if [[ ${_a} == "yes exit" ]]; then exit 1; fi
 
-if [[ $_a == $_b ]]; then exit 1; fi
+if [[ ${_a} == ${_b} ]]; then exit 1; fi
 
 # NO
-if [[ "$_a" == "yes exit" ]]; then exit 1; fi
+if [[ "${_a}" == "yes exit" ]]; then exit 1; fi
 
-if [[ "$_a" == "$_b" ]]; then exit 1; fi
+if [[ "${_a}" == "${_b}" ]]; then exit 1; fi
 
 ```
+
 
 ### Variables Unquoted In Right Hand Assignment
 
@@ -186,8 +187,8 @@ _c+=("appended")
 In general return statements will add always a return value: success (0), failure (1-255)
 
 ```bash
-_v="yes"
-if [[ $_V == yes ]]; then
+_V="yes"
+if [[ ${_V} == yes ]]; then
     return 0
 else
     do_something_else
@@ -200,22 +201,23 @@ fi
 In general this syntax is used: TEST if FAILED: `(( $? ))`
 
 ```bash
-_ret=$?
-(( _ret )) && printf "%s\n" "COMMAND FAILED"
+[[ "a" == "b" ]]
+_ret=${?}
+(( ${_ret} )) && printf "%s\n" "COMMAND FAILED"
 
 # multiple statements (be careful with the `front/end spaces` and end `;`).
-_ret=$?
-(( _ret )) && { printf "%s\n" "COMMAND FAILED"; exit 1; }
+_ret=${?}
+(( ${_ret} )) && { printf "%s\n" "COMMAND FAILED"; exit 1; }
 ```
 
 ```bash
-_check_failed=$?
+_check_failed=${?}
 
 # Return on success
-(( _ret )) || return 0
+(( ${_ret} )) || return 0
 
 # OR Simple
-(( $? )) || return 0
+(( ${?} )) || return 0
 ```
 
 
@@ -270,15 +272,15 @@ local _result; function_1 _result "argument1"
 
     Only for demonstartion: this does not work: traditional usage
 
-        _tmp_uri=$(ut_get_prefix_shortest_all "$_entry" "#")
-        (( $_num_prefix_sep > 0 )) && _tmp_uri=$(ut_get_postfix_shortest_empty "$_tmp_uri" "::")
-        _uri=$(ut_get_postfix_longest_all "$_tmp_uri" "+")
+        _tmp_uri=$(ut_get_prefix_shortest_all "${_entry}" "#")
+        (( ${_num_prefix_sep} > 0 )) && _tmp_uri=$(ut_get_postfix_shortest_empty "${_tmp_uri}" "::")
+        _uri=$(ut_get_postfix_longest_all "${_tmp_uri}" "+")
 
     Speed improved usage
 
-        ut_get_prefix_shortest_all _tmp_uri "$_entry" "#"
-        (( $_num_prefix_sep > 0 )) && ut_get_postfix_shortest_empty _tmp_uri "$_tmp_uri" "::"
-        ut_get_postfix_longest_all _uri "$_tmp_uri" "+"
+        ut_get_prefix_shortest_all _tmp_uri "${_entry}" "#"
+        (( ${_num_prefix_sep} > 0 )) && ut_get_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+        ut_get_postfix_longest_all _uri "${_tmp_uri}" "+"
 
 
 !!! warning

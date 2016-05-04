@@ -25,7 +25,7 @@ shopt -s extglob
 #
 #     source "/path_to/trap_exit.sh"
 #
-#     for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\"" "$_signal"; done
+#     for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\"" "${_signal}"; done
 #     trap "tr_trap_exit_interrupted" INT
 #     trap "tr_trap_exit_unknown_error" ERR
 #
@@ -33,16 +33,16 @@ shopt -s extglob
 #
 #     source "/path_to/trap_exit.sh"
 #
-#     for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\" \"customary_cleanup_function_name\"" "$_signal"; done
-#     trap "tr_trap_exit_interrupted \"customary_cleanup_function_name\"" INT
-#     trap "tr_trap_exit_unknown_error \"customary_cleanup_function_name\"" ERR
+#     for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\" \"own_cleanup_function_name\"" "${_signal}"; done
+#     trap "tr_trap_exit_interrupted \"own_cleanup_function_name\"" INT
+#     trap "tr_trap_exit_unknown_error \"own_cleanup_function_name\"" ERR
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
 # to enabled it set:
 #
 #   for _signal in TERM HUP QUIT; do
-#       trap "tr_trap_exit \"$_signal\"" "$_signal"
+#       trap "tr_trap_exit \"${_signal}\"" "${_signal}"
 #   done
 #
 #   ARGUMENTS
@@ -56,7 +56,7 @@ tr_trap_exit() {
     # unhook all traps to avoid race conditions
     trap '' EXIT TERM HUP QUIT INT ERR
 
-    local _exit_signal=$1
+    local _exit_signal=${1}
     local _func_name=${2:-""}
     local _ms_all_off=$(tput sgr0)
     local _ms_bold=$(tput bold)
@@ -66,17 +66,17 @@ tr_trap_exit() {
     local _abort_text=$(gettext "ABORTING....from:")
     local _abort_msg=$(gettext "signal caught. Exiting...")
 
-    printf "${_ms_magenta}\n\n=======> ${_abort_text}${_ms_all_off}${_ms_blue} <$_fn> ${_ms_all_off}\n" >&2
-    printf "${_ms_red}    -> ${_ms_all_off}${_ms_bold}ERROR: '$_exit_signal' ${_abort_msg}${_ms_all_off}\n\n" >&2
+    printf "${_ms_magenta}\n\n=======> ${_abort_text}${_ms_all_off}${_ms_blue} <${_fn}> ${_ms_all_off}\n" >&2
+    printf "${_ms_red}    -> ${_ms_all_off}${_ms_bold}ERROR: '${_exit_signal}' ${_abort_msg}${_ms_all_off}\n\n" >&2
 
-    if [[ -n $_func_name ]]; then
-        if (declare -f "$_func_name" >/dev/null); then
+    if [[ -n ${_func_name} ]]; then
+        if (declare -f "${_func_name}" >/dev/null); then
             printf "$(gettext "      ${_ms_bold}-> Running function: <%s>${_ms_all_off} before exit.${_ms_all_off}")\n\n" \
-                "$_func_name"
-            $_func_name
+                "${_func_name}"
+            ${_func_name}   # Run it
         else
-            printf "$(gettext "\nCODE-ERROR: FUNCTION: %s(): Could not find the specified function: <%s>")\n\n" "$_fn" \
-                "$_func_name" >&2
+            printf "$(gettext "\nCODE-ERROR: FUNCTION: %s(): Could not find the specified function: <%s>")\n\n" "${_fn}" \
+                "${_func_name}" >&2
         fi
     fi
     exit 1
@@ -103,17 +103,17 @@ tr_trap_exit_interrupted() {
     local _abort_text=$(gettext "ABORTING....from:")
     local _abort_msg=$(gettext "Aborted by user! Exiting...")
 
-    printf "${_ms_magenta}\n\n=======> ${_abort_text}${_ms_all_off}${_ms_blue} <$_fn> ${_ms_all_off}\n" >&2
+    printf "${_ms_magenta}\n\n=======> ${_abort_text}${_ms_all_off}${_ms_blue} <${_fn}> ${_ms_all_off}\n" >&2
     printf "${_ms_red}    -> ${_ms_all_off}${_ms_bold}${_abort_msg}${_ms_all_off}\n\n" >&2
 
-    if [[ -n $_func_name ]]; then
-        if (declare -f "$_func_name" >/dev/null); then
+    if [[ -n ${_func_name} ]]; then
+        if (declare -f "${_func_name}" >/dev/null); then
             printf "$(gettext "      ${_ms_bold}-> Running function: <%s>${_ms_all_off} before exit.${_ms_all_off}")\n\n" \
-                "$_func_name"
-            $_func_name
+                "${_func_name}"
+            ${_func_name}  # Run it
         else
-            printf "$(gettext "\nCODE-ERROR: FUNCTION: %s(): Could not find the specified function: <%s>")\n\n" "$_fn" \
-                "$_func_name" >&2
+            printf "$(gettext "\nCODE-ERROR: FUNCTION: %s(): Could not find the specified function: <%s>")\n\n" "${_fn}" \
+                "${_func_name}" >&2
         fi
     fi
     exit 1
@@ -140,23 +140,21 @@ tr_trap_exit_unknown_error() {
     local _abort_text=$(gettext "ABORTING....from:")
     local _abort_msg=$(gettext "An unknown error has occurred. Exiting...")
 
-    printf "${_ms_magenta}\n\n=======> ${_abort_text}${_ms_all_off}${_ms_blue} <$_fn> ${_ms_all_off}\n" >&2
+    printf "${_ms_magenta}\n\n=======> ${_abort_text}${_ms_all_off}${_ms_blue} <${_fn}> ${_ms_all_off}\n" >&2
     printf "${_ms_red}    -> ${_ms_all_off}${_ms_bold}${_abort_msg}${_ms_all_off}\n\n" >&2
 
-    if [[ -n $_func_name ]]; then
-        if (declare -f "$_func_name" >/dev/null); then
+    if [[ -n ${_func_name} ]]; then
+        if (declare -f "${_func_name}" >/dev/null); then
             printf "$(gettext "      ${_ms_bold}-> Running function: <%s>${_ms_all_off} before exit.${_ms_all_off}")\n\n" \
-                "$_func_name"
-            $_func_name
+                "${_func_name}"
+            ${_func_name}    # Run it
         else
-            printf "$(gettext "\nCODE-ERROR: FUNCTION: %s(): Could not find the specified function: <%s>")\n\n" "$_fn" \
-                "$_func_name" >&2
+            printf "$(gettext "\nCODE-ERROR: FUNCTION: %s(): Could not find the specified function: <%s>")\n\n" "${_fn}" \
+                "${_func_name}" >&2
         fi
     fi
     exit 1
 }
-
-
 
 
 #******************************************************************************************************************************

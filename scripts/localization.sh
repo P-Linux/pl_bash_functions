@@ -39,42 +39,44 @@ shopt -s extglob
 #******************************************************************************************************************************
 lo_generate_pot_file() {
     local _fn="lo_generate_pot_file"
-    (( $# < 5 )) &&  ms_abort "$_fn" "$(gettext "FUNCTION '%s()': Requires AT LEAST '5' arguments. Got '%s'")" "$_fn" "$#"
-    local _in_srcfile=$(readlink -f "$1")
-    local _outdir=$(readlink -f "$2")
-    local _pkgname=$3
-    local _copyright=$4
-    local _copyright_start=$5
+    if (( ${#} < 5 )); then
+        ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires AT LEAST '5' arguments. Got '%s'")" "${_fn}" "${#}"
+    fi
+    local _in_srcfile=$(readlink -f "${1}")
+    local _outdir=$(readlink -f "${2}")
+    local _pkgname=${3}
+    local _copyright=${4}
+    local _copyright_start=${5}
     local _url=${6:-""}
     local _bugs_url=${7:-""}
-    local _src_basename; ut_basename _src_basename "$_in_srcfile"
-    local _src_dir; ut_dirname _src_dir "$_in_srcfile"
+    local _src_basename; ut_basename _src_basename "${_in_srcfile}"
+    local _src_dir; ut_dirname _src_dir "${_in_srcfile}"
     local _pot_file="${_outdir}/${_src_basename}.pot"
     local _current_year="$(date +%Y)"
-    if [[ -n $_url ]]; then
-        local _first_author_txt="$_copyright <$_url>. $_current_year."
+    if [[ -n ${_url} ]]; then
+        local _first_author_txt="${_copyright} <${_url}>. ${_current_year}."
     else
-        local _first_author_txt="$_copyright. $_current_year."
+        local _first_author_txt="${_copyright}. ${_current_year}."
     fi
     declare -i _ret
 
-    ms_msg "$(gettext "Generating original 'pot' file. Output-Dir: <%s>")" "$_outdir"
-    ms_more_i "$(gettext "Processing source-file: <%s>")" "$_in_srcfile"
+    ms_msg "$(gettext "Generating original 'pot' file. Output-Dir: <%s>")" "${_outdir}"
+    ms_more_i "$(gettext "Processing source-file: <%s>")" "${_in_srcfile}"
 
-    mkdir -p "$_outdir"
+    mkdir -p "${_outdir}"
     # remove any existing pot file
-    rm -f "$_pot_file"
+    rm -f "${_pot_file}"
 
-    pushd "$_src_dir" &> /dev/null
-    if [[ -n $_bugs_url ]]; then
-        xgettext --output "$_pot_file" --language=Shell --package-name="$_pkgname" --copyright-holder="$_copyright" \
-            --msgid-bugs-address="$_bugs_url" --from-code=UTF-8 --force-po --no-wrap "$_src_basename"
+    pushd "${_src_dir}" &> /dev/null
+    if [[ -n ${_bugs_url} ]]; then
+        xgettext --output "${_pot_file}" --language=Shell --package-name="${_pkgname}" --copyright-holder="${_copyright}" \
+            --msgid-bugs-address="${_bugs_url}" --from-code=UTF-8 --force-po --no-wrap "${_src_basename}"
     else
-        xgettext --output "$_pot_file" --language=Shell --package-name="$_pkgname" --copyright-holder="$_copyright" \
-            --from-code=UTF-8 --force-po --no-wrap "$_src_basename"
+        xgettext --output "${_pot_file}" --language=Shell --package-name="${_pkgname}" --copyright-holder="${_copyright}" \
+            --from-code=UTF-8 --force-po --no-wrap "${_src_basename}"
     fi
-    _ret=$?
-    (( _ret )) &&  ms_abort "$_fn" "$(gettext "Could not generate .pot' file. xgettext Error: '%s'")" "$_ret"
+    _ret=${?}
+    (( ${_ret} )) &&  ms_abort "${_fn}" "$(gettext "Could not generate .pot' file. xgettext Error: '%s'")" "${_ret}"
 
     # update the pot header
     sed -i.bak "
@@ -83,7 +85,7 @@ lo_generate_pot_file() {
             s|^\# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.|\# ${_first_author_txt}|;
             s|LL@li.org|${_url}|;
             s|charset=CHARSET|charset=UTF-8|;
-    " "$_pot_file"
+    " "${_pot_file}"
 
     rm -f "${_pot_file}.bak"
     popd &> /dev/null
@@ -107,54 +109,60 @@ lo_generate_pot_file() {
 #******************************************************************************************************************************
 lo_generate_po_files() {
     local _fn="lo_generate_pot_file"
-    (( $# < 6 )) &&  ms_abort "$_fn" "$(gettext "FUNCTION '%s()': Requires AT LEAST '6' arguments. Got '%s'")" "$_fn" "$#"
-    local -n _in_srcfiles=$1
-    local -n _in_utf8_languages=$2
-    local _outdir=$(readlink -f "$3")
-    local _pkgname=$4
-    local _copyright=$5
-    local _copyright_start=$6
+    if (( ${#} < 6 )); then
+        ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires AT LEAST '6' arguments. Got '%s'")" "${_fn}" "${#}"
+    fi
+    local -n _in_srcfiles=${1}
+    local -n _in_utf8_languages=${2}
+    local _outdir=$(readlink -f "${3}")
+    local _pkgname=${4}
+    local _copyright=${5}
+    local _copyright_start=${6}
     local _url=${7:-""}
     local _bugs_url=${8:-""}
     local  _srcfile _src_basename _pot_file _locale _only_locale
     declare -i _ret
 
-    ms_msg "$(gettext "Generating 'pot' file and corresponding 'po' files. Output-Dir: <%s>")" "$_outdir"
+    ms_msg "$(gettext "Generating 'pot' file and corresponding 'po' files. Output-Dir: <%s>")" "${_outdir}"
 
     for _srcfile in "${_in_srcfiles[@]}"; do
-        ut_basename _src_basename "$_srcfile"
+        ut_basename _src_basename "${_srcfile}"
         _pot_file="${_outdir}/${_src_basename}.pot"
-        lo_generate_pot_file "$_srcfile" "$_outdir" "$_pkgname" "$_copyright"  "$_copyright_start" "$_url" "$_bugs_url"
+        lo_generate_pot_file "${_srcfile}" "${_outdir}" "${_pkgname}" "${_copyright}" "${_copyright_start}" "${_url}" \
+            "${_bugs_url}"
 
         for _locale in "${_in_utf8_languages[@]}"; do
-            [[ $_locale == *".UTF-8" ]] || ms_abort "$_fn" "$(gettext "Only UTF-8 locale are supported: '%s'")" "$_locale"
+            [[ ${_locale} == *".UTF-8" ]] || ms_abort "${_fn}" "$(gettext "Only UTF-8 locale are supported: '%s'")" "${_locale}"
 
             _locale_po_dir="${_outdir}/${_locale}/LC_MESSAGES"
-            mkdir -p "$_locale_po_dir"
+            mkdir -p "${_locale_po_dir}"
 
-            ms_msg_i "$(gettext "Proccessing locale '%s'")" "$_locale"
+            ms_msg_i "$(gettext "Proccessing locale '%s'")" "${_locale}"
 
-            _empty_po_path="$_locale_po_dir/${_src_basename}_empty.po"
-            _final_po_path="$_locale_po_dir/${_src_basename}.po"
+            _empty_po_path="${_locale_po_dir}/${_src_basename}_empty.po"
+            _final_po_path="${_locale_po_dir}/${_src_basename}.po"
 
-            if [[ -f "$_final_po_path" ]]; then
-                msgmerge --update --backup=simple --no-wrap  "$_final_po_path" "$_pot_file"
-                _ret=$?
-                (( _ret )) &&  ms_abort "$_fn" "$(gettext "Could not update .po' file. 'msgmerge' Error: '%s'")" "$_ret"
+            if [[ -f ${_final_po_path} ]]; then
+                msgmerge --update --backup=simple --no-wrap  "${_final_po_path}" "${_pot_file}"
+                _ret=${?}
+                (( ${_ret} )) &&  ms_abort "${_fn}" "$(gettext "Could not update .po' file. 'msgmerge' Error: '%s'")" "${_ret}"
             else
-                rm -f "$_empty_po_path"
-                msginit  --no-wrap --no-translator --locale="$_locale" --input="$_pot_file"  --output-file="$_empty_po_path"
-                _ret=$?
-                (( _ret )) &&  ms_abort "$_fn" "$(gettext "Could not generate .po' file. 'msginit' Error: '%s'")" "$_ret"
+                rm -f "${_empty_po_path}"
+                msginit  --no-wrap --no-translator --locale="${_locale}" --input="${_pot_file}"  \
+                    --output-file="${_empty_po_path}"
+                _ret=${?}
+                if (( ${_ret} )); then
+                    ms_abort "${_fn}" "$(gettext "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
+                fi
 
                 # update the po header: use the whole defined local: e.g. de_DE
-                ut_get_prefix_longest_all _only_locale "$_locale" ".UTF-8"
+                ut_get_prefix_longest_all _only_locale "${_locale}" ".UTF-8"
                 sed -i.bak "
-                        s|^\"Last-Translator: Automatically generated|\"Last-Translator: $_copyright <${_url}>|;
+                        s|^\"Last-Translator: Automatically generated|\"Last-Translator: ${_copyright} <${_url}>|;
                         s|^\"Language-Team: none|\"Language-Team: LANGUAGE <${_url}>|;
                         s|^\"Language:.*|\"Language: ${_only_locale}\\\n\"|;
-                " "$_empty_po_path"
-                rm -f "$_empty_po_path.bak"
+                " "${_empty_po_path}"
+                rm -f "${_empty_po_path}.bak"
             fi
         done
     done

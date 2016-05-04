@@ -31,7 +31,7 @@ ut_min_number_args_abort() {
 # Checks if AT LEAST the required number of arguments were supplied: and are NOT empty
 #
 #   USAGE:
-#       ut_min_number_args_not_empty_abort "_example_func" 3 "$@"
+#       ut_min_number_args_not_empty_abort "_example_func" 3 "${@}"
 #******************************************************************************************************************************
 ut_min_number_args_not_empty_abort() {
     local _fn="ut_min_number_args_not_empty_abort"
@@ -43,7 +43,7 @@ ut_min_number_args_not_empty_abort() {
     ut_min_number_args_abort "${_caller_name}" ${_required_args} $(( ${#}- 2 ))
 
     for (( _n=0; _n < ${_required_args}; _n++ )); do
-        if [[ -z ${_function_args[$_n]} ]]; then
+        if [[ -z ${_function_args[${_n}]} ]]; then
             ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '%s': MUST NOT be empty")" "${_caller_name}" $((_n + 1))
         fi
     done
@@ -62,7 +62,7 @@ ut_exact_number_args_abort() {
 
 
 #******************************************************************************************************************************
-# Checks if the EXACT number of arguments were supplied     USAGE: ut_exact_number_args_not_empty_abort "_example_func" 3 "$@"
+# Checks if the EXACT number of arguments were supplied     USAGE: ut_exact_number_args_not_empty_abort "_example_func" 3 "${@}"
 #******************************************************************************************************************************
 ut_exact_number_args_not_empty_abort() {
     local _fn="ut_min_number_args_not_empty_abort"
@@ -74,7 +74,7 @@ ut_exact_number_args_not_empty_abort() {
     ut_exact_number_args_abort "${_caller_name}" ${_required_args}  $(( ${#}- 2 ))
 
     for (( _n=0; _n < ${_required_args}; _n++ )); do
-        if [[ -z ${_function_args[$_n]} ]]; then
+        if [[ -z ${_function_args[${_n}]} ]]; then
             ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '%s': MUST NOT be empty")" "${_caller_name}" $((_n + 1))
         fi
     done

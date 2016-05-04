@@ -16,7 +16,7 @@ declare -r _TEST_SCRIPT_DIR_ALL=$(dirname "${_THIS_SCRIPT_PATH_ALL}")
 declare -r _FUNCTIONS_DIR_ALL="${_TEST_SCRIPT_DIR_ALL}/../scripts"
 
 source "${_FUNCTIONS_DIR_ALL}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\"" "$_signal"; done
+for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\"" "${_signal}"; done
 trap "tr_trap_exit_interrupted" INT
 #DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
 

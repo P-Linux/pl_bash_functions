@@ -4,10 +4,17 @@
 ---
 
 
-## v0.9.1 (xxxx-xx-xx)
+## v0.9.2 (xxxx-xx-xx)
+
+*
+
+
+## v0.9.1 (2016-05-05)
 
 * some speed improvements
 * new `process_ports` functions
+* install scripts/tests in a *scripts/tests subfolder*
+* code style adjustments: use braces for variables
 
 
 ## v0.9.0 (2016-05-02)

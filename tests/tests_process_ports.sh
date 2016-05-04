@@ -11,7 +11,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="${_TEST_SCRIPT_DIR}/../scripts"
 
 source "${_FUNCTIONS_DIR}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\"" "$_signal"; done
+for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\"" "${_signal}"; done
 trap "tr_trap_exit_interrupted" INT
 # DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
 
@@ -19,7 +19,7 @@ source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "process_ports.sh"
 
 source "${_FUNCTIONS_DIR}/msg.sh"
-ms_format "$_THIS_SCRIPT_PATH"
+ms_format "${_THIS_SCRIPT_PATH}"
 
 source "${_FUNCTIONS_DIR}/utilities.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/source_matrix.sh"
@@ -43,14 +43,14 @@ ts_pk___pr_make_pkg_build_dir() {
     unset -v pkgdir srcdir
     _pkg_build_dir="${_tmp_dir}/test0"
     _output=$((pr_make_pkg_build_dir) 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output" "FUNCTION 'pr_make_pkg_build_dir()': Argument 1 MUST NOT be empty."
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "FUNCTION 'pr_make_pkg_build_dir()': Argument 1 MUST NOT be empty."
 
     unset -v pkgdir srcdir
     _pkg_build_dir="${_tmp_dir}/test1"
-    pr_make_pkg_build_dir "$_pkg_build_dir"
+    pr_make_pkg_build_dir "${_pkg_build_dir}"
     te_retval_0 _COUNT_OK _COUNT_FAILED _ret "Test pr_make_pkg_build_dir return OK."
 
-    [[ -n $pkgdir && -n $srcdir ]]
+    [[ -n ${pkgdir} && -n ${srcdir} ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test (pkgdir, srcdir) variables are set."
 
     [[ -d "${_pkg_build_dir}/pkg" && -d "${_pkg_build_dir}/src" ]]
@@ -59,19 +59,19 @@ ts_pk___pr_make_pkg_build_dir() {
     _tmp_pkg_build_dir_file="${_pkg_build_dir}/_tmp_pkg_build_dir_file"
     _tmp_pkgdir_file="${_pkg_build_dir}/pkg/_tmp_pkgdir_file"
     _tmp_srcdir_file="${_pkg_build_dir}/src/_tmp_pkgdir_file"
-    touch "$_tmp_pkg_build_dir_file"
-    touch "$_tmp_pkgdir_file"
-    touch "$_tmp_srcdir_file"
-    [[ -f $_tmp_pkg_build_dir_file &&  -f $_tmp_pkgdir_file && -f $_tmp_srcdir_file ]]
+    touch "${_tmp_pkg_build_dir_file}"
+    touch "${_tmp_pkgdir_file}"
+    touch "${_tmp_srcdir_file}"
+    [[ -f ${_tmp_pkg_build_dir_file} &&  -f ${_tmp_pkgdir_file} && -f ${_tmp_srcdir_file} ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test created files in: pkg_build_dir pkgdir and srcdir exist."
 
     unset -v pkgdir srcdir
-    pr_make_pkg_build_dir "$_pkg_build_dir"
-    [[ -f $_tmp_pkg_build_dir_file &&  -f $_tmp_pkgdir_file && -f $_tmp_srcdir_file ]]
+    pr_make_pkg_build_dir "${_pkg_build_dir}"
+    [[ -f ${_tmp_pkg_build_dir_file} &&  -f ${_tmp_pkgdir_file} && -f ${_tmp_srcdir_file} ]]
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test existing _pkg_build_dir was really first deleted."
 
     # CLEAN UP
-    rm -rf "$_tmp_dir"
+    rm -rf "${_tmp_dir}"
 }
 ts_pk___pr_make_pkg_build_dir
 
@@ -83,14 +83,14 @@ ts_pk___pr_get_existing_pkg_archives() {
     te_print_function_msg "pr_get_existing_pkg_archives()"
     local _tmp_dir=$(mktemp -d)
     local _port_name1="port1"
-    local _port_path1="${_tmp_dir}/_port_name1"
+    local _port_path1="${_tmp_dir}//${_port_name1}"
     local _arch="$(uname -m)"
     local _pkg_ext="cards.tar"
     local _pkg_archive
     local _targets=()
 
     # Make files
-    mkdir -p "$_port_path1"
+    mkdir -p "${_port_path1}"
     mkdir -p "${_port_path1}/subfolder"
 
     touch "${_port_path1}/README"
@@ -116,7 +116,7 @@ ts_pk___pr_get_existing_pkg_archives() {
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 4. pkg_archive file (in subfolder) in result array."
 
     # CLEAN UP
-    rm -rf "$_tmp_dir"
+    rm -rf "${_tmp_dir}"
 }
 ts_pk___pr_get_existing_pkg_archives
 
@@ -129,14 +129,14 @@ ts_pk___pr_remove_existing_pkg_archives() {
     local _fn="ts_pk___pr_remove_existing_pkg_archives"
     local _tmp_dir=$(mktemp -d)
     local _port_name1="port1"
-    local _port_path1="${_tmp_dir}/_port_name1"
+    local _port_path1="${_tmp_dir}/${_port_name1}"
     local _arch="$(uname -m)"
     local _pkg_ext="cards.tar"
     local _pkg_archive
     local _targets=()
 
     # Make files
-    mkdir -p "$_port_path1"
+    mkdir -p "${_port_path1}"
     mkdir -p "${_port_path1}/subfolder"
 
     touch "${_port_path1}/README"
@@ -170,7 +170,7 @@ ts_pk___pr_remove_existing_pkg_archives() {
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 4. pkg_archive file (in subfolder) was removed."
 
     # CLEAN UP
-    rm -rf "$_tmp_dir"
+    rm -rf "${_tmp_dir}"
 }
 ts_pk___pr_remove_existing_pkg_archives
 
@@ -191,8 +191,8 @@ ts_pk___pr_remove_downloaded_sources() {
     declare -i _n
 
     # Create files/folders
-    mkdir -p "$_ports_dir"
-    mkdir -p "$_srcdst_dir"
+    mkdir -p "${_ports_dir}"
+    mkdir -p "${_srcdst_dir}"
     cp -rf "${_TEST_SCRIPT_DIR}/files/example_port" "${_tmp_dir}/ports"
 
     _scrmtx=()
@@ -202,13 +202,13 @@ ts_pk___pr_remove_downloaded_sources() {
     _checksums=("2987a55e31c80f189a2868ada1cf31df"
         "fd096ad1c3fa5975c5619488165c625b"
         "01530b8c0b67b5a2a2a46f4c5943a345")
-    so_prepare_src_matrix _scrmtx _sources _checksums "$_pkgfile_fullpath" "$_srcdst_dir" &> /dev/null
+    so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdst_dir}" &> /dev/null
     
     # need to redo 'cp' as it gets removed if there was an error
     cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file.tar.xz" "${_srcdst_dir}/dummy_source_file.tar.xz"
     cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file2.tar.bz2" "${_srcdst_dir}/dummy_source_file2.tar.bz2"
     if [[ ! -f "${_srcdst_dir}/dummy_source_file.tar.xz" || ! -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]; then
-        te_warn "$_fn" "Can not find the expected testfile for this test-case."
+        te_warn "${_fn}" "Can not find the expected testfile for this test-case."
     fi
     (pr_remove_downloaded_sources _scrmtx) &> /dev/null
     [[ -f "${_srcdst_dir}/dummy_source_file.tar.xz" || -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]
@@ -218,7 +218,7 @@ ts_pk___pr_remove_downloaded_sources() {
     cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file.tar.xz" "${_srcdst_dir}/dummy_source_file.tar.xz"
     cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file2.tar.bz2" "${_srcdst_dir}/dummy_source_file2.tar.bz2"
     if [[ ! -f "${_srcdst_dir}/dummy_source_file.tar.xz" || ! -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]; then
-        te_warn "$_fn" "Can not find the expected testfile for this test-case."
+        te_warn "${_fn}" "Can not find the expected testfile for this test-case."
     fi
     _filter=(["ftp"]=0)
     (pr_remove_downloaded_sources _scrmtx _filter) &> /dev/null
@@ -230,23 +230,24 @@ ts_pk___pr_remove_downloaded_sources() {
 
     _filter=(["ftp"]=0 ["local"]=0)
     _output=$((pr_remove_downloaded_sources _scrmtx _filter) 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output" \
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
         "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <ftp local>"
 
     _scrmtx=()
     _output=$((pr_remove_downloaded_sources _scrmtx) 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "$_output"\
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}"\
         "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'"
 
     # CLEAN UP
-    rm -rf "$_tmp_dir"
+    rm -rf "${_tmp_dir}"
 }
 ts_pk___pr_remove_downloaded_sources
 
 
+
 #******************************************************************************************************************************
 
-te_print_final_result "$_COUNT_OK" "$_COUNT_FAILED"
+te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
 
 
 #******************************************************************************************************************************
