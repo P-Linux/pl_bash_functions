@@ -15,5 +15,5 @@ Just executed `bash path_to_test_script,sh`
 To run all tests/examples at once:
 
 ```bash
-bash /path_to/pl_bash_functions/scripts/tests/tests_all.sh
+bash /path_to/pl_bash_functions/tests/tests_all.sh
 ```

@@ -10,6 +10,8 @@ VERSION = '0.9.0'
 NAME = pl_bash_functions
 
 PKG_DIR = $(NAME)
+DIRSCRIPTS = scripts
+DIRTESTS = tests
 
 # End of file
 

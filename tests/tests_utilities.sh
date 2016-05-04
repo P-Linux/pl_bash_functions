@@ -7,20 +7,21 @@
 #******************************************************************************************************************************
 
 _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
-_TEST_SCRIPT_DIR=$(dirname "$_THIS_SCRIPT_PATH")
+_TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
+_FUNCTIONS_DIR="${_TEST_SCRIPT_DIR}/../scripts"
 
-source "${_TEST_SCRIPT_DIR}/../trap_exit.sh"
+source "${_FUNCTIONS_DIR}/trap_exit.sh"
 for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\"" "$_signal"; done
 trap "tr_trap_exit_interrupted" INT
 # DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
 
-source "${_TEST_SCRIPT_DIR}/../testing.sh"
+source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "utilities.sh"
 
-source "${_TEST_SCRIPT_DIR}/../msg.sh"
+source "${_FUNCTIONS_DIR}/msg.sh"
 ms_format "$_THIS_SCRIPT_PATH"
 
-source "${_TEST_SCRIPT_DIR}/../utilities.sh"
+source "${_FUNCTIONS_DIR}/utilities.sh"
 
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0

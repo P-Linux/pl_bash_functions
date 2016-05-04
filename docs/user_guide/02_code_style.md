@@ -84,6 +84,21 @@ if [ $_a == "yes exit" ]; then exit 1; fi
 ```
 
 
+## Shell Parameter Expansion
+
+In general braces are used for parameter expansion. To be consistent braces are also used if a variable stands alone.
+
+```bash
+_a="test"
+
+# YES
+if [[ ${_a} == "yes exit" ]]; then exit 1; fi
+
+# NO
+if [ $_a == "yes exit" ]; then exit 1; fi
+```
+
+
 ## Quotation Marks
 
 **Double quotations marks** are prefered over *Single quotations marks*.

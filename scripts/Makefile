@@ -14,8 +14,9 @@ generate:
 	$(edit) "main_conf.sh"
 
 install: generate
-	cp -rf . $(DESTDIR)$(LIBDIR)/$(PKG_DIR)
-	rm -rf	 $(DESTDIR)$(LIBDIR)/$(PKG_DIR)/Makefile
+	mkdir -p $(DESTDIR)$(LIBDIR)/$(PKG_DIR)/$(DIRSCRIPTS)
+	cp -rf . $(DESTDIR)$(LIBDIR)/$(PKG_DIR)/$(DIRSCRIPTS)/
+	rm -rf	 $(DESTDIR)$(LIBDIR)/$(PKG_DIR)/$(DIRSCRIPTS)/Makefile
 
 clean:
 	rm -f main_conf.sh

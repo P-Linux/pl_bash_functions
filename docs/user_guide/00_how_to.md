@@ -137,7 +137,7 @@ unset GREP_OPTIONS
 shopt -s extglob
 
 declare -r _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
-declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions"
+declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 
 source "${_PL_BASH_FUNCTIONS_DIR}/trap_exit.sh"
 for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\" \"customary_cleanup_function\"" "$_signal"; done
@@ -145,12 +145,12 @@ trap "tr_trap_exit_interrupted \"customary_cleanup_function\"" INT
 trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
 
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
-ms_format "$_THIS_SCRIPT_PATH"
+ms_format "${_THIS_SCRIPT_PATH}"
 
 #_MS_VERBOSE="yes"          NOTE: This defaults to: yes
 #_MS_VERBOSE_MORE="yes"     NOTE: This defaults to: yes
 
-ms_header "$_MS_GREEN" "$(gettext "Just Testing...")"
+ms_header "${_MS_GREEN}" "$(gettext "Just Testing...")"
 
 ms_request_continue "root"
 
@@ -191,10 +191,10 @@ declare -r _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
 
 #### 04. Get PL_BASH_FUNCTIONS_DIR
 
-Specify where the *pl_bash_functions package is installed*
+Specify where the *pl_bash_functions package is installed*: need the *scripts ddirectory.
 
 ```bash
-declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions"
+declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 ```
 
 
@@ -219,7 +219,7 @@ We pass the calling script PATH to the function in case of error messages.
 
 ```bash
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
-ms_format "$_THIS_SCRIPT_PATH"
+ms_format "${_THIS_SCRIPT_PATH}"
 ```
 
 #### 07. Optional Set Message Verbosity
@@ -248,7 +248,7 @@ Optionally one can set it to `_MS_VERBOSE_MORE=no` to skip such  additional mess
 #### 08. Optional Print A Main Header
 
 ```bash
-ms_header "$_MS_GREEN" "$(gettext "Just Testing...")"
+ms_header "${_MS_GREEN}" "$(gettext "Just Testing...")"
 ```
 
 
@@ -282,7 +282,7 @@ ms_has_tested_version "0.9.0"
 #### 11. Source 'utilities.sh'
 
 ```bash
-source ""${_PL_BASH_FUNCTIONS_DIR}//utilities.sh"
+source ""${_PL_BASH_FUNCTIONS_DIR}/utilities.sh"
 ```
 
 !!! hint

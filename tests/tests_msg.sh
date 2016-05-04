@@ -7,17 +7,18 @@
 #******************************************************************************************************************************
 
 _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
-_TEST_SCRIPT_DIR=$(dirname "$_THIS_SCRIPT_PATH")
+_TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
+_FUNCTIONS_DIR="${_TEST_SCRIPT_DIR}/../scripts"
 
-source "${_TEST_SCRIPT_DIR}/../trap_exit.sh"
+source "${_FUNCTIONS_DIR}/trap_exit.sh"
 for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\"" "$_signal"; done
 trap "tr_trap_exit_interrupted" INT
 # DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
 
-source "${_TEST_SCRIPT_DIR}/../testing.sh"
+source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "msg.sh"
 
-source "${_TEST_SCRIPT_DIR}/../msg.sh"
+source "${_FUNCTIONS_DIR}/msg.sh"
 ms_format "$_THIS_SCRIPT_PATH"
 
 declare -i _COUNT_OK=0
@@ -64,7 +65,7 @@ ts_ms___ms_has_tested_version
 ts_ms___ms_pl_bash_functions_installed_dir() {
     te_print_function_msg "ms_pl_bash_functions_installed_dir() very limited test"
     local _installed_dir; ms_pl_bash_functions_installed_dir _installed_dir
-    local _ref_script_dir=$(readlink -f "${_TEST_SCRIPT_DIR}/..")
+    local _ref_script_dir=$(readlink -f "${_FUNCTIONS_DIR}")
 
     te_same_val _COUNT_OK _COUNT_FAILED "$_installed_dir" "$_ref_script_dir"
 }

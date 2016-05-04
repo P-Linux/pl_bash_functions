@@ -1,7 +1,5 @@
 include Makefile.inc
 
-DIRSCRIPTS = scripts
-
 .PHONY: all help install generate clean
 
 all: help
@@ -21,6 +19,7 @@ install:
 	install -D -m0755 RELEASE-NOTES.md $(DESTDIR)$(LIBDIR)/$(PKG_DIR)/RELEASE-NOTES.md
 	install -D -m0755 README.md $(DESTDIR)$(LIBDIR)/$(PKG_DIR)/README.md
 	$(MAKE) -C $(DIRSCRIPTS) install
+	$(MAKE) -C $(DIRTESTS) install
 
 generate:
 	$(MAKE) -C $(DIRSCRIPTS) generate

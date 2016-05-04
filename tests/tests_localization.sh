@@ -7,19 +7,20 @@
 #******************************************************************************************************************************
 
 _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
-_TEST_SCRIPT_DIR=$(dirname "$_THIS_SCRIPT_PATH")
+_TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
+_FUNCTIONS_DIR="${_TEST_SCRIPT_DIR}/../scripts"
 
-source "${_TEST_SCRIPT_DIR}/../trap_exit.sh"
+source "${_FUNCTIONS_DIR}/trap_exit.sh"
 for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\"" "$_signal"; done
 trap "tr_trap_exit_interrupted" INT
 # DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
 
-source "${_TEST_SCRIPT_DIR}/../testing.sh"
+source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "localization.sh"
 
-source "${_TEST_SCRIPT_DIR}/../msg.sh"
-source "${_TEST_SCRIPT_DIR}/../utilities.sh"
-ut_source_safe_abort "${_TEST_SCRIPT_DIR}/../localization.sh"
+source "${_FUNCTIONS_DIR}/msg.sh"
+source "${_FUNCTIONS_DIR}/utilities.sh"
+ut_source_safe_abort "${_FUNCTIONS_DIR}/localization.sh"
 
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
@@ -30,7 +31,7 @@ declare -i _COUNT_FAILED=0
 #******************************************************************************************************************************
 ts_lo___lo_generate_pot_file() {
     te_print_function_msg "lo_generate_pot_file()"
-    local _srcfile="../msg.sh"
+    local _srcfile="${_FUNCTIONS_DIR}/msg.sh"
     local _wrong_srcfile="none_existing.sh"
     local _outdir=$(mktemp -d)
     local _pkgname="pl_bash_functions"
@@ -76,7 +77,7 @@ ts_lo___lo_generate_pot_file
 #******************************************************************************************************************************
 ts_lo___lo_generate_po_files() {
     te_print_function_msg "lo_generate_po_files()"
-    local _srcfiles=("../msg.sh")
+    local _srcfiles=("${_FUNCTIONS_DIR}/msg.sh")
     local _utf8_languages=( "de_DE.UTF-8" "en_US.UTF-8" "pt_BR.UTF-8")
     local _wrong_srcfile="none_existing.sh"
     local _outdir=$(mktemp -d)

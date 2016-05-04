@@ -58,7 +58,7 @@ do_got_download_programs_abort() {
     local _fn="do_got_download_programs_abort"
     local _download_prog=${1:-"wget"}
 
-    case "${_download_prog}" in
+    case "$_download_prog" in
         curl) ut_no_command_abort "curl" ;;
         wget) ut_no_command_abort "wget" ;;
         *)  ms_abort "$_fn" "$(gettext "Unsupported _download_prog: '%s'")" "$_download_prog" ;;
@@ -293,7 +293,7 @@ do_download_file() {
     ms_msg "$(gettext "Downloading file URI: <%s>")" "$_uri"
     ms_msg_i "$(gettext "destpath: <%s>")" "$_destpath"
 
-    case "${_download_prog}" in
+    case "$_download_prog" in
         curl)
             _resume_opts="-C -"
             if [[ -z $_download_prog_opts ]]; then
