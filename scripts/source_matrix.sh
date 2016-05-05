@@ -188,11 +188,11 @@ so_prepare_src_matrix() {
     ut_ref_associative_array_abort "_ret_matrix" "${_fn}"
 
     # Validate _in_checksums array
-    if (( _in_checksums_size < _in_entries_size )); then
+    if (( ${_in_checksums_size} < ${_in_entries_size} )); then
         ms_more "$(gettext "SRC_CHECKSUMS array size: '%s' is less than SRC_ENTRIES Array size: '%s'")" \
             "${_in_checksums_size}" "${_in_entries_size}"
         ms_more_i "$(gettext "Trying to adjust SRC_CHECKSUMS array by adding "SKIP" entries.")"
-    elif (( _in_checksums_size > _in_entries_size )); then
+    elif (( ${_in_checksums_size} > ${_in_entries_size} )); then
         ms_more "$(gettext "SRC_CHECKSUMS array size: '%s' is greater than SRC_ENTRIES Array size: '%s'")" \
             "${_in_checksums_size}" "${_in_entries_size}"
     fi
@@ -244,7 +244,7 @@ so_prepare_src_matrix() {
         ut_get_postfix_longest_all _uri "${_tmp_uri}" "+"
         if [[ ${_tmp_uri} == *"+"* ]]; then
             ut_get_prefix_shortest_all _vclplus_schemes "${_uri}" ":"
-            if [[ ! -v _supported_vclplus_schemes["${_vclplus_schemes}"] ]]; then
+            if [[ ! -v _supported_vclplus_schemes[${_vclplus_schemes}] ]]; then
                 ms_abort "${_fn}" "$(gettext "Supported vclplus_schemes: 'http' 'https' 'lp'. Got '%s'.  ENTRY: <%s>")" \
                     "${_vclplus_schemes}" "${_entry}"
             fi
@@ -255,7 +255,7 @@ so_prepare_src_matrix() {
         ut_get_prefix_shortest_all _protocol "${_protocol}" "+"
         [[ ${_protocol} == ${_tmp_uri} ]] && _protocol="local"
 
-        if [[ ! -v _supported_protocols["${_protocol}"] ]]; then
+        if [[ ! -v _supported_protocols[${_protocol}] ]]; then
             ms_abort "${_fn}" "$(gettext "The protocol: '%s' is not supported. ENTRY: <%s>")" "${_protocol}" "${_entry}"
         fi
 

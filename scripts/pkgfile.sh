@@ -134,7 +134,7 @@ pk_prepare_collections_lookup() {
                     fi
 
                     ut_get_postfix_shortest_all _collection_port_name "${_collection_port_path}" "/"
-                    if [[ ! -v _ret_collection_ports_lookup["${_collection_port_name}"] ]]; then
+                    if [[ ! -v _ret_collection_ports_lookup[${_collection_port_name}] ]]; then
                         _collection_port_name_size=${#_collection_port_name}
                         # Validate: _portname
                         if (( _collection_port_name_size < 2 || _collection_port_name_size > 50 )); then
@@ -150,7 +150,7 @@ pk_prepare_collections_lookup() {
                             ms_abort "${_fn}" "$(gettext "PORTNAME MUST start with an alphanumeric char. Got: '%s' <%s>")" \
                                 "${_collection_port_name:0:1}" "${_collection_port_path}"
                         fi
-                        _ret_collection_ports_lookup["${_collection_port_name}"]="${_collection_pkgfile_path}"
+                        _ret_collection_ports_lookup["${_collection_port_name}"]=${_collection_pkgfile_path}
                     fi
                 fi
             fi
@@ -214,7 +214,7 @@ pk_prepare_pkgfiles_to_process() {
                 _pkgfile_port_path="${_port_entry}/${_reference_pkgfile_name}"
                 pk_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
                 _ret_pkgfiles_to_process+=("${_pkgfile_port_path}")
-            elif [[ -v _collection_lookup["${_port_entry}"] ]]; then
+            elif [[ -v _collection_lookup[${_port_entry}] ]]; then
                 _ret_pkgfiles_to_process+=("${_collection_lookup[${_port_entry}]}")
             else
                 # NOT FOUND
@@ -334,7 +334,7 @@ pk_validate_pkgfile_port_path_name() {
     # Validate: _port_path
     ut_dir_is_rwx_abort "${_port_path}" "yes" "PORT_PATH"
     # Validate: _portname
-    if (( _portname_size < 2 || _portname_size > 50 )); then
+    if (( ${_portname_size} < 2 || ${_portname_size} > 50 )); then
         ms_abort "${_fn}" "$(gettext "PORTNAME MUST have at least 2 and maximum 50 characters. Got: '%s' PATH: <%s>")" \
             "${_portname_size}" "${_pkgfile_path}"
     fi
@@ -385,10 +385,10 @@ pk_validate_pkgfile_port_path_name() {
 #   ARGUMENTS
 #       `_pkgfile_path`: absolute path to the pkgfile: for test purpose it is not required that the path exists
 #       `_in_cmk_required_function_names`: a reference var: An index array with the required `Pkgfile` function names
-#       `_in__cmk_groups_default_function_names`: a reference var: An associative array with the default `CMK_GROUP` function 
-#           names as keys. 
+#       `_in__cmk_groups_default_function_names`: a reference var: An associative array with the default `CMK_GROUP` function
+#           names as keys.
 #           e.g. declare -A _cmk_groups_default_function_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
-#   
+#
 #   OPTIONAL ARGS:
 #       `_in_cmk_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile:
 #                         will be validated
@@ -463,7 +463,7 @@ pk_source_validate_pkgfile() {
 
     #### Check CMK_GROUPS function exist
     for _func in "${_in_cmk_groups[@]}"; do
-        if ! ut_got_function "${_func}" && [[ ! -v _in__cmk_groups_default_function_names["${_func}"] ]]; then
+        if ! ut_got_function "${_func}" && [[ ! -v _in__cmk_groups_default_function_names[${_func}] ]]; then
             ms_abort "${_fn}" "$(gettext "CMK_GROUPS Function '%s' not specified in File: <%s>")" "${_func}" "${_pkgfile_path}"
         fi
     done

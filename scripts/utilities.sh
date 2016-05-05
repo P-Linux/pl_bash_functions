@@ -506,10 +506,10 @@ ut_get_cmd_option_values_array() {
     local _orig_option=${_option_in_all_args[${_idx}]}
 
     (( ${#_ret_result_array[@]} > 0 )) && ms_abort "${_fn}" "$(gettext "Argument '_ret_result_array' MUST be an empty array.")"
-    (( _maximum_expected_values == 0 )) && ms_abort "${_fn}" "$(gettext "Argument '_maximum_expected_values' MUST NOT be 0")"
+    (( ${_maximum_expected_values} == 0 )) && ms_abort "${_fn}" "$(gettext "Argument '_maximum_expected_values' MUST NOT be 0")"
 
     ((_idx++))
-    if (( _idx < _option_in_all_args_size )); then
+    if (( ${_idx} < ${_option_in_all_args_size} )); then
         _arg=${_option_in_all_args[${_idx}]}
         for (( _idx; _idx < ${_option_in_all_args_size}; _idx++ )); do
             _arg=${_option_in_all_args[${_idx}]}
@@ -528,7 +528,7 @@ ut_get_cmd_option_values_array() {
         ms_abort "${_fn}" "$(gettext "Command-Line option: '%s' requires an value. All Arguments: <%s>")" \
             "${_orig_option}" "${_option_in_all_args_str}"
     fi
-    if (( _maximum_expected_values > 0 && ${#_ret_result_array[@]} > _maximum_expected_values )); then
+    if (( ${_maximum_expected_values} > 0 && ${#_ret_result_array[@]} > ${_maximum_expected_values} )); then
         ms_abort "${_fn}" "$(gettext "Command-Line option: '%s' maximum expected values: '%s'. Found '%s' All ARGS: <%s>")" \
                 "${_orig_option}" "${_maximum_expected_values}" "${#_ret_result_array[@]}" "${_option_in_all_args_str}"
     fi
@@ -571,7 +571,7 @@ ut_get_cmd_option_single_value_string() {
             "${_abort_if_no_value}"
     fi
 
-    if (( _next_idx < _option_in_all_args_size )); then
+    if (( ${_next_idx} < ${_option_in_all_args_size} )); then
         _ret_result=${_option_in_all_args[${_next_idx}]}
         if [[ ! -n ${_ret_result} ]]; then
             ms_abort "${_fn}" "$(gettext "Command-Line option: '%s' argument value MUST NOT be empty: All Arguments: <%s>")" \
@@ -643,7 +643,7 @@ ut_search_cmd_option_values_string() {
     #  Validate Short option to check Input
     if [[ -n ${_short_arg} ]]; then
         _check_arg_length=${#_short_arg}
-        if (( _check_arg_length < 2 )); then
+        if (( ${_check_arg_length} < 2 )); then
             ms_abort "${_fn}" "$(gettext "Short option to check: '%s' MUST be at least 2 character long or empty.")" \
                 "${_short_arg}"
         elif [[ ${_short_arg} != "-"[!-]* ]]; then
@@ -655,7 +655,7 @@ ut_search_cmd_option_values_string() {
     #  Validate Long option to check Input
     if [[ -n ${_long_arg} ]]; then
         _check_arg_length=${#_long_arg}
-        if (( _check_arg_length < 3 )); then
+        if (( ${_check_arg_length} < 3 )); then
             ms_abort "${_fn}" "$(gettext "Long option to check: '%s' MUST be at least 3 character long or empty.")" \
                 "${_long_arg}"
         elif [[ ${_long_arg:0:2} != "--" || ${_long_arg:2:1} == "-" ]]; then
@@ -695,7 +695,7 @@ ut_search_cmd_option_values_string() {
         if (( _counted_values < 1 )); then
             ms_abort "${_fn}" "$(gettext "Command-Line option: '%s' requires at least 1 value. All ARGS: <%s>")" \
                 "${_found_search_arg}" "${_search_in_all_args_str}"
-        elif (( _maximum_expected_values > 0 && _counted_values > _maximum_expected_values )); then
+        elif (( ${_maximum_expected_values} > 0 && _counted_values > ${_maximum_expected_values} )); then
             ms_abort "${_fn}" \
                 "$(gettext "Command-Line option: '%s' maximum expected values: '%s'. Found '%s' All ARGS: <%s>")" \
                 "${_found_search_arg}" "${_maximum_expected_values}" "${_counted_values}" "${_search_in_all_args_str}"

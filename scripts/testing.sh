@@ -551,7 +551,7 @@ te_retval_1() {
     local _msg=$(gettext "Expected ret-val (")
     local _msg1=$(gettext ") GOT:")
 
-    if (( _func_ret )); then
+    if (( ${_func_ret} )); then
         printf "${_green}    [  OK  ] ${_off}${_msg}${_bold}1${_off}${_msg1} (${_bold}${_func_ret}${_off}) ${_info}\n" >&1
         ((_COUNT_OK++))
     else

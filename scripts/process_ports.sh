@@ -154,7 +154,7 @@ pr_remove_downloaded_sources() {
     fi
 
     for (( _n=1; _n <= ${_in_pr_rds_scrmtx[NUM_IDX]}; _n++ )); do
-        if [[ -v _in_filter_protocols["${_in_pr_rds_scrmtx[${_n}:PROTOCOL]}"] ]]; then
+        if [[ -v _in_filter_protocols[${_in_pr_rds_scrmtx[${_n}:PROTOCOL]}] ]]; then
             _destpath=${_in_pr_rds_scrmtx[${_n}:DESTPATH]}
             if [[ -e ${_destpath} ]]; then
                 ms_more_i "$(gettext "Removing source <%s>")" "${_destpath}"

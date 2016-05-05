@@ -132,8 +132,8 @@ do_downloadable_source() {
     for (( _n=1; _n <= ${_in_do_scrmtx[NUM_IDX]}; _n++ )); do
         _entry=${_in_do_scrmtx[${_n}:ENTRY]}
         _destpath=${_in_do_scrmtx[${_n}:DESTPATH]}
-        _protocol="${_in_do_scrmtx[${_n}:PROTOCOL]}"
-        if [[ -v _in_filter_protocols["${_protocol}"] ]]; then
+        _protocol=${_in_do_scrmtx[${_n}:PROTOCOL]}
+        if [[ -v _in_filter_protocols[${_protocol}] ]]; then
             case "${_protocol}" in
                 ftp|http|https) do_download_file ${_n} _in_do_scrmtx "${_verify}" _in_dl_mirrors "${_download_prog}" \
                                 "${_download_prog_opts}" ;;

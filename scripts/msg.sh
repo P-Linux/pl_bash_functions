@@ -40,7 +40,7 @@ ms_get_pl_bash_functions_version() {
         printf "${_MS_YELLOW}   => ${_msg1}${_MS_ALL_OFF} ${_msg2}${_MS_ALL_OFF}\n"
         ms_abort "${_fn}" "$(gettext "Could not source: <%s>")" "${_main_conf_file_path}"
     fi
-    _ret_result="${_PL_BASH_FUNCTIONS_VERSION}"
+    _ret_result=${_PL_BASH_FUNCTIONS_VERSION}
 
 }
 
@@ -388,7 +388,7 @@ ms_hrl() {
     local _complete_line=""
 
     while (( ${#_complete_line} < ${_repeat_number} )); do
-        _complete_line+="${_repeated_text}";
+        _complete_line+=${_repeated_text}
     done
     printf "${_format}%s%s%s${_MS_ALL_OFF}\n" "${_start_txt}" "${_complete_line:0:_repeat_number}" "${_end_text}" >&1
 }

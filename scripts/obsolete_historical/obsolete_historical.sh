@@ -62,7 +62,7 @@ ut_exact_number_args_abort() {
 
 
 #******************************************************************************************************************************
-# Checks if the EXACT number of arguments were supplied     USAGE: ut_exact_number_args_not_empty_abort "_example_func" 3 "${@}"
+# Checks if the EXACT number of arguments were supplied    USAGE: ut_exact_number_args_not_empty_abort "_example_func" 3 "${@}"
 #******************************************************************************************************************************
 ut_exact_number_args_not_empty_abort() {
     local _fn="ut_min_number_args_not_empty_abort"
