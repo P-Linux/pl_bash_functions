@@ -197,7 +197,7 @@ ex_extract_file() {
             ;;
     esac
 
-    ms_msg "$(gettext "Using (%s) to extract file: <%s>")" "${_cmd} " "${_destpath}"
+    ms_msg "$(gettext "Using (%s) to extract file: <%s>")" "${_cmd}" "${_destpath}"
     ms_more "$(gettext "To build-dir: <%s>")" "${_build_srcdir}"
 
     _ret=0
