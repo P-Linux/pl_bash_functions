@@ -443,24 +443,24 @@ ts_pk___pk_source_validate_pkgfile() {
         "Test Pkgfile_source_missing_required_function"
 
     pk_source_validate_pkgfile "${_testdir}/files/Pkgfile" _required_func_names _cmk_groups_func_names
-    [[ $pkgpackager == "peter1000 <https://github.com/peter1000>"                                && \
-        $pkgdesc == "Bash functions used by other P-Linux packages."                              && \
-        $pkgurl == "https://github.com/P-Linux/pl_bash_functions"                                 && \
+    [[ ${pkgpackager} == "peter1000 <https://github.com/peter1000>"                                && \
+        ${pkgdesc} == "Bash functions used by other P-Linux packages."                              && \
+        ${pkgurl} == "https://github.com/P-Linux/pl_bash_functions"                                 && \
         ${pkgdeps[@]} == "libarchive gzip bzip2 xz git subversion mercurial bzr"                  && \
         ${pkgvers} == "0.1.0.r1.2f12e1a"                                                            && \
-        $pkgrel == "4"                                                                            && \
+        ${pkgrel} == "4"                                                                            && \
         ${pkgsources[@]} == "pl_bash_functions::https://github.com/P-Linux/pl_bash_functions.git" && \
         ${pkgmd5sums[@]} == "SKIP"                                                                && \
         -z ${pkgdepsrun[@]} ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED $? " Test all official pkgfile variables."
 
     pk_source_validate_pkgfile "${_testdir}/files/Pkgfile_minimum_info" _required_func_names _cmk_groups_func_names
-    [[ $pkgpackager == "Package 'Packager' variable MUST NOT be empty."  && \
-        $pkgdesc == "Package 'Description variable MUST NOT be empty."    && \
-        -z $pkgurl                                                        && \
+    [[ ${pkgpackager} == "Package 'Packager' variable MUST NOT be empty."  && \
+        ${pkgdesc} == "Package 'Description variable MUST NOT be empty."    && \
+        -z ${pkgurl}                                                        && \
         -z ${pkgdeps[@]}                                                  && \
         ${pkgvers} == "0.1.0"                                               && \
-        $pkgrel == "1"                                                    && \
+        ${pkgrel} == "1"                                                    && \
         -z ${pkgsources[@]}                                               && \
         -z ${pkgmd5sums[@]}                                               && \
         -z ${pkgdepsrun[@]} ]]

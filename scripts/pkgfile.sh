@@ -58,7 +58,7 @@ pk_unset_official_pkgfile_variables() {
 #               )
 #   USAGE:
 #       declare -A COLLECTION_LOOKUP=()
-#       pk_prepare_collections_lookup COLLECTION_LOOKUP "$CMK_PKGFILE_NAME" CMK_REGISTERED_COLLECTIONS
+#       pk_prepare_collections_lookup COLLECTION_LOOKUP "${CMK_PKGFILE_NAME}" CMK_REGISTERED_COLLECTIONS
 #
 #   EXAMPLE
 #       CMK_REGISTERED_COLLECTIONS=(
@@ -138,7 +138,8 @@ pk_prepare_collections_lookup() {
                         _collection_port_name_size=${#_collection_port_name}
                         # Validate: _portname
                         if (( _collection_port_name_size < 2 || _collection_port_name_size > 50 )); then
-                            ms_abort "${_fn}" "$(gettext "PORTNAME MUST have at least 2 and maximum 50 chars. Got: '%s' <%s>")" \
+                            ms_abort "${_fn}" \
+                                "$(gettext "PORTNAME MUST have at least 2 and maximum 50 chars. Got: '%s' <%s>")" \
                                 "${_collection_port_name_size}" "${_collection_port_path}"
                         fi
                         if [[ ${_collection_port_name} == *[![:alnum:]-_+]* ]]; then
@@ -185,7 +186,7 @@ pk_prepare_collections_lookup() {
 #               )
 #   USAGE:
 #       CMK_PKGFILES_TO_PROCESS=()
-#       pk_prepare_pkgfiles_to_process PKGFILES_TO_PROCESS "$CMK_PKGFILE_NAME" CMK_PORTSLIST CMK_REGISTERED_COLLECTIONS
+#       pk_prepare_pkgfiles_to_process PKGFILES_TO_PROCESS "${CMK_PKGFILE_NAME}" CMK_PORTSLIST CMK_REGISTERED_COLLECTIONS
 #******************************************************************************************************************************
 pk_prepare_pkgfiles_to_process() {
     local _fn="pk_prepare_pkgfiles_to_process"
@@ -238,7 +239,7 @@ pk_prepare_pkgfiles_to_process() {
 #       `_pkgfile_path`: absolute path to the pkgfile
 #
 #   USAGE:
-#       pk_validate_pkgvers "1.3.5" "$CMK_PKGFILE_PATH"
+#       pk_validate_pkgvers "1.3.5" "${CMK_PKGFILE_PATH}"
 #******************************************************************************************************************************
 pk_validate_pkgvers() {
     local _pkgvers=${1}
@@ -262,7 +263,7 @@ pk_validate_pkgvers() {
 #       `_pkgfile_path`: absolute path to the pkgfile
 #
 #   USAGE:
-#       pk_get_only_pkgvers_abort "$CMK_PKGFILE_PATH"
+#       pk_get_only_pkgvers_abort "${CMK_PKGFILE_PATH}"
 #
 #   NOTE: Keept this as an subshell
 #******************************************************************************************************************************
@@ -317,7 +318,7 @@ pk_get_only_pkgvers_abort() {
 #       `_reference_pkgfile_name`: A reference name against the _pkgfile_path basename is checked
 #
 #   USAGE:
-#       pk_validate_pkgfile_port_path_name "$CMK_PKGFILE_PATH" "$CMK_PKGFILE_NAME"
+#       pk_validate_pkgfile_port_path_name "${CMK_PKGFILE_PATH}" "${CMK_PKGFILE_NAME}"
 #******************************************************************************************************************************
 pk_validate_pkgfile_port_path_name() {
     local _fn="pk_validate_pkgfile_port_path_name"
@@ -393,7 +394,7 @@ pk_validate_pkgfile_port_path_name() {
 #                         will be validated
 #
 #   USAGE:
-#       pk_source_validate_pkgfile "$PKGFILE_PATH" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CMK_GROUPS
+#       pk_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CMK_GROUPS
 #******************************************************************************************************************************
 pk_source_validate_pkgfile() {
     local _fn="pk_source_validate_pkgfile"
@@ -419,7 +420,7 @@ pk_source_validate_pkgfile() {
 
     ##### Pkgfile-Header
     # pkgpackager
-    if [[ ! -n $pkgpackager ]]; then
+    if [[ ! -n ${pkgpackager} ]]; then
         ms_abort "${_fn}" "$(gettext "Variable 'pkgpackager' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
     fi
 
@@ -445,11 +446,11 @@ pk_source_validate_pkgfile() {
     pk_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
 
     # pkgrel
-    if [[ $pkgrel != +([[:digit:]]) ]]; then
+    if [[ ${pkgrel} != +([[:digit:]]) ]]; then
         ms_abort "${_fn}" "$(gettext "'pkgrel' MUST NOT be empty and only contain digits and not: '%s' File: <%s>")" \
             "${pkgrel//[[:digit:]]}" "${_pkgfile_path}"
     fi
-    if (( $pkgrel < 1 || $pkgrel > 99999999 )); then
+    if (( ${pkgrel} < 1 || ${pkgrel} > 99999999 )); then
         ms_abort "${_fn}" "$(gettext "'pkgrel' MUST be greater than 0 and less than 100000000. File: <%s>")" \
             "${_pkgfile_path}"
     fi

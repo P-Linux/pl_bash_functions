@@ -20,8 +20,8 @@ pkgsources=("pl_bash_functions::https://github.com/P-Linux/pl_bash_functions.git
 pkgmd5sums=("SKIP")
 
 build() {
-    cd "$SRC/$CMK_NAME"
+    cd "${SRC}/${CMK_NAME}"
 
     make all
-    make DESTDIR=$PKG install
+    make DESTDIR=${PKG} install
 }

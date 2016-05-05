@@ -10,8 +10,8 @@ source=("https://dummy.download.org/none_existing/${CMK_NAME}.tar.xz")
 md5sums=("SKIP")
 
 build() {
-    cd "$SRC/$CMK_NAME"
+    cd "${SRC}/${CMK_NAME}"
 
     make all
-    make DESTDIR=$PKG install
+    make DESTDIR=${PKG} install
 }

@@ -121,7 +121,7 @@ In general simple variables within double square brackets are left unquoted.
 
 ```bash
 _a="yes exit"
-_b=$_a
+_b=${_a}
 
 # YES
 if [[ ${_a} == "yes exit" ]]; then exit 1; fi

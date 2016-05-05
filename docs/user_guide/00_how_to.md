@@ -140,7 +140,7 @@ declare -r _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
 declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 
 source "${_PL_BASH_FUNCTIONS_DIR}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\" \"customary_cleanup_function\"" "$_signal"; done
+for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\" \"customary_cleanup_function\"" "${_signal}"; done
 trap "tr_trap_exit_interrupted \"customary_cleanup_function\"" INT
 trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
 
@@ -204,7 +204,7 @@ Generally it is a good thing to set `traps`.
 
 ```bash
 source "${_PL_BASH_FUNCTIONS_DIR}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"$_signal\" \"customary_cleanup_function\"" "$_signal"; done
+for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\" \"customary_cleanup_function\"" "${_signal}"; done
 trap "tr_trap_exit_interrupted \"customary_cleanup_function\"" INT
 trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
 ```

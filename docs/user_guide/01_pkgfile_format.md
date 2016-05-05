@@ -52,7 +52,7 @@ Example Pkgfile-Variables:
 ```bash
 pkgvers=0.1.0.r1.2f12e1a
 pkgrel=1
-pkgsources=($url/files/$CMK_NAME-$pkgvers.tar.xz)
+pkgsources=($url/files/${CMK_NAME}-${pkgvers}.tar.xz)
 pkgmd5sum=("SKIP")
 ```
 
@@ -138,10 +138,10 @@ Example Pkgfile-Functions:
 
 ```bash
 build() {
-    cd $CMK_NAME-$pkgvers
+    cd ${CMK_NAME}-${pkgvers}
     ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info
     make
-    make DESTDIR=$PKG install
+    make DESTDIR=${PKG} install
 }
 ```
 
