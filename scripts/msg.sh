@@ -137,20 +137,20 @@ ms_format() {
 
 
 #******************************************************************************************************************************
-# More-Info message: enabled by '_MS_VERBOSE_MORE=yes'
+# More-Info message: enabled by '_MS_VERBOSE_MORE="yes" '
 #******************************************************************************************************************************
 ms_more() {
-    [[ ${_MS_VERBOSE_MORE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE_MORE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "  INFO: ${_msg}\n" "${@}" >&1
 }
 
 
 #******************************************************************************************************************************
-# More-Info message (indented level): enabled by '_MS_VERBOSE_MORE=yes'
+# More-Info message (indented level): enabled by '_MS_VERBOSE_MORE="yes" '
 #******************************************************************************************************************************
 ms_more_i() {
-    [[ ${_MS_VERBOSE_MORE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE_MORE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "         INFO: ${_msg}\n" "${@}" >&1
 }
@@ -160,7 +160,7 @@ ms_more_i() {
 # Main-Bold message: enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_bold() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_BOLD}====> ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -170,7 +170,7 @@ ms_bold() {
 # Main-Bold message (indented level): enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_bold_i() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_BOLD}       ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -180,7 +180,7 @@ ms_bold_i() {
 # Level-2 Bold message: enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_bold2() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_BOLD}    ====> ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -190,7 +190,7 @@ ms_bold2() {
 # Level-2 Bold message (indented level): enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_bold2_i() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_BOLD}           ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -200,7 +200,7 @@ ms_bold2_i() {
 # Main message: enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_msg() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_GREEN}====>${_MS_ALL_OFF}${_MS_BOLD} ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -210,7 +210,7 @@ ms_msg() {
 # Sub message (indented level): enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_msg_i() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_BLUE}    ->${_MS_ALL_OFF}${_MS_BOLD} ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -220,7 +220,7 @@ ms_msg_i() {
 # Level-2 Main message: enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_msg2() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_GREEN}    ====>${_MS_ALL_OFF}${_MS_BOLD} ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -230,7 +230,7 @@ ms_msg2() {
 # Level-2 Sub message (indented level): enabled by '_MS_VERBOSE="yes"'
 #******************************************************************************************************************************
 ms_msg2_i() {
-    [[ ${_MS_VERBOSE} == yes ]] || return 0
+    [[ ${_MS_VERBOSE} == "yes" ]] || return 0
     local _msg=${1}; shift
     printf "${_MS_BLUE}        ->${_MS_ALL_OFF}${_MS_BOLD} ${_msg}${_MS_ALL_OFF}\n" "${@}" >&1
 }
@@ -303,10 +303,10 @@ ms_abort_remove_path() {
     if (( ${#} < 4 )); then
         ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires AT LEAST '4' arguments. Got '%s'")" "${_fn}" "${#}"
     fi
-    if [[ $2 != yes && $2 != no ]]; then
+    if [[ $2 != "yes" && $2 != "no" ]]; then
         ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '2' MUST be 'yes' or 'no'. Got '%s'")" "${_fn}" "${2}"
     fi
-    if [[ $2 == yes && -z $3 ]]; then
+    if [[ $2 == "yes" && -z $3 ]]; then
         ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '3' MUST NOT be empty if argument 2 is 'yes'")" "${_fn}"
     fi
     local _from_name=${1}
@@ -316,7 +316,7 @@ ms_abort_remove_path() {
     local _abort_text=$(gettext "ABORTING....from:")
 
     printf "${_MS_MAGENTA}\n\n=======> ${_abort_text}${_MS_ALL_OFF}${_MS_BLUE} <${_from_name}> ${_MS_ALL_OFF}\n" >&2
-    if [[ ${_remove_option} == yes ]]; then
+    if [[ ${_remove_option} == "yes" ]]; then
         ms_more_i "$(gettext "Removing path: <%s>")\n" "${_path}" >&2
         rm -rf "${_path}"
     fi
@@ -429,7 +429,7 @@ ms_request_continue() {
     printf "        ${_msg3}\n\n" "${_MS_BOLD}" "${_MS_ALL_OFF}" "${_MS_GREEN}" "${_MS_ALL_OFF}" >&1
     printf "                ${_msg4}" "${_MS_BOLD}" "${_MS_ALL_OFF}" "${_MS_GREEN}" "${_MS_ALL_OFF}" >&1
     read _user_input
-    [[ ${_user_input} == YES ]] || exit 1
+    [[ ${_user_input} == "YES" ]] || exit 1
     printf "\n"
 }
 

@@ -194,7 +194,7 @@ do_download_source() {
             local)
                 if [[ -f ${_destpath} ]]; then
                     ms_bold "$(gettext "Found local source file: <%s>")" "${_destpath}"
-                    [[ ${_verify} != yes || ${_in_do_scrmtx[${_idx}:CHKSUM]} == SKIP ]] && return 0
+                    [[ ${_verify} != "yes" || ${_in_do_scrmtx[${_idx}:CHKSUM]} == "SKIP" ]] && return 0
                     ut_get_file_md5sum _file_checksum "${_destpath}"
                     [[ ${_file_checksum} == ${_in_do_scrmtx[${_n}:CHKSUM]} ]] && return 0
                     ms_abort "${_fn}" "$(gettext "Failed verifying checksum: local source file: <%s>")" "${_destpath}"
@@ -248,7 +248,7 @@ do_download_file() {
     _verify_checksum() {
         local __file_checksum
 
-        [[ ${_verify} != yes || ${_chksum} == SKIP ]] && return 0
+        [[ ${_verify} != "yes" || ${_chksum} == "SKIP" ]] && return 0
 
         ut_get_file_md5sum __file_checksum "${_destpath}"
         [[ ${__file_checksum} == ${_chksum} ]] && return 0
@@ -378,7 +378,7 @@ do_download_git() {
     local _destname=${_in_do_scrmtx_g[${_idx}:DESTNAME]}
     local _origin_uri=""
 
-    if [[ ${_in_do_scrmtx_g[${_idx}:PROTOCOL]} != git ]]; then
+    if [[ ${_in_do_scrmtx_g[${_idx}:PROTOCOL]} != "git" ]]; then
         ms_abort "${_fn}" "$(gettext "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_in_do_scrmtx_g[${_idx}:PROTOCOL]}" \
             "${_entry}"
     fi
@@ -427,7 +427,7 @@ do_download_svn() {
     local _tmp_var
 
 
-    if [[ ${_in_do_scrmtx_s[${_idx}:PROTOCOL]} != svn ]]; then
+    if [[ ${_in_do_scrmtx_s[${_idx}:PROTOCOL]} != "svn" ]]; then
         ms_abort "${_fn}" "$(gettext "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_in_do_scrmtx_s[${_idx}:PROTOCOL]}" \
             "${_entry}"
     fi
@@ -483,7 +483,7 @@ do_download_hg() {
     local _destname=${_in_do_scrmtx_h[${_idx}:DESTNAME]}
     local _origin_uri=""
 
-    if [[ ${_in_do_scrmtx_h[${_idx}:PROTOCOL]} != hg ]]; then
+    if [[ ${_in_do_scrmtx_h[${_idx}:PROTOCOL]} != "hg" ]]; then
         ms_abort "${_fn}" "$(gettext "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_in_do_scrmtx_h[${_idx}:PROTOCOL]}" \
             "${_entry}"
     fi
@@ -535,7 +535,7 @@ do_download_bzr() {
     # NOT WANTED any GREP_OPTIONS: This variable specifies default options to be placed in front of any explicit options.
     unset GREP_OPTIONS
 
-    if [[ ${_in_do_scrmtx_b[${_idx}:PROTOCOL]} != bzr ]]; then
+    if [[ ${_in_do_scrmtx_b[${_idx}:PROTOCOL]} != "bzr" ]]; then
         ms_abort "${_fn}" "$(gettext "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_in_do_scrmtx_b[${_idx}:PROTOCOL]}" \
             "${_entry}"
     fi

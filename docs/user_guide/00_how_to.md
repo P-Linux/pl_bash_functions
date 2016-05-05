@@ -226,19 +226,19 @@ ms_format "${_THIS_SCRIPT_PATH}"
 
 **GENERAL LEVEL**
 
-The Variable `_MS_VERBOSE=yes` is set in the function `ms_format()`.
-Optionally one can set it to `_MS_VERBOSE=no` to skip some general messages.
+The Variable `_MS_VERBOSE="yes" ` is set in the function `ms_format()`.
+Optionally one can set it to `_MS_VERBOSE="no" ` to skip some general messages.
 
-* `_MS_VERBOSE=yes`: all general messages are printed
-* `_MS_VERBOSE=no`: general are silenced
+* `_MS_VERBOSE="yes" `: all general messages are printed
+* `_MS_VERBOSE="no" `: general are silenced
 
 **ADDITIONAL INFO LEVEL**
 
-The Variable `_MS_VERBOSE_MORE=yes` is set in the function `ms_format()`.
-Optionally one can set it to `_MS_VERBOSE_MORE=no` to skip such  additional messages.
+The Variable `_MS_VERBOSE_MORE="yes" ` is set in the function `ms_format()`.
+Optionally one can set it to `_MS_VERBOSE_MORE="no" ` to skip such  additional messages.
 
-* `_MS_VERBOSE_MORE=yes`: enables such additional messages
-* `_MS_VERBOSE_MORE=no`: silences such additional messages
+* `_MS_VERBOSE_MORE="yes" `: enables such additional messages
+* `_MS_VERBOSE_MORE="no" `: silences such additional messages
 
 !!! note
 

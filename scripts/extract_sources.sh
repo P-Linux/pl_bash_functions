@@ -156,7 +156,7 @@ ex_extract_file() {
             "${_destpath}"
     fi
 
-    if [[ ${_noextract} == NOEXTRACT ]]; then
+    if [[ ${_noextract} == "NOEXTRACT" ]]; then
         ms_more "$(gettext "%s() only copy: noextract: '%s'")" "${_fn}" "${_noextract}"
         ex_extract_only_copy ${_idx}  _in_ex_scrmtx_f "${_build_srcdir}" "${_remove_build_dir}"
         return 0
@@ -201,7 +201,7 @@ ex_extract_file() {
     ms_more "$(gettext "To build-dir: <%s>")" "${_build_srcdir}"
 
     _ret=0
-    if [[ ${_cmd}  == bsdtar ]]; then
+    if [[ ${_cmd} == "bsdtar" ]]; then
         ${_cmd}  -p -C "${_build_srcdir}" -xf "${_destpath}" || _ret=${?}
     else
         rm -f -- "${_build_srcdir}/${_destname_no_ext}"
@@ -213,7 +213,7 @@ ex_extract_file() {
             "$(gettext "Failed to extract file <%s> to <%s>")" "${_destpath}" "${_build_srcdir}"
     fi
 
-    if (( EUID == 0 )); then
+    if (( ${EUID} == 0 )); then
         # change perms of all source files to root user & root group
         chown -R 0:0 "${_build_srcdir}"
     fi

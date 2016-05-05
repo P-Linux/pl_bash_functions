@@ -74,7 +74,7 @@ ts_so___so_prepare_src_matrix_checksums() {
     te_same_val _COUNT_OK _COUNT_FAILED "${_scrmtx[NUM_IDX]}" "3" "Test updated _scrmtx[NUM_IDX]. Expected 3."
 
     [[ ${_scrmtx[1:CHKSUM]} == 10000000000000000000000000000000 && ${_scrmtx[2:CHKSUM]} == SKIP && \
-        ${_scrmtx[3:CHKSUM]} == SKIP ]]
+        ${_scrmtx[3:CHKSUM]} == "SKIP" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} "Test missing checksums - check SKIP checksum items."
 }
 ts_so___so_prepare_src_matrix_checksums

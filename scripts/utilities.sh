@@ -52,7 +52,7 @@ ut_is_yes_no_var_abort() {
     local _caller_name=${3}
     local _extra_info=${4:-""}
 
-    if [[ ${_in_var} != yes && ${_in_var} != no ]]; then
+    if [[ ${_in_var} != "yes" && ${_in_var} != "no" ]]; then
         if [[ -n ${_extra_info} ]]; then
             ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' VARIBLE: '%s' MUST be set to: 'yes' or 'no'. Got: '%s' INFO: %s")" \
                 "${_caller_name}" "${_var_name}" "${_in_var}" "${_extra_info}"
@@ -566,7 +566,7 @@ ut_get_cmd_option_single_value_string() {
     declare -i _next_idx=$((_cur_idx + 1))
 
     _ret_result=""
-    if [[ ${_abort_if_no_value} != yes && ${_abort_if_no_value} != no ]]; then
+    if [[ ${_abort_if_no_value} != "yes" && ${_abort_if_no_value} != "no" ]]; then
         ms_abort "${_fn}" "$(gettext "4. VARIBLE: '_abort_if_no_value' MUST be set to: 'yes' or 'no'. Got: '%s'")" \
             "${_abort_if_no_value}"
     fi
@@ -580,7 +580,7 @@ ut_get_cmd_option_single_value_string() {
         [[ ${_ret_result} == "-"* ]] && _ret_result=""
     fi
 
-    if [[ ${_abort_if_no_value} == yes && ! -n ${_ret_result} ]]; then
+    if [[ ${_abort_if_no_value} == "yes" && ! -n ${_ret_result} ]]; then
         ms_abort "${_fn}" "$(gettext "Command-Line option: '%s' requires an value. All Arguments: <%s>")" \
             "${_option_in_all_args[${_cur_idx}]}" "${_option_in_all_args_str}"
     fi
@@ -666,7 +666,7 @@ ut_search_cmd_option_values_string() {
     _found_opt="no"
     for (( _n=0; _n < ${_search_in_all_args_size}; _n++ )); do
         _arg=${_search_in_all_args[${_n}]}
-        if [[ ${_found_opt} == no ]]; then
+        if [[ ${_found_opt} == "no" ]]; then
             if [[ ${_arg} == ${_short_arg} ||  ${_arg} == ${_long_arg} ]]; then
                 _found_opt="yes"
                 _found_search_arg=${_arg}
@@ -691,7 +691,7 @@ ut_search_cmd_option_values_string() {
         fi
     done
 
-    if [[ ${_found_opt} == yes ]]; then
+    if [[ ${_found_opt} == "yes" ]]; then
         if (( _counted_values < 1 )); then
             ms_abort "${_fn}" "$(gettext "Command-Line option: '%s' requires at least 1 value. All ARGS: <%s>")" \
                 "${_found_search_arg}" "${_search_in_all_args_str}"
@@ -887,7 +887,7 @@ ut_cd_safe_abort() {
 # Checks '_dir_path': Exists, is readable, is writeable, is executeable, (optional is absolute path) - aborts on failure
 #
 #   OPTIONAL ARGUMENTS:
-#       `_check_abspath`:  yes/no. if yes it is additionally checked if the _dir_path is an absolute path: starts with slash.
+#       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dir_path is an absolute path: starts with slash.
 #       `_error_name`:  used for error messages defaults to: Directory
 #
 #   USAGE
@@ -915,7 +915,7 @@ ut_dir_is_rwx_abort() {
 # Checks '_file_path': Exists, is readable (optional is absolute path) - aborts on failure
 #
 #   OPTIONAL ARGUMENTS:
-#       `_check_abspath`:  yes/no. if yes it is additionally checked if the _dir_path is an absolute path: starts with slash.
+#       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dir_path is an absolute path: starts with slash.
 #       `_error_name`:  used for error messages defaults to: File
 #
 #   USAGE
@@ -941,7 +941,7 @@ ut_file_is_r_abort() {
 # Checks '_file_path': Exists, is readable, is writeable (optional is absolute path) - aborts on failure
 #
 #   OPTIONAL ARGUMENTS:
-#       `_check_abspath`:  yes/no. if yes it is additionally checked if the _dir_path is an absolute path: starts with slash.
+#       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dir_path is an absolute path: starts with slash.
 #       `_error_name`:  used for error messages defaults to: File
 #
 #   USAGE

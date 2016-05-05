@@ -200,7 +200,7 @@ so_prepare_src_matrix() {
         _chksum=${_in_checksums[${_n}]}
         if [[ -z ${_chksum} ]]; then
             _in_checksums[${_n}]="SKIP"
-        elif [[ (( ${#_chksum} != 32 )) && ${_chksum} != SKIP ]]; then
+        elif [[ (( ${#_chksum} != 32 )) && ${_chksum} != "SKIP" ]]; then
             ms_more "$(gettext "CHECKSUM [%s]: '%s' MUST be SKIP or 32 chars. Got:'%s'. Pkgfile: <%s>")" \
                 $((_n + 1)) "${_chksum}" ${#_chksum} "${_pkgfile_fullpath}"
             _in_checksums[${_n}]="SKIP"
@@ -208,7 +208,7 @@ so_prepare_src_matrix() {
         fi
     done
 
-    if [[ -v _ret_matrix["NUM_IDX"] ]]; then
+    if [[ -v _ret_matrix[NUM_IDX] ]]; then
        _next_idx=${_ret_matrix[NUM_IDX]}
     else
        _next_idx=0
@@ -264,7 +264,7 @@ so_prepare_src_matrix() {
         _prefix=""
         if (( ${_num_prefix_sep} > 0 )); then
             ut_get_prefix_longest_empty _total_prefix "${_entry}" "::"
-            if [[ ${_total_prefix} == NOEXTRACT ]]; then
+            if [[ ${_total_prefix} == "NOEXTRACT" ]]; then
                 _noextract="NOEXTRACT"
             else
                 ut_get_prefix_shortest_empty _noextract "${_total_prefix}" "::"
@@ -282,7 +282,7 @@ so_prepare_src_matrix() {
         _ret_matrix["${_next_idx}:PROTOCOL"]=${_protocol}
 
         # Some Validations
-        if ! [[ -z ${_noextract} || ${_noextract} == NOEXTRACT ]]; then
+        if ! [[ -z ${_noextract} || ${_noextract} == "NOEXTRACT" ]]; then
             ms_abort "${_fn}" "$(gettext "'NOEXTRACT' MUST be empty or: NOEXTRACT. Got: '%s' ENTRY: <%s>")" "${_noextract}" \
                 "${_entry}"
         fi
@@ -313,7 +313,7 @@ so_prepare_src_matrix() {
                 if [[ -n ${_noextract} ]]; then
                     ms_abort "${_fn}" "$(gettext "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT. ENTRY: <%s>")" "${_entry}"
                 fi
-                if [[ ${_ret_matrix[${_next_idx}:CHKSUM]} != SKIP ]]; then
+                if [[ ${_ret_matrix[${_next_idx}:CHKSUM]} != "SKIP" ]]; then
                     ms_abort "${_fn}" "$(gettext "'git|svn|hg|bzr source MUST NOT have a checksum: '%s'. ENTRY: <%s>")" \
                         "${_ret_matrix[${_next_idx}:CHKSUM]}" "${_entry}"
                 fi
@@ -331,8 +331,8 @@ so_prepare_src_matrix() {
                     ut_get_prefix_longest_all _destname "${_entry}" "#"    # strip any fragment
                     ut_strip_trailing_slahes _destname "${_destname}"
                     ut_basename _destname "${_destname}"
-                    [[ ${_protocol} == bzr ]] && ut_get_postfix_longest_all _destname "${_destname}" "lp:"
-                    [[ ${_protocol} == git ]] && ut_get_prefix_shortest_all _destname "${_destname}" ".git"
+                    [[ ${_protocol} == "bzr" ]] && ut_get_postfix_longest_all _destname "${_destname}" "lp:"
+                    [[ ${_protocol} == "git" ]] && ut_get_prefix_shortest_all _destname "${_destname}" ".git"
                     ;;
             esac
         fi
@@ -353,7 +353,7 @@ so_prepare_src_matrix() {
     done
 
     # Save the _next_idx
-    _ret_matrix["NUM_IDX"]=${_next_idx}
+    _ret_matrix[NUM_IDX]=${_next_idx}
 }
 
 

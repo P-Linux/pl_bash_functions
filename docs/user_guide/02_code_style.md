@@ -188,7 +188,7 @@ In general return statements will add always a return value: success (0), failur
 
 ```bash
 _V="yes"
-if [[ ${_V} == yes ]]; then
+if [[ ${_V} == "yes" ]]; then
     return 0
 else
     do_something_else
