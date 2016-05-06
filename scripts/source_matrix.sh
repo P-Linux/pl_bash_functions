@@ -190,11 +190,10 @@ so_prepare_src_matrix() {
 
     # Validate _in_checksums array
     if (( ${_in_checksums_size} < ${_in_entries_size} )); then
-        ms_more "$(gettext "SRC_CHECKSUMS array size: '%s' is less than SRC_ENTRIES Array size: '%s'")" \
+        ms_more_i "$(gettext "SRC_CHECKSUMS array size: '%s' is less than SRC_ENTRIES Array size: '%s'")" \
             "${_in_checksums_size}" "${_in_entries_size}"
-        ms_more_i "$(gettext "Trying to adjust SRC_CHECKSUMS array by adding "SKIP" entries.")"
     elif (( ${_in_checksums_size} > ${_in_entries_size} )); then
-        ms_more "$(gettext "SRC_CHECKSUMS array size: '%s' is greater than SRC_ENTRIES Array size: '%s'")" \
+        ms_more_i "$(gettext "SRC_CHECKSUMS array size: '%s' is greater than SRC_ENTRIES Array size: '%s'")" \
             "${_in_checksums_size}" "${_in_entries_size}"
     fi
     for (( _n=0; _n < ${_in_entries_size}; _n++ )); do

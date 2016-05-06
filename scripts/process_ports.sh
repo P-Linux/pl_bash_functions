@@ -118,25 +118,6 @@ pr_remove_existing_pkg_archives() {
 
 
 #******************************************************************************************************************************
-# Remove existing Pkgfile backup files: xxxx.bak
-#
-#   ARGUMENTS
-#       `$1`: absolute path to the pkgfile
-#
-#   USAGE
-#       CMK_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo"
-#       pr_remove_existing_backup_pkgfile "${CMK_PKGFILE_PATH}
-#******************************************************************************************************************************
-pr_remove_existing_backup_pkgfile() {
-    local _backup_pkgfile_fullpath="${1}.bak"
-    if [[ -f "${_backup_pkgfile_fullpath}" ]]; then
-        ms_more "$(gettext "Removing existing Backup-Pkgfile: <%s>")" "${_backup_pkgfile_fullpath}"
-        rm -f "${_backup_pkgfile_fullpath}"
-    fi
-}
-
-
-#******************************************************************************************************************************
 # Remove downloaded sources.
 #
 #   ARGUMENTS
@@ -182,6 +163,26 @@ pr_remove_downloaded_sources() {
         fi
     done
 }
+
+
+#******************************************************************************************************************************
+# Remove existing Pkgfile backup files: xxxx.bak
+#
+#   ARGUMENTS
+#       `$1`: absolute path to the pkgfile
+#
+#   USAGE
+#       CMK_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo"
+#       pr_remove_existing_backup_pkgfile "${CMK_PKGFILE_PATH}
+#******************************************************************************************************************************
+pr_remove_existing_backup_pkgfile() {
+    local _backup_pkgfile_fullpath="${1}.bak"
+    if [[ -f "${_backup_pkgfile_fullpath}" ]]; then
+        ms_more "$(gettext "Removing existing Backup-Pkgfile: <%s>")" "${_backup_pkgfile_fullpath}"
+        rm -f "${_backup_pkgfile_fullpath}"
+    fi
+}
+
 
 
 #******************************************************************************************************************************
