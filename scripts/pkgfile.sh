@@ -285,6 +285,55 @@ pk_get_only_pkgvers_abort() {
 }
 
 
+#******************************************************************************************************************************
+# Generate for all `pkgsources` entires corresponding `pkgmd5sums` entries. It is expected that all sources exist already.
+#   for protocols: ftp|http|https|local md5sums are generated for all others a SKIP entry.
+#
+#   ARGUMENTS
+#       `_ret_pkgmd5sums`: reference var: will be updated with the final corresponding entries
+#       `_in_pkgp_scrmtx`: reference var: Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
+#
+#
+#   USAGE
+#       local NEW_PKGMD5SUMS=()
+#       pk_generate_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
+#******************************************************************************************************************************
+pk_generate_pkgmd5sums() {
+    local _fn="pk_generate_pkgmd5sums"
+    local -n _ret_pkgmd5sums=${1}
+    local -n _in_pkgp_scrmtx=${2}
+    declare -i _n
+    local _md5sum _entry _protocol _destpath
+
+    if [[ ! -v _in_pkgp_scrmtx[NUM_IDX] ]]; then
+        ms_abort "${_fn}" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+    fi
+
+    for (( _n=1; _n <= ${_in_pkgp_scrmtx[NUM_IDX]}; _n++ )); do
+        _entry=${_in_pkgp_scrmtx[${_n}:ENTRY]}
+        _destpath=${_in_pkgp_scrmtx[${_n}:DESTPATH]}
+        _protocol=${_in_pkgp_scrmtx[${_n}:PROTOCOL]}
+        case "${_protocol}" in
+            ftp|http|https|local)
+                if [[ -f ${_destpath} && -r ${_destpath} ]]; then
+                    _md5sum=$(md5sum "${_destpath}")
+                    _md5sum=${_md5sum:0:32}
+                    if [[ ! -n ${_md5sum} ]]; then
+                        ms_abort "${_fn}" "$(gettext "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")" \
+                            "${_destpath}" "${_entry}"
+                    fi
+                else
+                    ms_abort "${_fn}" "$(gettext "Not a readable file path: <%s> Entry: <%s>")" "${_destpath}" "${_entry}"
+                fi
+                _ret_pkgmd5sums+=("${_md5sum}")
+                ;;
+            *) _ret_pkgmd5sums+=("SKIP")
+                ;;
+        esac
+    done
+}
+
+
 #=============================================================================================================================#
 #
 #                   PKGFILE SOURCING & VALIDATION

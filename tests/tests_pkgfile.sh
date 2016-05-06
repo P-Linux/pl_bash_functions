@@ -29,7 +29,6 @@ declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
 
-
 # pk_unset_official_pkgfile_variables skip test for this function
 
 
@@ -250,55 +249,106 @@ ts_pk___pk_prepare_pkgfiles_to_process() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_pk___pk_prepare_pkgfiles_to_process
 
 
-##******************************************************************************************************************************
-## TEST: pk_validate_pkgvers()
-##******************************************************************************************************************************
-#ts_pk___pk_validate_pkgvers() {
-    #te_print_function_msg "pk_validate_pkgvers()"
-    #local _output
+#******************************************************************************************************************************
+# TEST: pk_validate_pkgvers()
+#******************************************************************************************************************************
+ts_pk___pk_validate_pkgvers() {
+    te_print_function_msg "pk_validate_pkgvers()"
+    local _output
 
-    #(pk_validate_pkgvers "0.1.0.r1.2f12e1a" "Pkgfile")
-    #te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test <0.1.0.r1.2f12e1a>."
+    (pk_validate_pkgvers "0.1.0.r1.2f12e1a" "Pkgfile")
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test <0.1.0.r1.2f12e1a>."
 
-    #_output=$((pk_validate_pkgvers "" "Pkgfile") 2>&1)
-    #te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Variable 'pkgvers' MUST NOT be empty" \
-        #"Test empty pkgversion."
+    _output=$((pk_validate_pkgvers "" "Pkgfile") 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Variable 'pkgvers' MUST NOT be empty" \
+        "Test empty pkgversion."
 
-    #_output=$((pk_validate_pkgvers "0.1.0+ced" "Pkgfile") 2>&1)
-    #te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "'pkgvers' contains invalid characters: '+'" \
-        #"Test pkgvers contains invalid characters."
-#}
-#ts_pk___pk_validate_pkgvers
+    _output=$((pk_validate_pkgvers "0.1.0+ced" "Pkgfile") 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "'pkgvers' contains invalid characters: '+'" \
+        "Test pkgvers contains invalid characters."
+}
+ts_pk___pk_validate_pkgvers
 
 
-##******************************************************************************************************************************
-## TEST: pk_get_only_pkgvers_abort()
-##******************************************************************************************************************************
-#ts_pk___pk_get_only_pkgvers_abort() {
-    #te_print_function_msg "pk_get_only_pkgvers_abort()"
-    #local _testdir="${_TEST_SCRIPT_DIR}"
-    #local _output
+#******************************************************************************************************************************
+# TEST: pk_get_only_pkgvers_abort()
+#******************************************************************************************************************************
+ts_pk___pk_get_only_pkgvers_abort() {
+    te_print_function_msg "pk_get_only_pkgvers_abort()"
+    local _testdir="${_TEST_SCRIPT_DIR}"
+    local _output
 
-    #_output=$(pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile")
-    #te_same_val _COUNT_OK _COUNT_FAILED "${_output}" "0.1.0.r1.2f12e1a" "Test <Pkgfile> pkgversion."
+    _output=$(pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile")
+    te_same_val _COUNT_OK _COUNT_FAILED "${_output}" "0.1.0.r1.2f12e1a" "Test <Pkgfile> pkgversion."
 
-    #_output=$(pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_minimum_info")
-    #te_same_val _COUNT_OK _COUNT_FAILED "${_output}" 0.1.0"" "Test <Pkgfile_minimum_info> pkgversion."
+    _output=$(pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_minimum_info")
+    te_same_val _COUNT_OK _COUNT_FAILED "${_output}" 0.1.0"" "Test <Pkgfile_minimum_info> pkgversion."
 
-    #_output=$((pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_missing_var_pkgvers") 2>&1)
-    #te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Variable 'pkgvers' MUST NOT be empty" \
-        #"Test <Pkgfile_missing_var_pkgvers> pkgversion."
+    _output=$((pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_missing_var_pkgvers") 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Variable 'pkgvers' MUST NOT be empty" \
+        "Test <Pkgfile_missing_var_pkgvers> pkgversion."
 
-    #_output=$((pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_version_wrong_char") 2>&1)
-    #te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "'pkgvers' contains invalid characters: '+'" \
-        #"Test <Pkgfile_version_wrong_char> pkgversion."
-#}
-#ts_pk___pk_get_only_pkgvers_abort
+    _output=$((pk_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_version_wrong_char") 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "'pkgvers' contains invalid characters: '+'" \
+        "Test <Pkgfile_version_wrong_char> pkgversion."
+}
+ts_pk___pk_get_only_pkgvers_abort
+
+
+#******************************************************************************************************************************
+# TEST: pk_generate_pkgmd5sums()
+#******************************************************************************************************************************
+ts_pk___pk_generate_pkgmd5sums() {
+    te_print_function_msg "pk_generate_pkgmd5sums()"
+    local _tmp_dir=$(mktemp -d)
+    local _ports_dir="${_tmp_dir}/ports"
+    local _pkgfile_fullpath="${_ports_dir}/example_port/Pkgfile"
+    local _srcdst_dir="${_tmp_dir}/cards_mk/sources"
+    local _output _new_pkgmd5sums
+    declare -A _scrmtx
+
+    # Create files/folders
+    mkdir -p "${_ports_dir}"
+    mkdir -p "${_srcdst_dir}"
+    cp -rf "${_TEST_SCRIPT_DIR}/files/example_port" "${_ports_dir}"
+
+    _new_pkgmd5sums=()
+    source "${_pkgfile_fullpath}"
+
+    _scrmtx=()
+    so_prepare_src_matrix _scrmtx pkgsources pkgmd5sums "${_pkgfile_fullpath}" "${_srcdst_dir}" &> /dev/null
+     need to redo 'cp' as it gets removed if there was an error
+    cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file.tar.xz" "${_srcdst_dir}/dummy_source_file.tar.xz"
+    cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file2.tar.bz2" "${_srcdst_dir}/dummy_source_file2.tar.bz2"
+    if [[ ! -f "${_srcdst_dir}/dummy_source_file.tar.xz" || ! -f "${_srcdst_dir}/dummy_source_file2.tar.bz2" ]]; then
+        te_warn "${_fn}" "Can not find the expected testfile for this test-case."
+    fi
+    pk_generate_pkgmd5sums _new_pkgmd5sums _scrmtx
+
+
+   te_same_val _COUNT_OK _COUNT_FAILED "${#_new_pkgmd5sums[@]}" "4" "Test generated 4 pkgmd5sums entries."
+
+    te_same_val _COUNT_OK _COUNT_FAILED "${_new_pkgmd5sums[0]}" "2987a55e31c80f189a2868ada1cf31df" \
+        "Test generated pkgmd5sums index 0 'ftp' entry."
+
+    te_same_val _COUNT_OK _COUNT_FAILED "${_new_pkgmd5sums[1]}" "fd096ad1c3fa5975c5619488165c625b" \
+        "Test generated pkgmd5sums index 1 'http' entry."
+
+    te_same_val _COUNT_OK _COUNT_FAILED "${_new_pkgmd5sums[2]}" "SKIP" \
+        "Test generated pkgmd5sums index 2 'git' entry."
+
+    te_same_val _COUNT_OK _COUNT_FAILED "${_new_pkgmd5sums[3]}" "01530b8c0b67b5a2a2a46f4c5943a345" \
+        "Test generated pkgmd5sums index 3 'local' entry."
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+}
+ts_pk___pk_generate_pkgmd5sums
+
 
 
 #******************************************************************************************************************************
@@ -428,7 +478,8 @@ ts_pk___pk_source_validate_pkgfile() {
     _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cmk_groups_func_names _cmk_groups) 2>&1)
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test _cmk_groups not existing customary_group_function."
 
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "CMK_GROUPS Function 'customary_group_function' not specified in File" \
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "CMK_GROUPS Function 'customary_group_function' not specified in File" \
         "Test _cmk_groups not existing customary_group_function."
 
     _cmk_groups=(customary_group_function lib devel doc man service)
@@ -443,26 +494,26 @@ ts_pk___pk_source_validate_pkgfile() {
         "Test Pkgfile_source_missing_required_function"
 
     pk_source_validate_pkgfile "${_testdir}/files/Pkgfile" _required_func_names _cmk_groups_func_names
-    [[ ${pkgpackager} == "peter1000 <https://github.com/peter1000>"                                && \
+    [[ ${pkgpackager} == "peter1000 <https://github.com/peter1000>"                                 && \
         ${pkgdesc} == "Bash functions used by other P-Linux packages."                              && \
         ${pkgurl} == "https://github.com/P-Linux/pl_bash_functions"                                 && \
-        ${pkgdeps[@]} == "libarchive gzip bzip2 xz git subversion mercurial bzr"                  && \
+        ${pkgdeps[@]} == "libarchive gzip bzip2 xz git subversion mercurial bzr"                    && \
         ${pkgvers} == "0.1.0.r1.2f12e1a"                                                            && \
         ${pkgrel} == "4"                                                                            && \
-        ${pkgsources[@]} == "pl_bash_functions::https://github.com/P-Linux/pl_bash_functions.git" && \
-        ${pkgmd5sums[@]} == "SKIP"                                                                && \
+        ${pkgsources[@]} == "pl_bash_functions::https://github.com/P-Linux/pl_bash_functions.git"   && \
+        ${pkgmd5sums[@]} == "SKIP"                                                                  && \
         -z ${pkgdepsrun[@]} ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED $? " Test all official pkgfile variables."
 
     pk_source_validate_pkgfile "${_testdir}/files/Pkgfile_minimum_info" _required_func_names _cmk_groups_func_names
-    [[ ${pkgpackager} == "Package 'Packager' variable MUST NOT be empty."  && \
+    [[ ${pkgpackager} == "Package 'Packager' variable MUST NOT be empty."   && \
         ${pkgdesc} == "Package 'Description variable MUST NOT be empty."    && \
         -z ${pkgurl}                                                        && \
-        -z ${pkgdeps[@]}                                                  && \
+        -z ${pkgdeps[@]}                                                    && \
         ${pkgvers} == "0.1.0"                                               && \
         ${pkgrel} == "1"                                                    && \
-        -z ${pkgsources[@]}                                               && \
-        -z ${pkgmd5sums[@]}                                               && \
+        -z ${pkgsources[@]}                                                 && \
+        -z ${pkgmd5sums[@]}                                                 && \
         -z ${pkgdepsrun[@]} ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED $? " Test all official pkgfile variables - minimum_info."
 

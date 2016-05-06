@@ -195,7 +195,6 @@ ts_ex___ex_extract_source_local_files() {
     # CLEAN UP
     rm -rf "${_tmp_dir}"
     rm -rf "${_tmp_dir2}"
-    echo
 }
 ts_ex___ex_extract_source_local_files
 
@@ -342,7 +341,6 @@ ts_ex___ex_extract_source_files_normal_extract() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_ex___ex_extract_source_files_normal_extract
 
@@ -451,7 +449,6 @@ ts_ex___ex_extract_source_git() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_ex___ex_extract_source_git
 
@@ -490,7 +487,6 @@ ts_ex___ex_extract_source_svn() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_ex___ex_extract_source_svn
 
@@ -535,7 +531,6 @@ ts_ex___ex_extract_source_hg() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_ex___ex_extract_source_hg
 
@@ -575,7 +570,6 @@ ts_ex___ex_extract_source_bzr() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_ex___ex_extract_source_bzr
 

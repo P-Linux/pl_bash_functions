@@ -253,10 +253,10 @@ pr_update_pkgfile_pkgmd5sums() {
                 _final_str+="pkgmd5sums=(\"${_in_new_md5sums[0]}\")\n"
             elif (( ${_in_new_md5sums_size} > 1 )); then
                 _final_str+="pkgmd5sums=(\"${_in_new_md5sums[0]}\"\n"
-                for (( _n=1; _n < ${_in_new_md5sums_size}; _n++ )); do
+                for (( _n=1; _n < ${_in_new_md5sums_size} - 1; _n++ )); do
                     _final_str+="    \"${_in_new_md5sums[${_n}]}\"\n"
                 done
-                _final_str+=")\n"
+                _final_str+="    \"${_in_new_md5sums[${_n}]}\")\n"
             else
                 _final_str+="pkgmd5sums=()\n"
             fi

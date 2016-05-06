@@ -219,7 +219,7 @@ ts_pk___pr_remove_downloaded_sources() {
     local _fn="ts_pk___pr_remove_downloaded_sources"
     local _tmp_dir=$(mktemp -d)
     local _ports_dir="${_tmp_dir}/ports"
-    local _pkgfile_fullpath="${_tmp_dir}/${_ports_dir}/example_port/Pkgfile"
+    local _pkgfile_fullpath="${_ports_dir}/example_port/Pkgfile"
     local _srcdst_dir="${_tmp_dir}/cards_mk/sources"
     local _output _sources _checksums
     declare -A _scrmtx
@@ -229,7 +229,7 @@ ts_pk___pr_remove_downloaded_sources() {
     # Create files/folders
     mkdir -p "${_ports_dir}"
     mkdir -p "${_srcdst_dir}"
-    cp -rf "${_TEST_SCRIPT_DIR}/files/example_port" "${_tmp_dir}/ports"
+    cp -rf "${_TEST_SCRIPT_DIR}/files/example_port" "${_ports_dir}"
 
     _scrmtx=()
     _sources=("ftp://dummy_uri.existing.files/dummy_source_file.tar.xz"

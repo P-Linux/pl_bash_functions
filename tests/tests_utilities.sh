@@ -982,7 +982,6 @@ ts_ut___ut_cd_safe_abort() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
-    echo
 }
 ts_ut___ut_cd_safe_abort
 
