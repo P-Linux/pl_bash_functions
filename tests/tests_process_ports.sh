@@ -176,6 +176,41 @@ ts_pk___pr_remove_existing_pkg_archives
 
 
 #******************************************************************************************************************************
+# TEST: pr_remove_existing_backup_pkgfile()
+#******************************************************************************************************************************
+ts_pk___pr_remove_existing_backup_pkgfile() {
+    te_print_function_msg "pr_remove_existing_backup_pkgfile()"
+    local _fn="ts_pk___pr_remove_existing_backup_pkgfile"
+    local _tmp_dir=$(mktemp -d)
+    local _pkgfile_path="${_tmp_dir}/Pkgfile"
+    local _backup_pkgfile_path="${_pkgfile_path}.bak"
+
+    # Make files
+    touch "${_pkgfile_path}"
+    cp -f "${_pkgfile_path}" "${_backup_pkgfile_path}"
+
+    # check they really exist
+    [[ -f "${_pkgfile_path}" && \
+       -f "${_backup_pkgfile_path}" ]]
+    if (( ${?} )); then
+        te_warn "_fn" "Test Error: did not find the created files."
+    fi
+
+    pr_remove_existing_backup_pkgfile "${_pkgfile_path}"
+
+    [[ -f "${_pkgfile_path}" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test original pkgfile still exits."
+    
+    [[ -f "${_backup_pkgfile_path}" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test backup pkgfile was removed."
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+}
+ts_pk___pr_remove_existing_backup_pkgfile
+
+
+#******************************************************************************************************************************
 # TEST: pr_remove_downloaded_sources()
 #******************************************************************************************************************************
 ts_pk___pr_remove_downloaded_sources() {

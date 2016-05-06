@@ -112,9 +112,28 @@ pr_remove_existing_pkg_archives() {
     local _find1="${_in_port_name}*${_in_arch}.${_in_extention}*"
     local _find2="${_in_port_name}*any.${_in_extention}*"
 
+    ms_more "$(gettext "Removing any existing pkg_archive files for Port <%s>")" "${_in_port_path}"
     find "${_in_port_path}" \( -name "${_find1}" -or -name "${_find2}" \) -delete
 }
 
+
+#******************************************************************************************************************************
+# Remove existing Pkgfile backup files: xxxx.bak
+#
+#   ARGUMENTS
+#       `$1`: absolute path to the pkgfile
+#
+#   USAGE
+#       CMK_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo"
+#       pr_remove_existing_backup_pkgfile "${CMK_PKGFILE_PATH}
+#******************************************************************************************************************************
+pr_remove_existing_backup_pkgfile() {
+    local _backup_pkgfile_fullpath="${1}.bak"
+    if [[ -f "${_backup_pkgfile_fullpath}" ]]; then
+        ms_more "$(gettext "Removing existing Backup-Pkgfile: <%s>")" "${_backup_pkgfile_fullpath}"
+        rm -f "${_backup_pkgfile_fullpath}"
+    fi
+}
 
 
 #******************************************************************************************************************************
@@ -157,7 +176,7 @@ pr_remove_downloaded_sources() {
         if [[ -v _in_filter_protocols[${_in_pr_rds_scrmtx[${_n}:PROTOCOL]}] ]]; then
             _destpath=${_in_pr_rds_scrmtx[${_n}:DESTPATH]}
             if [[ -e ${_destpath} ]]; then
-                ms_more_i "$(gettext "Removing source <%s>")" "${_destpath}"
+                ms_more "$(gettext "Removing source <%s>")" "${_destpath}"
                 rm -rf "${_destpath}"
             fi
         fi
