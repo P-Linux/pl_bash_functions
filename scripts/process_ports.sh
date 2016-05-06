@@ -109,13 +109,12 @@ pr_remove_existing_pkg_archives() {
     local -n _in_port_path=${2}
     local -n _in_arch=${3}
     local -n _in_extention=${4}
-
     local _find1="${_in_port_name}*${_in_arch}.${_in_extention}*"
     local _find2="${_in_port_name}*any.${_in_extention}*"
-    local _pkg_archive
 
     find "${_in_port_path}" \( -name "${_find1}" -or -name "${_find2}" \) -delete
 }
+
 
 
 #******************************************************************************************************************************

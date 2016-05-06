@@ -151,7 +151,7 @@ ts_pk___pr_remove_existing_pkg_archives() {
        -f "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz" && \
        -f "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz" && \
        -f "${_port_path1}/subfolder/${_port_name1}man1458148355${_arch}.${_pkg_ext}" ]]
-    if (( _func_ret )); then
+    if (( ${?} )); then
         te_warn "_fn" "Test Error: did not find the created files."
     fi
 
@@ -203,7 +203,7 @@ ts_pk___pr_remove_downloaded_sources() {
         "fd096ad1c3fa5975c5619488165c625b"
         "01530b8c0b67b5a2a2a46f4c5943a345")
     so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdst_dir}" &> /dev/null
-    
+
     # need to redo 'cp' as it gets removed if there was an error
     cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file.tar.xz" "${_srcdst_dir}/dummy_source_file.tar.xz"
     cp -f "${_TEST_SCRIPT_DIR}/files/example_port/dummy_source_file2.tar.bz2" "${_srcdst_dir}/dummy_source_file2.tar.bz2"
