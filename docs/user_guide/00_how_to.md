@@ -115,6 +115,11 @@ portable scripts, this feature will be removed in a future release of grep, and 
 `shopt -s extglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
 
 
+### BASH Options
+
+`set +o noclobber` is required by some functions: this is done in each file of the `pl_bash_functions package`.
+
+
 ## Usage
 
 In your bash script: source the `pl_bash_functions files` you want to use.

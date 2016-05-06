@@ -6,7 +6,7 @@
 
 ## v0.9.2 (xxxx-xx-xx)
 
-*
+* adds requirement for permission to overwrite files: `set +o noclobber`
 
 
 ## v0.9.1 (2016-05-05)

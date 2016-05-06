@@ -14,6 +14,7 @@
 
 unset GREP_OPTIONS
 shopt -s extglob
+set +o noclobber
 
 
 
