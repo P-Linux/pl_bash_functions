@@ -51,73 +51,6 @@ pr_make_pkg_build_dir() {
 
 
 #******************************************************************************************************************************
-# Get a list of existing pkg_archives.
-#
-#   ARGUMENTS
-#       `_ret_existing_pkg_archives`: a reference var: an empty index array which will be updated with the absolut path to any
-#                                     port package archives
-#       `_in_port_name`: a reference var: port name
-#       `_in_port_path`: a reference var: port absolute path
-#       `_in_arch`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_in_extention`: a reference var: The extention name of a package tar archive file withouth any compression specified.
-#
-#   USAGE
-#       TARGETS=()
-#       CMK_PORTNAME="hwinfo"
-#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       CMK_ARCH="$(uname -m)"
-#       CMK_PKG_EXT="cards.tar"
-#       pr_get_existing_pkg_archives TARGETS CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
-#******************************************************************************************************************************
-pr_get_existing_pkg_archives() {
-    local -n _ret_existing_pkg_archives=${1}
-    local -n _in_port_name=${2}
-    local -n _in_port_path=${3}
-    local -n _in_arch=${4}
-    local -n _in_extention=${5}
-
-    local _find1="${_in_port_name}*${_in_arch}.${_in_extention}*"
-    local _find2="${_in_port_name}*any.${_in_extention}*"
-    local _pkg_archive
-
-    # always reset the _ret_existing_pkg_archives
-    _ret_existing_pkg_archives=()
-    for _pkg_archive in $(find "${_in_port_path}" \( -name "${_find1}" -or -name "${_find2}" \)); do
-        _ret_existing_pkg_archives+=("${_pkg_archive}")
-    done
-}
-
-
-#******************************************************************************************************************************
-# Remove existing pkg_archives.
-#
-#   ARGUMENTS
-#       `_in_port_name`: a reference var: port name
-#       `_in_port_path`: a reference var: port absolute path
-#       `_in_arch`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_in_extention`: a reference var: The extention name of a package tar archive file withouth any compression specified.
-#
-#   USAGE
-#       CMK_PORTNAME="hwinfo"
-#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       CMK_ARCH="$(uname -m)"
-#       CMK_PKG_EXT="cards.tar"
-#       pr_remove_existing_pkg_archives CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
-#******************************************************************************************************************************
-pr_remove_existing_pkg_archives() {
-    local -n _in_port_name=${1}
-    local -n _in_port_path=${2}
-    local -n _in_arch=${3}
-    local -n _in_extention=${4}
-    local _find1="${_in_port_name}*${_in_arch}.${_in_extention}*"
-    local _find2="${_in_port_name}*any.${_in_extention}*"
-
-    ms_more "$(gettext "Removing any existing pkg_archive files for Port <%s>")" "${_in_port_path}"
-    find "${_in_port_path}" \( -name "${_find1}" -or -name "${_find2}" \) -delete
-}
-
-
-#******************************************************************************************************************************
 # Remove downloaded sources.
 #
 #   ARGUMENTS
@@ -245,7 +178,7 @@ pr_update_pkgfile_pkgmd5sums() {
                 if [[ ${_temp_str} != *";" ]]; then
                     _final_str+="${_temp_str}\n"
                 else
-                    _final_str+="${_temp_str::-1}\n"
+                    _final_str+="${_temp_str:: -1}\n"
                 fi
             fi
             # Insert our new one

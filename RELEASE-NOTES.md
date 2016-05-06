@@ -6,7 +6,10 @@
 
 ## v0.9.2 (xxxx-xx-xx)
 
+* some speed improvements
 * adds requirement for permission to overwrite files: `set +o noclobber`
+* adds separate: pkgarchives.sh
+* new functions and tests
 
 
 ## v0.9.1 (2016-05-05)

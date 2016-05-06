@@ -235,7 +235,7 @@ ut_ref_associative_array_abort() {
     fi
     # extract the name: still has the ending double quote
     _tmp_var=${_line#*\"}
-    if ! ut_is_associative_array_var "${_tmp_var::-1}"; then
+    if ! ut_is_associative_array_var "${_tmp_var:: -1}"; then
         ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${_caller_name}" \
             "${_ref_name}"
     fi

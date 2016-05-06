@@ -11,7 +11,9 @@ pages:
 - User Guide:
     - How To: user_guide/00_how_to.md
     - Pkgfile Format: user_guide/01_pkgfile_format.md
-    - Code Style: user_guide/02_code_style.md
+    - Pkgarchive Format: user_guide/02_pkgarchive_format.md
+    - Repo-File Format: user_guide/03_repo_file_format.md
+    - Code Style: user_guide/04_code_style.md
 - About:
     - Readme: about/readme.md
     - License: about/license.md

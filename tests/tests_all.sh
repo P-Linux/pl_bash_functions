@@ -62,6 +62,10 @@ source "${_TEST_SCRIPT_DIR_ALL}/tests_pkgfile.sh"
 ((_COUNT_OK_ALL+=${_COUNT_OK}))
 ((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
 
+source "${_TEST_SCRIPT_DIR_ALL}/tests_pkgarchives.sh"
+((_COUNT_OK_ALL+=${_COUNT_OK}))
+((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+
 source "${_TEST_SCRIPT_DIR_ALL}/tests_process_ports.sh"
 ((_COUNT_OK_ALL+=${_COUNT_OK}))
 ((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
