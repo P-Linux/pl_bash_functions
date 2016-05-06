@@ -1,0 +1,15 @@
+# Example Pkgfile
+
+pkgpackager="peter1000 <https://github.com/peter1000>"
+pkgdesc="Dummy packages."
+pkgurl=""
+pkgdeps=()
+
+pkgvers=0.1.0
+pkgrel=1
+pkgsources=("https://none_existing_dummy/download/dummy_package-1.2.3.tar.xz")
+pkgmd5sums=("SKIP")
+
+build() {
+    _a="Package 'build' function is REQUIRED."
+}

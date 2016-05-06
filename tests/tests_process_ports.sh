@@ -200,7 +200,7 @@ ts_pk___pr_remove_existing_backup_pkgfile() {
 
     [[ -f "${_pkgfile_path}" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test original pkgfile still exits."
-    
+
     [[ -f "${_backup_pkgfile_path}" ]]
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test backup pkgfile was removed."
 
@@ -208,6 +208,7 @@ ts_pk___pr_remove_existing_backup_pkgfile() {
     rm -rf "${_tmp_dir}"
 }
 ts_pk___pr_remove_existing_backup_pkgfile
+
 
 
 #******************************************************************************************************************************
@@ -278,6 +279,56 @@ ts_pk___pr_remove_downloaded_sources() {
 }
 ts_pk___pr_remove_downloaded_sources
 
+
+#******************************************************************************************************************************
+# TEST: pr_update_pkgfile_pkgmd5sums()
+#******************************************************************************************************************************
+ts_pk___pr_update_pkgfile_pkgmd5sums() {
+    te_print_function_msg "pr_update_pkgfile_pkgmd5sums()"
+    local _fn="ts_pk___pr_update_pkgfile_pkgmd5sums"
+    local _tmp_dir=$(mktemp -d)
+    local _pkgfile_path="${_tmp_dir}/Pkgfile"
+    local _backup_pkgfile_path="${_pkgfile_path}.bak"
+    local _new_pkgmd5sums=()
+
+    # Make files
+    cp -f "${_TEST_SCRIPT_DIR}/files/Pkgfile_dummy_package" "${_pkgfile_path}"
+
+    # check the pkgfile really exist
+    [[ -f "${_pkgfile_path}" ]]
+    if (( ${?} )); then
+        te_warn "_fn" "Test Error: did not find the created Pkgfile file."
+    fi
+
+    rm -f "${_backup_pkgfile_path}"
+    _new_pkgmd5sums=("123456789" "SKIP" 987654321)
+    pr_update_pkgfile_pkgmd5sums "${_pkgfile_path}" _new_pkgmd5sums
+
+    [[ -f "${_backup_pkgfile_path}" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test a backupfile was created:"
+    (
+        unset pkgmd5sums
+        source "${_pkgfile_path}"
+
+        te_same_val _COUNT_OK _COUNT_FAILED "${#pkgmd5sums[@]}" "3" "Test the size of the updated pkgmd5sums."
+        te_same_val _COUNT_OK _COUNT_FAILED "${pkgmd5sums[0]}" "123456789" "Test updated pkgmd5sums index 0."
+        te_same_val _COUNT_OK _COUNT_FAILED "${pkgmd5sums[1]}" "SKIP" "Test updated pkgmd5sums index 1."
+        te_same_val _COUNT_OK _COUNT_FAILED "${pkgmd5sums[2]}" "987654321" "Test updated pkgmd5sums index 2."
+    )
+
+    _new_pkgmd5sums=()
+    pr_update_pkgfile_pkgmd5sums "${_pkgfile_path}" _new_pkgmd5sums
+    (
+        unset pkgmd5sums
+        source "${_pkgfile_path}"
+
+        te_same_val _COUNT_OK _COUNT_FAILED "${#pkgmd5sums[@]}" "0" "Test the size of the updated pkgmd5sums."
+    )
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+}
+ts_pk___pr_update_pkgfile_pkgmd5sums
 
 
 #******************************************************************************************************************************

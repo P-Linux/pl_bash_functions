@@ -184,6 +184,97 @@ pr_remove_existing_backup_pkgfile() {
 }
 
 
+#******************************************************************************************************************************
+# Generate the pkgmd5sums array in the Pkgfile: makes also a backup copy of the original Pkgfile
+#
+#   ARGUMENTS
+#       `_in_pkgfile_path`: absolute path to the pkgfile
+#       `_in_new_md5sums`: a reference var: a index array with the md5sum: the itmes will be written to the Pkgfile: pkgmd5sums
+#
+#   USAGE
+#       NEW_MD5SUM=(1234567896754313
+#           564857964
+#       )
+#       pr_update_pkgfile_pkgmd5sums "${CMK_PKGFILE_PATH}" NEW_MD5SUM
+#******************************************************************************************************************************
+pr_update_pkgfile_pkgmd5sums() {
+
+    # Helper to consider the end of the original pkgmd5sums: in case code is written on the same line after the closing `)`
+    _do_end_of_array() {
+        if [[ ${_line} != *"#"*")"* ]]; then
+            ut_get_postfix_longest_all _temp_str "${_line}" ")"
+            if [[ -n ${_temp_str} ]]; then
+                if [[ ${_temp_str} != ";"* ]]; then
+                    _final_str+="${_temp_str}\n"
+                else
+                    _temp_str="${_temp_str:1}"
+                    _temp_str=${_temp_str##+([[:space:]])}
+                    _final_str+="${_temp_str}\n"
+                fi
+            fi
+            _add_rest=1
+        fi
+    }
+
+    local _in_pkgfile_path=${1}
+    local -n _in_new_md5sums=${2}
+    local _in_new_md5sums_size=${#_in_new_md5sums[@]}
+    local _final_str=""
+    local _temp_str=""
+    # tests are slightly faster for ints
+    local _found_start=0
+    declare -i _add_rest=0
+    local _backup_pkgfile="${_in_pkgfile_path}.bak"
+
+    ms_more "$(gettext "Updating pkgmd5sums array for Pkgfile: <%s>")" "${_in_pkgfile_path}"
+    # make a bak file
+    cp -f "${_in_pkgfile_path}" "${_backup_pkgfile}"
+
+    _savedifs=${IFS}
+    while IFS= read -r _line; do
+        if (( ${_add_rest} )); then
+             _final_str+="${_line}\n"
+        elif (( ${_found_start} )); then
+            if [[ ${_line} == *")"* ]]; then
+                _do_end_of_array
+            fi
+        elif [[ ${_line} == *"pkgmd5sums=("* ]]; then
+            ut_get_prefix_shortest_all _temp_str "${_line}" "pkgmd5sums=("
+            if [[ -n ${_temp_str} ]]; then
+                _temp_str=${_temp_str%%+([[:space:]])}
+                if [[ ${_temp_str} != *";" ]]; then
+                    _final_str+="${_temp_str}\n"
+                else
+                    _final_str+="${_temp_str::-1}\n"
+                fi
+            fi
+            # Insert our new one
+            if (( ${_in_new_md5sums_size} == 1 )); then
+                _final_str+="pkgmd5sums=(\"${_in_new_md5sums[0]}\")\n"
+            elif (( ${_in_new_md5sums_size} > 1 )); then
+                _final_str+="pkgmd5sums=(\"${_in_new_md5sums[0]}\"\n"
+                for (( _n=1; _n < ${_in_new_md5sums_size}; _n++ )); do
+                    _final_str+="    \"${_in_new_md5sums[${_n}]}\"\n"
+                done
+                _final_str+=")\n"
+            else
+                _final_str+="pkgmd5sums=()\n"
+            fi
+
+            if [[ ${_line} == *")"* ]]; then
+                _do_end_of_array
+            fi
+            _found_start=1
+        else
+            _final_str+="${_line}\n"
+        fi
+    done < "${_backup_pkgfile}"
+    IFS=${_savedifs}
+
+    echo -e "${_final_str}" > "${_in_pkgfile_path}"
+}
+
+
 
 #******************************************************************************************************************************
 # End of file
