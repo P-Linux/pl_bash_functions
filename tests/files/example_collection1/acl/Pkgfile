@@ -1,0 +1,22 @@
+pkgpackager="peter1000"
+pkgdesc="Commands for Manipulating POSIX Access Control Lists."
+pkgurl="http://savannah.nongnu.org/projects/acl"
+pkgdeps=()
+
+pkgvers=2.2.52
+pkgrel=1
+pkgsources=("http://download.savannah.gnu.org/releases/${CMK_PORTNAME}/${CMK_PORTNAME}-${pkgvers}.src.tar.gz"
+    "dummy.patch")
+
+pkgmd5sums=("a61415312426e9c2212bd7dc7929abda"
+    "80eba83e7de06d46752f4158979ea3c2")
+
+CMK_GROUPS=("devel" "man" "doc")
+
+build() {
+    _a="Package 'build' function is REQUIRED."
+}
+
+devel() {
+    _a="Optional customary 'devel' function."
+}

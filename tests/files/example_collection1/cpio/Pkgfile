@@ -1,0 +1,13 @@
+pkgpackager="peter1000"
+pkgdesc="A tool to copy files into or out of a cpio or tar archive."
+pkgurl="http://www.gnu.org/software/cpio/"
+pkgdeps=()
+
+pkgvers=2.11
+pkgrel=3
+pkgsources=("http://ftp.gnu.org/gnu/${CMK_PORTNAME}/${CMK_PORTNAME}-${pkgvers}.tar.bz2")
+pkgmd5sums=("20fc912915c629e809f80b96b2e75d7d")
+
+build() {
+    _a="Package 'build' function is REQUIRED."
+}
