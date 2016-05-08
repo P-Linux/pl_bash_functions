@@ -37,9 +37,9 @@ set +o noclobber
 #           3. `URI`        (required): MAY ONLY contain 1 (+) to prefixing the URL with a VCS type,
 #                                       MAY ONLY contain 1 (#) to postfix the URL with a VCS fragment.
 #               * Online FILES: A fully-qualified URL (supported are: ftp://, http://, https://)
-#               * Local FILES:  A local file path which is resolved relative to the directory of the `_pkgfile_fullpath`.
-#                               A local source file path MUST NOT start with a slash `/`.
-#                               e.g. (mylocal.patch,  resources/mylocal.patch)
+#               * Local FILES:  A local file path: file must reside in the same directory as the Pkgfile `_pkgfile_fullpath`
+#                               A local source file path MUST NOT contain any slash `/`. 
+#                               e.g. (mylocal.patch)
 #               * VCS SOURCES:  A Version control source: URL to the VCS repository (supported are: git, svn, hg, bzr)
 #                               This must include the VCS type. If the protocol does not include the VCS name, it can be
 #                               added by prefixing the URL with vcs+. e.g. ( git+https://...., svn://....)
@@ -103,7 +103,7 @@ set +o noclobber
 #               "NOEXTRACT::renamed_zlib.tar.xz::http://www.zlib.net/zlib-1.2.8.tar.xz"
 #               "renamed_xz.tar.xz::http://tukaani.org/xz/xz-5.2.2.tar.xz"
 #               "mylocal.patch"
-#               "resource/mylocal2.patch"
+#               "mylocal2.patch"
 #
 #               "helper_scripts::git+https://github.com/P-Linux/pl_bash_functions.git"
 #               "git+https://github.com/shazow/urllib3.git#tag=1.14"
@@ -288,8 +288,8 @@ so_prepare_src_matrix() {
         fi
         case "${_protocol}" in
             local)
-                if ut_is_abspath "${_entry}"; then
-                    ms_abort "${_fn}" "$(gettext "Local source MUST NOT start with a slash. ENTRY: <%s>")" "${_entry}"
+                if [[ ${_entry} == *"/"* ]]; then
+                    ms_abort "${_fn}" "$(gettext "Local source MUST NOT contain any slash. ENTRY: <%s>")" "${_entry}"
                 fi
                 if [[ -n ${_noextract} ]]; then
                     ms_abort "${_fn}" "$(gettext "Local source MUST NOT have a 'NOEXTRACT'. ENTRY: <%s>")" "${_entry}"

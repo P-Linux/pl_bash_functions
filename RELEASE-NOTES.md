@@ -10,6 +10,8 @@
 * adds requirement for permission to overwrite files: `set +o noclobber`
 * adds separate: pkgarchives.sh
 * new functions and tests
+* Changes to local source files from `Local source MUST NOT start with a slash.` to `Local source MUST NOT contain any slash.`
+    * Reason for Port-Repo-Files we do want to include all the local files but nothing in subdirectories.
 
 
 ## v0.9.1 (2016-05-05)

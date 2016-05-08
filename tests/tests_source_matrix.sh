@@ -92,7 +92,7 @@ ts_so___so_prepare_src_matrix_multiple_source_arrays() {
     declare -A _scrmtx
     local _sources_1 _sources_2 _checksums_1 _checksums_2
 
-    _sources_1=("http://www.download.test/dummy_1" "resources/mylocal_1.patch")
+    _sources_1=("http://www.download.test/dummy_1" "mylocal_1.patch")
     _checksums_1=("10000000000000000000000000000000" "SKIP")
 
     _sources_2=("http://www.download.test/dummy_2" "mylocal_2.patch")
@@ -115,16 +115,15 @@ ts_so___so_prepare_src_matrix_multiple_source_arrays() {
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} \
         "Test 1. entry (from 1. Pkgfile) all Fields as expected. ENTRY: <${_sources_1[0]}>."
 
-
-    [[ ${_scrmtx[2:ENTRY]} == "resources/mylocal_1.patch"      && \
+    [[ ${_scrmtx[2:ENTRY]} == "mylocal_1.patch"                && \
         ${_scrmtx[2:CHKSUM]} == "SKIP"                         && \
         -z ${_scrmtx[2:NOEXTRACT]}                             && \
         -z ${_scrmtx[2:PREFIX]}                                && \
-        ${_scrmtx[2:URI]} == "resources/mylocal_1.patch"       && \
+        ${_scrmtx[2:URI]} == "mylocal_1.patch"       && \
         -z ${_scrmtx[2:FRAGMENT]}                              && \
         ${_scrmtx[2:PROTOCOL]} == "local"                      && \
-        ${_scrmtx[2:DESTNAME]} == "resources/mylocal_1.patch"  && \
-        ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/resources/mylocal_1.patch" ]]
+        ${_scrmtx[2:DESTNAME]} == "mylocal_1.patch"  && \
+        ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/mylocal_1.patch" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} \
         "Test 2. entry (from 1. Pkgfile) all Fields as expected. ENTRY: <${_sources_1[1]}>."
 
@@ -164,7 +163,7 @@ ts_so___so_prepare_src_matrix_no_srcdst_dir_input() {
     declare -A _scrmtx
     local _sources _checksums
 
-    _sources=("http://www.download.test/dummy_1" "resources/mylocal_1.patch")
+    _sources=("http://www.download.test/dummy_1" "mylocal_1.patch")
     _checksums=("10000000000000000000000000000000" "SKIP")
 
     so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdest_dir_1}"
@@ -181,15 +180,15 @@ ts_so___so_prepare_src_matrix_no_srcdst_dir_input() {
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} \
         "Test 1. entry no srcdst dir input all Fields as expected. ENTRY: <${_sources[0]}>."
 
-    [[ ${_scrmtx[2:ENTRY]} == "resources/mylocal_1.patch"      && \
+    [[ ${_scrmtx[2:ENTRY]} == "mylocal_1.patch"      && \
         ${_scrmtx[2:CHKSUM]} == "SKIP"                         && \
         -z ${_scrmtx[2:NOEXTRACT]}                             && \
         -z ${_scrmtx[2:PREFIX]}                                && \
-        ${_scrmtx[2:URI]} == "resources/mylocal_1.patch"       && \
+        ${_scrmtx[2:URI]} == "mylocal_1.patch"       && \
         -z ${_scrmtx[2:FRAGMENT]}                              && \
         ${_scrmtx[2:PROTOCOL]} == "local"                      && \
-        ${_scrmtx[2:DESTNAME]} == "resources/mylocal_1.patch"  && \
-        ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/resources/mylocal_1.patch" ]]
+        ${_scrmtx[2:DESTNAME]} == "mylocal_1.patch"  && \
+        ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/mylocal_1.patch" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} \
         "Test 2. entry no srcdst dir input all Fields as expected. ENTRY: <${_sources[1]}>."
 }
@@ -258,11 +257,11 @@ ts_so___so_prepare_src_matrix_general_errors() {
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
         "'NOEXTRACT' MUST be empty or: NOEXTRACT. Got: 'WRONG' ENTRY: <WRONG::renamed.tar.xz::http://dummy.tar.xz>"
 
-    _sources=("/wrong/mylocal.patch")
+    _sources=("wrong/mylocal.patch")
     _checksums=("10000000000000000000000000000000")
     _output=$((so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdest_dir}") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
-        "Local source MUST NOT start with a slash. ENTRY: </wrong/mylocal.patch>"
+        "Local source MUST NOT contain any slash. ENTRY: <wrong/mylocal.patch>"
 
     _sources=("NOEXTRACT::mylocal.patch")
     _checksums=("10000000000000000000000000000000")
@@ -320,7 +319,7 @@ ts_so___so_prepare_src_matrix_check_expected_values() {
         "NOEXTRACT::renamed_zlib.tar.xz::http://www.zlib.net/zlib-1.2.8.tar.xz"
         "renamed_xz.tar.xz::http://tukaani.org/xz/xz-5.2.2.tar.xz"
         "mylocal.patch"
-        "resource/mylocal2.patch"
+        "mylocal2.patch"
 
         "helper_scripts::git+https://github.com/P-Linux/pl_bash_functions.git"
         "git+https://github.com/shazow/urllib3.git#tag=1.14"
@@ -356,8 +355,6 @@ ts_so___so_prepare_src_matrix_check_expected_values() {
 
     local _pkgfile_fullpath="/var/cards_mk/ports/only_download/Pkgfile"
     local _srcdest_dir="/home/dummy_sources"
-
-    ms_msg 'TESTING: so_prepare_src_matrix() check expected values'
 
     so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdest_dir}" &> /dev/null
 
@@ -446,15 +443,15 @@ ts_so___so_prepare_src_matrix_check_expected_values() {
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} "Test all fields - expected values. ENTRY: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
-    [[ ${_scrmtx[${_n}:ENTRY]} == "resource/mylocal2.patch" && \
+    [[ ${_scrmtx[${_n}:ENTRY]} == "mylocal2.patch" && \
         ${_scrmtx[${_n}:CHKSUM]} == "SKIP" && \
         -z ${_scrmtx[${_n}:NOEXTRACT]} && \
         -z ${_scrmtx[${_n}:PREFIX]} && \
-        ${_scrmtx[${_n}:URI]} == "resource/mylocal2.patch" && \
+        ${_scrmtx[${_n}:URI]} == "mylocal2.patch" && \
         -z ${_scrmtx[${_n}:FRAGMENT]} && \
         ${_scrmtx[${_n}:PROTOCOL]} == "local" && \
-        ${_scrmtx[${_n}:DESTNAME]} == "resource/mylocal2.patch" && \
-        ${_scrmtx[${_n}:DESTPATH]} == "/var/cards_mk/ports/only_download/resource/mylocal2.patch" ]]
+        ${_scrmtx[${_n}:DESTNAME]} == "mylocal2.patch" && \
+        ${_scrmtx[${_n}:DESTPATH]} == "/var/cards_mk/ports/only_download/mylocal2.patch" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} "Test all fields - expected values. ENTRY: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
