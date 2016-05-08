@@ -37,8 +37,8 @@ Example: if the 'pl_bash_functions' file is called: **msg.sh** - the prefix woul
 
 In general Function which abort on failure use following name syntax.
 
-* `Abort if XXX`: **ut_abort_sparse_array** -  Abort if it is a sparse array
-* `If XXX failures Abort`: **ut_file_is_rw_abort** - If file is read/writeable fails, abort
+* `Abort if XXX`: **ut_abort_sparse_array** -  Abort if it is a sparse array.
+* `If XXX fails Abort`: **ut_file_is_rw_abort** - If file is read/writeable fails, abort.
 
 
 ### Variable Names
