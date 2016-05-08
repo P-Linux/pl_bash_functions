@@ -23,19 +23,17 @@ ms_format "${_THIS_SCRIPT_PATH}"
 
 source "${_FUNCTIONS_DIR}/utilities.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/source_matrix.sh"
+ut_source_safe_abort "${_FUNCTIONS_DIR}/pkgarchives.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/process_ports.sh"
 
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
 
-# pk_unset_official_pkgfile_variables skip test for this function
-
-
 #******************************************************************************************************************************
 # TEST: pr_make_pkg_build_dir()
 #******************************************************************************************************************************
-ts_pk___pr_make_pkg_build_dir() {
+ts_pr___pr_make_pkg_build_dir() {
     te_print_function_msg "pr_make_pkg_build_dir()"
     local _tmp_dir=$(mktemp -d)
     local _pkg_build_dir _tmp_pkg_build_dir_file _tmp_srcdir_file _tmp_pkgdir_file
@@ -73,15 +71,15 @@ ts_pk___pr_make_pkg_build_dir() {
     # CLEAN UP
     rm -rf "${_tmp_dir}"
 }
-ts_pk___pr_make_pkg_build_dir
+ts_pr___pr_make_pkg_build_dir
 
 
 #******************************************************************************************************************************
 # TEST: pr_remove_existing_backup_pkgfile()
 #******************************************************************************************************************************
-ts_pk___pr_remove_existing_backup_pkgfile() {
+ts_pr___pr_remove_existing_backup_pkgfile() {
     te_print_function_msg "pr_remove_existing_backup_pkgfile()"
-    local _fn="ts_pk___pr_remove_existing_backup_pkgfile"
+    local _fn="ts_pr___pr_remove_existing_backup_pkgfile"
     local _tmp_dir=$(mktemp -d)
     local _pkgfile_path="${_tmp_dir}/Pkgfile"
     local _backup_pkgfile_path="${_pkgfile_path}.bak"
@@ -108,16 +106,16 @@ ts_pk___pr_remove_existing_backup_pkgfile() {
     # CLEAN UP
     rm -rf "${_tmp_dir}"
 }
-ts_pk___pr_remove_existing_backup_pkgfile
+ts_pr___pr_remove_existing_backup_pkgfile
 
 
 
 #******************************************************************************************************************************
 # TEST: pr_remove_downloaded_sources()
 #******************************************************************************************************************************
-ts_pk___pr_remove_downloaded_sources() {
+ts_pr___pr_remove_downloaded_sources() {
     te_print_function_msg "pr_remove_downloaded_sources()"
-    local _fn="ts_pk___pr_remove_downloaded_sources"
+    local _fn="ts_pr___pr_remove_downloaded_sources"
     local _tmp_dir=$(mktemp -d)
     local _ports_dir="${_tmp_dir}/ports"
     local _pkgfile_fullpath="${_ports_dir}/example_port/Pkgfile"
@@ -178,15 +176,15 @@ ts_pk___pr_remove_downloaded_sources() {
     # CLEAN UP
     rm -rf "${_tmp_dir}"
 }
-ts_pk___pr_remove_downloaded_sources
+ts_pr___pr_remove_downloaded_sources
 
 
 #******************************************************************************************************************************
 # TEST: pr_update_pkgfile_pkgmd5sums()
 #******************************************************************************************************************************
-ts_pk___pr_update_pkgfile_pkgmd5sums() {
+ts_pr___pr_update_pkgfile_pkgmd5sums() {
     te_print_function_msg "pr_update_pkgfile_pkgmd5sums()"
-    local _fn="ts_pk___pr_update_pkgfile_pkgmd5sums"
+    local _fn="ts_pr___pr_update_pkgfile_pkgmd5sums"
     local _tmp_dir=$(mktemp -d)
     local _pkgfile_path="${_tmp_dir}/Pkgfile"
     local _backup_pkgfile_path="${_pkgfile_path}.bak"
@@ -229,7 +227,8 @@ ts_pk___pr_update_pkgfile_pkgmd5sums() {
     # CLEAN UP
     rm -rf "${_tmp_dir}"
 }
-ts_pk___pr_update_pkgfile_pkgmd5sums
+ts_pr___pr_update_pkgfile_pkgmd5sums
+
 
 
 #******************************************************************************************************************************

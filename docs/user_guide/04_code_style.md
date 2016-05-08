@@ -32,6 +32,8 @@ Example: if the 'pl_bash_functions' file is called: **msg.sh** - the prefix woul
 
 * Sometimes the **Function Name** is prefixed with an underscore: e.g. function within function
 
+* Exception: sometimes an additional letter is added to distinguish similar starting files." e.g. `pkgarchives.sh, pkgfile.sh`
+
 
 ### Function Abort
 
@@ -233,6 +235,8 @@ used variabled as: local
 * some functions declare on purpose variables which are not set local: e.g.
     * some Pkgfile related function
     * some Port processing related function
+* some functions relay on official Pkgfile variables: in such case a Pkgfile must first have been sourced or the required 
+    variables set globally.
 
 
 ### Function Arguments/Variables

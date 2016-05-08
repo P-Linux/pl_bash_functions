@@ -27,7 +27,7 @@ set +o noclobber
 #******************************************************************************************************************************
 # Unset official Pkgfile variables
 #******************************************************************************************************************************
-pk_unset_official_pkgfile_variables() {
+pkf_unset_official_pkgfile_variables() {
     unset -v pkgpackager pkgdesc pkgurl pkgdeps pkgdepsrun pkgvers pkgrel pkgsources pkgmd5sums
 }
 
@@ -59,7 +59,7 @@ pk_unset_official_pkgfile_variables() {
 #               )
 #   USAGE:
 #       declare -A COLLECTION_LOOKUP=()
-#       pk_prepare_collections_lookup COLLECTION_LOOKUP "${CMK_PKGFILE_NAME}" CMK_REGISTERED_COLLECTIONS
+#       pkf_prepare_collections_lookup COLLECTION_LOOKUP "${CMK_PKGFILE_NAME}" CMK_REGISTERED_COLLECTIONS
 #
 #   EXAMPLE
 #       CMK_REGISTERED_COLLECTIONS=(
@@ -76,11 +76,11 @@ pk_unset_official_pkgfile_variables() {
 #           "/usr/ports/base"
 #       )
 #       declare -A COLLECTION_LOOKUP=()
-#       pk_prepare_collections_lookup COLLECTION_LOOKUP "Pkgfile" CMK_REGISTERED_COLLECTIONS
+#       pkf_prepare_collections_lookup COLLECTION_LOOKUP "Pkgfile" CMK_REGISTERED_COLLECTIONS
 #       echo "<${#COLLECTION_LOOKUP[@]}>"
 #******************************************************************************************************************************
-pk_prepare_collections_lookup() {
-    local _fn="pk_prepare_collections_lookup"
+pkf_prepare_collections_lookup() {
+    local _fn="pkf_prepare_collections_lookup"
     local -n _ret_collection_ports_lookup=${1}
     local _reference_pkgfile_name=${2}
     local -n _in_registered_collections_l=${3}
@@ -187,10 +187,10 @@ pk_prepare_collections_lookup() {
 #               )
 #   USAGE:
 #       CMK_PKGFILES_TO_PROCESS=()
-#       pk_prepare_pkgfiles_to_process PKGFILES_TO_PROCESS "${CMK_PKGFILE_NAME}" CMK_PORTSLIST CMK_REGISTERED_COLLECTIONS
+#       pkf_prepare_pkgfiles_to_process PKGFILES_TO_PROCESS "${CMK_PKGFILE_NAME}" CMK_PORTSLIST CMK_REGISTERED_COLLECTIONS
 #******************************************************************************************************************************
-pk_prepare_pkgfiles_to_process() {
-    local _fn="pk_prepare_pkgfiles_to_process"
+pkf_prepare_pkgfiles_to_process() {
+    local _fn="pkf_prepare_pkgfiles_to_process"
     local -n _ret_pkgfiles_to_process=${1}
     local _reference_pkgfile_name=${2}
     local -n _in_portslist=${3}
@@ -205,15 +205,15 @@ pk_prepare_pkgfiles_to_process() {
     #           then there is no need to prepare the collections_lookup which takes time
     if (( ${#_in_portslist[@]} == 1 )) && [[ ${_in_portslist[0]} == "/"* ]] ; then
         _pkgfile_port_path="${_in_portslist[0]}/${_reference_pkgfile_name}"
-        pk_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
+        pkf_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
         _ret_pkgfiles_to_process+=("${_pkgfile_port_path}")
     else
-        pk_prepare_collections_lookup _collection_lookup "${_reference_pkgfile_name}" _in_registered_collections
+        pkf_prepare_collections_lookup _collection_lookup "${_reference_pkgfile_name}" _in_registered_collections
 
         for _port_entry in "${_in_portslist[@]}"; do
             if [[ ${_port_entry} == "/"* ]]; then
                 _pkgfile_port_path="${_port_entry}/${_reference_pkgfile_name}"
-                pk_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
+                pkf_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
                 _ret_pkgfiles_to_process+=("${_pkgfile_port_path}")
             elif [[ -v _collection_lookup[${_port_entry}] ]]; then
                 _ret_pkgfiles_to_process+=("${_collection_lookup[${_port_entry}]}")
@@ -240,19 +240,19 @@ pk_prepare_pkgfiles_to_process() {
 #       `_pkgfile_path`: absolute path to the pkgfile
 #
 #   USAGE:
-#       pk_validate_pkgvers "1.3.5" "${CMK_PKGFILE_PATH}"
+#       pkf_validate_pkgvers "1.3.5" "${CMK_PKGFILE_PATH}"
 #******************************************************************************************************************************
-pk_validate_pkgvers() {
+pkf_validate_pkgvers() {
     local _pkgvers=${1}
     local _pkgfile_path=${2}
 
     if [[ -n ${_pkgvers} ]]; then
         if [[ ${_pkgvers} == *[![:alnum:].]* ]]; then
-            ms_abort "pk_validate_pkgvers" "$(gettext "'pkgvers' contains invalid characters: '%s' File: <%s>")" \
+            ms_abort "pkf_validate_pkgvers" "$(gettext "'pkgvers' contains invalid characters: '%s' File: <%s>")" \
                 "${_pkgvers//[[:alnum:].]}" "${_pkgfile_path}"
         fi
     else
-        ms_abort "pk_validate_pkgvers" "$(gettext "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
+        ms_abort "pkf_validate_pkgvers" "$(gettext "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
     fi
 }
 
@@ -264,22 +264,22 @@ pk_validate_pkgvers() {
 #       `_pkgfile_path`: absolute path to the pkgfile
 #
 #   USAGE:
-#       pk_get_only_pkgvers_abort "${CMK_PKGFILE_PATH}"
+#       pkf_get_only_pkgvers_abort "${CMK_PKGFILE_PATH}"
 #
 #   NOTE: Keept this as an subshell
 #******************************************************************************************************************************
-pk_get_only_pkgvers_abort() {
+pkf_get_only_pkgvers_abort() {
     (
-        local _fn="pk_get_only_pkgvers_abort"
+        local _fn="pkf_get_only_pkgvers_abort"
         [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
         local _pkgfile_path=${1}
 
         # unset all official related variable
-        pk_unset_official_pkgfile_variables
+        pkf_unset_official_pkgfile_variables
 
         ut_source_safe_abort "${_pkgfile_path}"
 
-        pk_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
+        pkf_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
         printf "%s\n" "${pkgvers}"
     )
 }
@@ -296,10 +296,10 @@ pk_get_only_pkgvers_abort() {
 #
 #   USAGE
 #       local NEW_PKGMD5SUMS=()
-#       pk_generate_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
+#       pkf_generate_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
 #******************************************************************************************************************************
-pk_generate_pkgmd5sums() {
-    local _fn="pk_generate_pkgmd5sums"
+pkf_generate_pkgmd5sums() {
+    local _fn="pkf_generate_pkgmd5sums"
     local -n _ret_pkgmd5sums=${1}
     local -n _in_pkgp_scrmtx=${2}
     declare -i _n
@@ -368,10 +368,10 @@ pk_generate_pkgmd5sums() {
 #       `_reference_pkgfile_name`: A reference name against the _pkgfile_path basename is checked
 #
 #   USAGE:
-#       pk_validate_pkgfile_port_path_name "${CMK_PKGFILE_PATH}" "${CMK_PKGFILE_NAME}"
+#       pkf_validate_pkgfile_port_path_name "${CMK_PKGFILE_PATH}" "${CMK_PKGFILE_NAME}"
 #******************************************************************************************************************************
-pk_validate_pkgfile_port_path_name() {
-    local _fn="pk_validate_pkgfile_port_path_name"
+pkf_validate_pkgfile_port_path_name() {
+    local _fn="pkf_validate_pkgfile_port_path_name"
     [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
     [[ -n $2 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 2 MUST NOT be empty.")" "${_fn}"
     local _pkgfile_path=${1}
@@ -444,10 +444,10 @@ pk_validate_pkgfile_port_path_name() {
 #                         will be validated
 #
 #   USAGE:
-#       pk_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CMK_GROUPS
+#       pkf_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CMK_GROUPS
 #******************************************************************************************************************************
-pk_source_validate_pkgfile() {
-    local _fn="pk_source_validate_pkgfile"
+pkf_source_validate_pkgfile() {
+    local _fn="pkf_source_validate_pkgfile"
     [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
     local _pkgfile_path=${1}
     local -n _in_cmk_required_function_names=${2}
@@ -462,7 +462,7 @@ pk_source_validate_pkgfile() {
     local _func
 
     # unset all official related variable
-    pk_unset_official_pkgfile_variables
+    pkf_unset_official_pkgfile_variables
     ut_unset_functions _in_cmk_required_function_names
     ut_unset_functions2 _in__cmk_groups_default_function_names  # NEED ut_unset_functions2 for associative array
 
@@ -493,7 +493,7 @@ pk_source_validate_pkgfile() {
 
     #### Pkgfile-Variables
     #pkgvers
-    pk_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
+    pkf_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
 
     # pkgrel
     if [[ ${pkgrel} != +([[:digit:]]) ]]; then

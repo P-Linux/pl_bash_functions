@@ -338,7 +338,7 @@ ts_ut___ut_is_associative_array_var
 #******************************************************************************************************************************
 ts_ut___ut_ref_associative_array_abort() {
     te_print_function_msg "ut_ref_associative_array_abort()"
-    local _fn="ut_ref_associative_array_abort"
+    local _fn="ts_ut___ut_ref_associative_array_abort"
     declare -A _assigned_array=(["a"]="a" ["VALID ITEM2"]="VALID ITEM2" ["e f"]="e f" ["3"]=3 ["VALID ITEM"]="VALID ITEM")
     declare -A _not_assigned_array
     declare -A -r _readonly_assigned_array=(["1"]=1 ["item"]=item)

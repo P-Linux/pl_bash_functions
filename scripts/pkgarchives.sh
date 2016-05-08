@@ -31,10 +31,10 @@ set +o noclobber
 #   ARGUMENTS
 #       `_ret_extisting_pkgarchives`: a reference var: an empty index array which will be updated with the absolut path to any
 #                                     port pkgarchives
-#       `_in_port_name`: a reference var: port name
-#       `_in_port_path`: a reference var: port absolute path
-#       `_in_system_arch`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_ref_ext`: a reference var: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_port_name_ge`: a reference var: port name
+#       `_in_port_path_ge`: a reference var: port absolute path
+#       `_in_system_arch_ge`: a reference var: architecture e.g.: "$(uname -m)"
+#       `_ref_ext_ge`: a reference var: The extention name of a package tar archive file withouth any compression specified.
 #
 #   USAGE
 #       TARGETS=()
@@ -42,16 +42,16 @@ set +o noclobber
 #       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       CMK_ARCH="$(uname -m)"
 #       CMK_PKG_EXT="cards.tar"
-#       pa_get_existing_pkgarchives TARGETS CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
+#       pka_get_existing_pkgarchives TARGETS CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_get_existing_pkgarchives() {
+pka_get_existing_pkgarchives() {
     local -n _ret_extisting_pkgarchives=${1}
-    local -n _in_port_name=${2}
-    local -n _in_port_path=${3}
-    local -n _in_system_arch=${4}
-    local -n _ref_ext=${5}
-    _ret_extisting_pkgarchives=("${_in_port_path}/${_in_port_name}"*"${_in_system_arch}.${_ref_ext}"* \
-        "${_in_port_path}/${_in_port_name}"*"any.${_ref_ext}"*)
+    local -n _in_port_name_ge=${2}
+    local -n _in_port_path_ge=${3}
+    local -n _in_system_arch_ge=${4}
+    local -n _ref_ext_ge=${5}
+    _ret_extisting_pkgarchives=("${_in_port_path_ge}/${_in_port_name_ge}"*"${_in_system_arch_ge}.${_ref_ext_ge}"* \
+        "${_in_port_path_ge}/${_in_port_name_ge}"*"any.${_ref_ext_ge}"*)
 }
 
 
@@ -59,28 +59,28 @@ pa_get_existing_pkgarchives() {
 # Remove existing pkgarchives.
 #
 #   ARGUMENTS
-#       `_in_port_name`: a reference var: port name
-#       `_in_port_path`: a reference var: port absolute path
-#       `_in_system_arch`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_ref_ext`: a reference var: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_port_name_re`: a reference var: port name
+#       `_in_port_path_re`: a reference var: port absolute path
+#       `_in_system_arch_re`: a reference var: architecture e.g.: "$(uname -m)"
+#       `_ref_ext_re`: a reference var: The extention name of a package tar archive file withouth any compression specified.
 #
 #   USAGE
 #       CMK_PORTNAME="hwinfo"
 #       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       CMK_ARCH="$(uname -m)"
 #       CMK_PKG_EXT="cards.tar"
-#       pa_remove_existing_pkgarchives CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
+#       pka_remove_existing_pkgarchives CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_remove_existing_pkgarchives() {
-    local -n _in_port_name=${1}
-    local -n _in_port_path=${2}
-    local -n _in_system_arch=${3}
-    local -n _ref_ext=${4}
-    local _find1="${_in_port_name}*${_in_system_arch}.${_ref_ext}*"
-    local _find2="${_in_port_name}*any.${_ref_ext}*"
+pka_remove_existing_pkgarchives() {
+    local -n _in_port_name_re=${1}
+    local -n _in_port_path_re=${2}
+    local -n _in_system_arch_re=${3}
+    local -n _ref_ext_re=${4}
+    local _find1="${_in_port_name_re}*${_in_system_arch_re}.${_ref_ext_re}*"
+    local _find2="${_in_port_name_re}*any.${_ref_ext_re}*"
 
-    ms_more "$(gettext "Removing any existing pkgarchive files for Port <%s>")" "${_in_port_path}"
-    find "${_in_port_path}" \( -name "${_find1}" -or -name "${_find2}" \) -delete
+    ms_more "$(gettext "Removing any existing pkgarchive files for Port <%s>")" "${_in_port_path_re}"
+    find "${_in_port_path_re}" \( -name "${_find1}" -or -name "${_find2}" \) -delete
 }
 
 
@@ -95,16 +95,16 @@ pa_remove_existing_pkgarchives() {
 #
 #   USAGE
 #       local NAME=""
-#       pa_get_pkgarchive_name NAME PKGARCHIVE CMK_ARCH CMK_PKG_EXT
+#       pka_get_pkgarchive_name NAME PKGARCHIVE CMK_ARCH CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_get_pkgarchive_name() {
-    local _fn="pa_get_pkgarchive_name"
+pka_get_pkgarchive_name() {
+    local _fn="pka_get_pkgarchive_name"
     local -n _ret_name_n=${1}
     local -n _in_pkgarchive_n=${2}
     local -n _in_system_arch_n=${3}
     local -n _ref_ext_n=${4}
     local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_n}"
-    local _ext; pa_get_pkgarchive_ext _ext _pkgarchive_basename _ref_ext_n
+    local _ext; pka_get_pkgarchive_ext _ext _pkgarchive_basename _ref_ext_n
     local _ending
     declare -i _rest_size
 
@@ -139,15 +139,15 @@ pa_get_pkgarchive_name() {
 #
 #   USAGE
 #       local BUILDVERS=""
-#       pa_get_pkgarchive_buildvers BUILDVERS PKGARCHIVE CMK_ARCH CMK_PKG_EXT
+#       pka_get_pkgarchive_buildvers BUILDVERS PKGARCHIVE CMK_ARCH CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_get_pkgarchive_buildvers() {
-    local _fn="pa_get_pkgarchive_buildvers"
+pka_get_pkgarchive_buildvers() {
+    local _fn="pka_get_pkgarchive_buildvers"
     local -n _ret_buildvers_a=${1}
     local -n _in_pkgarchive_b=${2}
     local -n _in_system_arch_b=${3}
     local -n _ref_ext_b=${4}
-    local _ext; pa_get_pkgarchive_ext _ext _in_pkgarchive_b _ref_ext_b
+    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_b _ref_ext_b
     local _ending
     declare -i _ending_size
 
@@ -183,15 +183,15 @@ pa_get_pkgarchive_buildvers() {
 #
 #   USAGE
 #       local ARCH=""
-#       pa_get_pkgarchive_arch ARCH PKGARCHIVE CMK_ARCH CMK_PKG_EXT
+#       pka_get_pkgarchive_arch ARCH PKGARCHIVE CMK_ARCH CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_get_pkgarchive_arch() {
-    local _fn="pa_get_pkgarchive_arch"
+pka_get_pkgarchive_arch() {
+    local _fn="pka_get_pkgarchive_arch"
     local -n _ret_arch_a=${1}
     local -n _in_pkgarchive_a=${2}
     local -n _in_system_arch_a=${3}
     local -n _ref_ext_a=${4}
-    local _ext; pa_get_pkgarchive_ext _ext _in_pkgarchive_a _ref_ext_a
+    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_a _ref_ext_a
 
     if [[ ${_in_pkgarchive_a} == *"any${_ext}" ]]; then
         _ret_arch_a="any"
@@ -214,10 +214,10 @@ pa_get_pkgarchive_arch() {
 #
 #   USAGE
 #       local EXTENTION=""
-#       pa_get_pkgarchive_ext EXTENTION PKGARCHIVE CMK_PKG_EXT
+#       pka_get_pkgarchive_ext EXTENTION PKGARCHIVE CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_get_pkgarchive_ext() {
-    local _fn="pa_get_pkgarchive_ext"
+pka_get_pkgarchive_ext() {
+    local _fn="pka_get_pkgarchive_ext"
     local -n _ret_ext_e=${1}
     local -n _in_pkgarchive_e=${2}
     local -n _ref_ext_e=${3}
@@ -248,10 +248,10 @@ pa_get_pkgarchive_ext() {
 #
 #   USAGE
 #       local NAME BUILDVERS ARCH EXT
-#       pa_get_pkgarchive_parts NAME BUILDVERS ARCH EXT PKGARCHIVE CMK_ARCH CMK_PKG_EXT
+#       pka_get_pkgarchive_parts NAME BUILDVERS ARCH EXT PKGARCHIVE CMK_ARCH CMK_PKG_EXT
 #******************************************************************************************************************************
-pa_get_pkgarchive_parts() {
-    local _fn="pa_get_pkgarchive_parts"
+pka_get_pkgarchive_parts() {
+    local _fn="pka_get_pkgarchive_parts"
     local -n _ret_name_parts=${1}
     local -n _ret_buildvers_parts=${2}
     local -n _ret_arch_parts=${3}

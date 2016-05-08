@@ -208,6 +208,112 @@ pr_update_pkgfile_pkgmd5sums() {
 }
 
 
+#******************************************************************************************************************************
+# Generate a new repo file. The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
+#
+#   ARGUMENTS
+#       `_in_pkgfile_path`: a reference var: pkgfile path
+#       `_in_port_name`: a reference var: port name
+#       `_in_port_path`: a reference var: port absolute path
+#       `_in_system_arch`: a reference var: architecture e.g.: "$(uname -m)"
+#       `_in_ref_ext`: a reference var: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_ref_repo_filename`: a reference var: The reference repo file name.
+#
+#   USAGE
+#       CMK_PORTNAME="hwinfo"
+#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       CMK_ARCH="$(uname -m)"
+#       CMK_PKG_EXT="cards.tar"
+#       pr_update_port_repo_file CMK_PKGFILE_PATH CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT CMK_REPO
+#******************************************************************************************************************************
+pr_update_port_repo_file() {
+    local _fn="pr_update_port_repo_file"
+    local -n _in_pkgfile_path=${1}
+    local -n _in_port_name=${2}
+    local -n _in_port_path=${3}
+    local -n _in_system_arch=${4}
+    local -n _in_ref_ext=${5}
+    local -n _in_ref_repo_filename=${5}
+    local _repo_filepath="${_in_port_path}/${_in_ref_repo_filename}"
+    local _final_str=""
+    local _existing_pkg_archives=()
+    local _pkgfile_basename; ut_basename _pkgfile_basename "${_in_pkgfile_path}"
+    local _pkgarchive_name _pkgarchive_buildvers _pkgarchive_arch _pkgarchive_ext
+    local _packager _description _url
+    local _pkgarchive_path _pkgarchive_basename _md5sum _filename
+
+    ms_more "$(gettext "Updating repo file for Port: <%s>")" "${_in_port_path}"
+
+    # Limited, fast check if we have sourced the Pkgfile beforehand
+    if [[ ! -n ${pkgpackager} ]]; then
+        ms_abort "${_fn}" \
+        "$(gettext "Could not get expected Pkgfile variable! Hint: did you forget to source the pkgfile:<%s>")" \
+            "${_in_pkgfile_path}"
+    fi
+
+    _existing_pkg_archives=()
+    pka_get_existing_pkgarchives _existing_pkg_archives _in_port_name _in_port_path _in_system_arch _in_ref_ext
+
+    if [[ ${pkgpackager} == *"#"* ]]; then
+        _packager=${pkgpackager/"#"/"\#"}
+    else
+        _packager=${pkgpackager}
+    fi
+
+    if [[ ${pkgdesc} == *"#"* ]]; then
+        _description=${pkgdesc/"#"/"\#"}
+    else
+        _description=${pkgdesc}
+    fi
+
+    if [[ -n ${pkgurl} ]]; then
+        if [[ ${pkgurl} == *"#"* ]]; then
+            _url=${pkgurl/"#"/"\#"}
+        else
+            _url=${pkgurl}
+        fi
+    else
+        _url="n.a."
+    fi
+
+    if (( ${#_existing_pkg_archives[@]} > 0 )); then
+        # use the first entry to get general data
+        _pkgarchive_path=${_existing_pkg_archives[0]}
+        pka_get_pkgarchive_parts _pkgarchive_name _pkgarchive_buildvers _pkgarchive_arch _pkgarchive_ext \
+            _pkgarchive _in_system_arch _in_ref_ext
+        _final_str+="${_pkgarchive_buildvers}#${_pkgarchive_ext}#${pkgvers}#${pkgrel}#${_description}#${_url}#${_packager}\n"
+
+        # Do the individual package archive files
+        for _pkgarchive_path in "'${_existing_pkg_archives[@]}"; do
+			ut_basename _pkgarchive_basename "${_pkgarchive_path}"
+            ut_get_file_md5sum_abort _md5sum "${_pkgarchive_path}"
+            # TODO SPEED UP - USE ONLY THE 2 NEEDED ONCE
+            pka_get_pkgarchive_parts _pkgarchive_name _pkgarchive_buildvers _pkgarchive_arch _pkgarchive_ext \
+                _pkgarchive _in_system_arch _in_ref_ext
+            _final_str+="${_md5sum}#${_pkgarchive_name}#${_pkgarchive_arch}\n"
+		done
+
+        # Do all other files
+        pushd "${_in_port_path}" &> /dev/null
+		for _filename in *; do
+			if [[ -f ${_filename} ]]; then
+                ut_get_file_md5sum_abort _md5sum "${_filename}"
+                if [[ ${_filename} != ${_pkgfile_basename} ]]; then
+                    _final_str+="${_md5sum}#${_filename}\n"
+                fi
+			fi
+		done
+        popd &> /dev/null
+	else
+		rm -f "${_repo_filepath}"
+	fi
+
+    ut_get_file_md5sum _md5sum "${_in_pkgfile_path}"
+    _final_str+="${_md5sum}#${_pkgfile_basename}\n"
+
+    echo -e "${_final_str}" > "${_repo_filepath}"
+}
+
 
 #******************************************************************************************************************************
 # End of file
