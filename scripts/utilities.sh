@@ -1169,6 +1169,29 @@ ut_get_file_md5sum() {
 
 
 #******************************************************************************************************************************
+# Return the md5sum for an existing file path: abort if it failed
+#
+#   USAGE: local _chksum; ut_get_file_md5sum_abort _chksum "/home/path_to_file"
+#******************************************************************************************************************************
+ut_get_file_md5sum_abort() {
+    local _fn="ut_get_file_md5sum_abort"
+    local -n _ret_result=${1}
+    local _file=${2}
+
+    _ret_result=""
+    if [[ -f ${_file} && -r ${_file} ]]; then
+        _ret_result=$(md5sum "${_file}")
+        _ret_result=${_ret_result:0:32}
+        if [[ ! -n ${_ret_result} ]]; then
+            ms_abort "${_fn}" "$(gettext "Could not generate a md5sum for file: <%s>")" "${_file}"
+        fi
+    else
+        ms_abort "${_fn}" "$(gettext "Not a readable file path: <%s>")" "${_file}"
+    fi
+}
+
+
+#******************************************************************************************************************************
 # Aborts if command '${1}' is not found. USAGE: ut_no_command_abort "wget"
 #******************************************************************************************************************************
 ut_no_command_abort() {

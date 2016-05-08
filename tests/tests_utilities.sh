@@ -1197,6 +1197,25 @@ ts_ut___ut_get_file_md5sum
 
 
 #******************************************************************************************************************************
+# TEST: ut_get_file_md5sum_abort()
+#******************************************************************************************************************************
+ts_ut___ut_get_file_md5sum_abort() {
+    te_print_function_msg "ut_get_file_md5sum_abort()"
+    local _orig_chksum="251aadc2351abf85b3dbfe7261f06218"
+    local _text_file="$(dirname _THIS_SCRIPT_PATH)/files/md5sum_testfile.txt"
+    local _none_existing_file="$(dirname _THIS_SCRIPT_PATH)/none_existing_file_path.no"
+    local _chksum _output
+
+    ut_get_file_md5sum_abort _chksum "${_text_file}"
+    te_same_val _COUNT_OK _COUNT_FAILED "${_chksum}" "${_orig_chksum}"
+
+    _output=$((ut_get_file_md5sum_abort _chksum "${_none_existing_file}") 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Not a readable file path: <./none_existing_file_path.no>"
+}
+ts_ut___ut_get_file_md5sum_abort
+
+
+#******************************************************************************************************************************
 # TEST: ut_no_command_abort()
 #******************************************************************************************************************************
 ts_ut___ut_no_command_abort() {
