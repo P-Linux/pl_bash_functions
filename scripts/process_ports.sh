@@ -17,7 +17,6 @@ shopt -s extglob
 set +o noclobber
 
 
-
 #=============================================================================================================================#
 #
 #                   GENERAL FUNCTIONS
@@ -209,7 +208,8 @@ pr_update_pkgfile_pkgmd5sums() {
 
 
 #******************************************************************************************************************************
-# Generate a new repo file. The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
+# Generate a new port-repo-file.
+#       The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
 #
 #   ARGUMENTS
 #       `_in_pkgfile_path`: a reference var: pkgfile path
@@ -290,9 +290,7 @@ pr_update_port_repo_file() {
         for _pkgarchive_path in "${_existing_pkg_archives[@]}"; do
 			ut_basename _pkgarchive_basename "${_pkgarchive_path}"
             ut_get_file_md5sum_abort _md5sum "${_pkgarchive_path}"
-            # TODO SPEED UP - USE ONLY THE 2 NEEDED ONCE
-            pka_get_pkgarchive_parts _pkgarchive_name _pkgarchive_buildvers _pkgarchive_arch _pkgarchive_ext \
-                _pkgarchive_path _in_system_arch _in_ref_ext
+            pka_get_pkgarchive_name_arch _pkgarchive_name _pkgarchive_arch _pkgarchive_path _in_system_arch _in_ref_ext
             _final_str+="${_md5sum}#${_pkgarchive_name}#${_pkgarchive_arch}\n"
 		done
 
@@ -316,6 +314,7 @@ pr_update_port_repo_file() {
 
     echo -e "${_final_str}" > "${_repo_filepath}"
 }
+
 
 
 #******************************************************************************************************************************
