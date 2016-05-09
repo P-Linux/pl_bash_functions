@@ -50,8 +50,18 @@ pka_get_existing_pkgarchives() {
     local -n _in_port_path_ge=${3}
     local -n _in_system_arch_ge=${4}
     local -n _ref_ext_ge=${5}
-    _ret_extisting_pkgarchives=("${_in_port_path_ge}/${_in_port_name_ge}"*"${_in_system_arch_ge}.${_ref_ext_ge}"* \
-        "${_in_port_path_ge}/${_in_port_name_ge}"*"any.${_ref_ext_ge}"*)
+    local _file
+    
+    # NOTE: Check if no file is found: which returns still 2 results e.g. for acl
+    #   /usr/ports/example_collection1/acl/acl*x86_64.cards.tar*
+    # /usr/ports/example_collection1/acl/acl*any.cards.tar*
+    #
+    # to fix this: instead of using a `subshell` and `shopt -s nullglob` 
+    #   it is in the most common cases faster to check it ourself
+    for _file in "${_in_port_path_ge}/${_in_port_name_ge}"*"${_in_system_arch_ge}.${_ref_ext_ge}"* \
+        "${_in_port_path_ge}/${_in_port_name_ge}"*"any.${_ref_ext_ge}"*; do
+        [[ ${_file} == *"*" ]] || _ret_extisting_pkgarchives+=("${_file}")            
+    done
 }
 
 

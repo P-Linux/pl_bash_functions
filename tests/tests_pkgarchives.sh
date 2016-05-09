@@ -42,12 +42,18 @@ ts_pka___pka_get_existing_pkgarchives() {
     local _pkgarchive
     local _targets=()
 
-    # Make files
+    # Make folders
     mkdir -p "${_port_path1}"
     mkdir -p "${_port_path1}/subfolder"
 
+    # check none found: must be 0 size return
     touch "${_port_path1}/README"
     touch "${_port_path1}/test"
+
+    pka_get_existing_pkgarchives _targets _port_name1 _port_path1 _arch _pkg_ext
+    te_same_val _COUNT_OK _COUNT_FAILED "${#_targets[@]}" "0" "Test find 0 pkgarchive files."
+
+    # Make files
     touch "${_port_path1}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz"
     touch "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz"
     touch "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz"
