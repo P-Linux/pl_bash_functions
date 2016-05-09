@@ -23,6 +23,7 @@ ms_format "${_THIS_SCRIPT_PATH}"
 
 source "${_FUNCTIONS_DIR}/utilities.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/source_matrix.sh"
+ut_source_safe_abort "${_FUNCTIONS_DIR}/pkgfile.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/pkgarchives.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/process_ports.sh"
 
@@ -228,6 +229,113 @@ ts_pr___pr_update_pkgfile_pkgmd5sums() {
     rm -rf "${_tmp_dir}"
 }
 ts_pr___pr_update_pkgfile_pkgmd5sums
+
+
+#******************************************************************************************************************************
+# TEST: pr_update_port_repo_file()
+#******************************************************************************************************************************
+ts_pr___pr_update_port_repo_file() {
+    te_print_function_msg "pr_update_port_repo_file()"
+    local _fn="ts_pr___pr_update_port_repo_file"
+    local _tmp_dir=$(mktemp -d)
+    local _collection_path="${_tmp_dir}/example_collection1"
+    local _acl_port_path="${_collection_path}/acl"
+    local _cpio_port_path="${_collection_path}/cpio"
+    local  _required_func_names=("build")
+    declare -A _cmk_groups_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
+    local _arch="$(uname -m)"
+    local _pkg_ext="cards.tar"
+    local _repo=".PKGREPO"
+    declare -a _cmk_groups
+    local _output _pkgfile_path _portname _port_path  _port_repo_file _repofile_content _ref_repofile_content
+
+    # Make files
+    cp -rf "${_TEST_SCRIPT_DIR}/files/example_collection1" "${_collection_path}"
+
+    _pkgfile_path="${_acl_port_path}/Pkgfile"
+    _portname="acl"
+    _port_path="${_acl_port_path}"
+    _output=$((pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}"\
+        "Could not get expected Pkgfile variable! Hint: did you forget to source the pkgfile: <${_pkgfile_path}>"
+
+    (
+        _cmk_groups=()
+        _pkgfile_path="${_acl_port_path}/Pkgfile"
+        _portname="acl"
+        _port_path="${_acl_port_path}"
+        _port_repo_file="${_port_path}/${_repo}"
+        rm -f "${_port_repo_file}"
+        if [[ -f ${_port_repo_file} ]]; then
+            te_warn "_fn" "Test Error: 'acl' Port-Repo-File should have been removed."
+        fi
+        pkf_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cmk_groups_func_names _cmk_groups
+        pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo #&> /dev/null
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_port_repo_file function return value."
+
+        [[ -f ${_port_repo_file} ]]
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 'acl' Port-Repo-File was created."
+        _repofile_content=$(<"${_port_repo_file}")
+        _ref_repofile_content=$(<"${_collection_path}/acl_ref.PKGREPO")
+        [[ ${_repofile_content} == ${_ref_repofile_content} ]]
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test new Repo-File content is the same as the Reference Repo-file content."
+
+    )
+
+    (
+        _cmk_groups=()
+        _pkgfile_path="${_cpio_port_path}/Pkgfile"
+        _portname="cpio"
+        _port_path="${_cpio_port_path}"
+        _port_repo_file="${_port_path}/${_repo}"
+        rm -f "${_port_repo_file}"
+        if [[ -f ${_port_repo_file} ]]; then
+            te_warn "_fn" "Test Error: 'cpio' Port-Repo-File should have been removed."
+        fi
+        pkf_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cmk_groups_func_names _cmk_groups
+        pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo #&> /dev/null
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_port_repo_file function return value."
+
+        [[ -f ${_port_repo_file} ]]
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 'cpio' Port-Repo-File was created."
+        _repofile_content=$(<"${_port_repo_file}")
+        _ref_repofile_content=$(<"${_collection_path}/cpio_ref.PKGREPO")
+        [[ ${_repofile_content} == ${_ref_repofile_content} ]]
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test new Repo-File content is the same as the Reference Repo-file content."
+
+    )
+
+    (
+        _cmk_groups=()
+        _pkgfile_path="${_cpio_port_path}/Pkgfile"
+        _portname="cpio"
+        _port_path="${_cpio_port_path}"
+        _port_repo_file="${_port_path}/${_repo}"
+
+        # Remove first some files
+        rm -f "${_cpio_port_path}/cpio.README"
+        rm -f "${_cpio_port_path}/cpio.da1462741466any.cards.tar.xz"
+        rm -f "${_cpio_port_path}/cpio.fi1462741466any.cards.tar.xz"
+        rm -f "${_cpio_port_path}/cpio.nl1462741466any.cards.tar.xz"
+
+        pkf_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cmk_groups_func_names _cmk_groups
+        pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo #&> /dev/null
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_port_repo_file function return value."
+
+        [[ -f ${_port_repo_file} ]]
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 'cpio' Port-Repo-File was created. Overwrite existing."
+        _repofile_content=$(<"${_port_repo_file}")
+        _ref_repofile_content=$(<"${_collection_path}/cpio_ref_removed_files.PKGREPO")
+        [[ ${_repofile_content} == ${_ref_repofile_content} ]]
+        te_retval_0 _COUNT_OK _COUNT_FAILED $? \
+            "Test new overwritten Repo-File content is the same as the Reference Repo-file content."
+
+    )
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+}
+ts_pr___pr_update_port_repo_file
 
 
 

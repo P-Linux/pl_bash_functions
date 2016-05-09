@@ -89,7 +89,7 @@ pka_remove_existing_pkgarchives() {
 #
 #   ARGUMENTS
 #       `_ret_name`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgarchive_n`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
+#       `_in_pkgarchive_path_n`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_n`: a reference var: the system architecture e.g. "$(uname -m)"
 #       `_ref_ext_n`: a reference var: the Reference pkgarchive extension withouth compression
 #
@@ -100,10 +100,10 @@ pka_remove_existing_pkgarchives() {
 pka_get_pkgarchive_name() {
     local _fn="pka_get_pkgarchive_name"
     local -n _ret_name_n=${1}
-    local -n _in_pkgarchive_n=${2}
+    local -n _in_pkgarchive_path_n=${2}
     local -n _in_system_arch_n=${3}
     local -n _ref_ext_n=${4}
-    local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_n}"
+    local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_path_n}"
     local _ext; pka_get_pkgarchive_ext _ext _pkgarchive_basename _ref_ext_n
     local _ending
     declare -i _rest_size
@@ -115,7 +115,7 @@ pka_get_pkgarchive_name() {
         _ending="${_in_system_arch_n}${_ext}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch_n}" "${_in_pkgarchive_n}"
+            "${_in_system_arch_n}" "${_in_pkgarchive_path_n}"
     fi
 
     _rest_size=${#_ending}
@@ -123,7 +123,7 @@ pka_get_pkgarchive_name() {
 
     _ret_name_n=${_pkgarchive_basename:: -${_rest_size}}
     if [[ ! -n ${_ret_name_n} ]]; then
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" "${_in_pkgarchive_n}"
+        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" "${_in_pkgarchive_path_n}"
     fi
 }
 
@@ -132,8 +132,8 @@ pka_get_pkgarchive_name() {
 # Returns the pkgarchive buildversion part.
 #
 #   ARGUMENTS
-#       `_ret_buildvers_a`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgarchive_b`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
+#       `_ret_buildvers_b`: a reference var: an empty string which will be updated with the result.
+#       `_in_pkgarchive_path_b`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_b`: a reference var: the system architecture e.g. "$(uname -m)"
 #       `_ref_ext_b`: a reference var: the Reference pkgarchive extension withouth compression
 #
@@ -143,31 +143,31 @@ pka_get_pkgarchive_name() {
 #******************************************************************************************************************************
 pka_get_pkgarchive_buildvers() {
     local _fn="pka_get_pkgarchive_buildvers"
-    local -n _ret_buildvers_a=${1}
-    local -n _in_pkgarchive_b=${2}
+    local -n _ret_buildvers_b=${1}
+    local -n _in_pkgarchive_path_b=${2}
     local -n _in_system_arch_b=${3}
     local -n _ref_ext_b=${4}
-    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_b _ref_ext_b
+    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_path_b _ref_ext_b
     local _ending
     declare -i _ending_size
 
-    if [[ ${_in_pkgarchive_b} == *"any${_ext}" ]]; then
+    if [[ ${_in_pkgarchive_path_b} == *"any${_ext}" ]]; then
         _ending="any${_ext}"
-    elif [[ ${_in_pkgarchive_b} == *"${_in_system_arch_b}${_ext}" ]]; then
+    elif [[ ${_in_pkgarchive_path_b} == *"${_in_system_arch_b}${_ext}" ]]; then
         _ret_arch="${_in_system_arch_b}"
         _ending="${_in_system_arch_b}${_ext}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part must be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch_b}" "${_in_pkgarchive_b}"
+            "${_in_system_arch_b}" "${_in_pkgarchive_path_b}"
     fi
 
     _ending_size=${#_ending}
-    _ret_buildvers_a=${_in_pkgarchive_b:: -${_ending_size}}
-    _ret_buildvers_a=${_ret_buildvers_a: -10}
-    if [[ ${_ret_buildvers_a} != +([[:digit:]]) ]]; then
+    _ret_buildvers_b=${_in_pkgarchive_path_b:: -${_ending_size}}
+    _ret_buildvers_b=${_ret_buildvers_b: -10}
+    if [[ ${_ret_buildvers_b} != +([[:digit:]]) ]]; then
         ms_abort "${_fn}" \
             "$(gettext "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s'. Pkgarchive: <%s>")" \
-            "${_ret_buildvers_a//[[:digit:]]}" "${_in_pkgarchive_b}"
+            "${_ret_buildvers_b//[[:digit:]]}" "${_in_pkgarchive_path_b}"
     fi
 }
 
@@ -177,7 +177,7 @@ pka_get_pkgarchive_buildvers() {
 #
 #   ARGUMENTS
 #       `_ret_arch_a`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgarchive_a`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
+#       `_in_pkgarchive_path_a`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_a`: a reference var: the system architecture e.g. "$(uname -m)"
 #       `_ref_ext_a`: a reference var: the Reference pkgarchive extension withouth compression
 #
@@ -188,18 +188,18 @@ pka_get_pkgarchive_buildvers() {
 pka_get_pkgarchive_arch() {
     local _fn="pka_get_pkgarchive_arch"
     local -n _ret_arch_a=${1}
-    local -n _in_pkgarchive_a=${2}
+    local -n _in_pkgarchive_path_a=${2}
     local -n _in_system_arch_a=${3}
     local -n _ref_ext_a=${4}
-    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_a _ref_ext_a
+    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_path_a _ref_ext_a
 
-    if [[ ${_in_pkgarchive_a} == *"any${_ext}" ]]; then
+    if [[ ${_in_pkgarchive_path_a} == *"any${_ext}" ]]; then
         _ret_arch_a="any"
-    elif [[ ${_in_pkgarchive_a} == *"${_in_system_arch_a}${_ext}" ]]; then
+    elif [[ ${_in_pkgarchive_path_a} == *"${_in_system_arch_a}${_ext}" ]]; then
         _ret_arch_a="${_in_system_arch_a}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch_a}" "${_in_pkgarchive_a}"
+            "${_in_system_arch_a}" "${_in_pkgarchive_path_a}"
     fi
 }
 
@@ -209,7 +209,7 @@ pka_get_pkgarchive_arch() {
 #
 #   ARGUMENTS
 #       `_ret_ext_e`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgarchive_e`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
+#       `_in_pkgarchive_path_e`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_ref_ext_e`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
@@ -219,16 +219,16 @@ pka_get_pkgarchive_arch() {
 pka_get_pkgarchive_ext() {
     local _fn="pka_get_pkgarchive_ext"
     local -n _ret_ext_e=${1}
-    local -n _in_pkgarchive_e=${2}
+    local -n _in_pkgarchive_path_e=${2}
     local -n _ref_ext_e=${3}
 
-    if [[ ${_in_pkgarchive_e} == *"${_ref_ext_e}.xz" ]]; then
+    if [[ ${_in_pkgarchive_path_e} == *"${_ref_ext_e}.xz" ]]; then
         _ret_ext_e=".${_ref_ext_e}.xz"
-    elif [[ ${_in_pkgarchive_e} == *"${_ref_ext_e}" ]]; then
+    elif [[ ${_in_pkgarchive_path_e} == *"${_ref_ext_e}" ]]; then
         _ret_ext_e=".${_ref_ext_e}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
-            "${_ref_ext_e}" "${_ref_ext_e}" "${_in_pkgarchive_e}"
+            "${_ref_ext_e}" "${_ref_ext_e}" "${_in_pkgarchive_path_e}"
     fi
 }
 
@@ -242,7 +242,7 @@ pka_get_pkgarchive_ext() {
 #       `_ret_buildvers_parts`: a reference var: an empty string which will be updated with the result.
 #       `_ret_arch_parts`: a reference var: an empty string which will be updated with the result.
 #       `_ret_ext_parts`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgarchive_parts`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
+#       `_in_pkgarchive_path_parts`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_parts`: a reference var: the system architecture e.g. "$(uname -m)"
 #       `_ref_ext`: a reference var: the Reference pkgarchive extension withouth compression
 #
@@ -256,10 +256,10 @@ pka_get_pkgarchive_parts() {
     local -n _ret_buildvers_parts=${2}
     local -n _ret_arch_parts=${3}
     local -n _ret_ext_parts=${4}
-    local -n _in_pkgarchive_parts=${5}
+    local -n _in_pkgarchive_path_parts=${5}
     local -n _in_system_arch_parts=${6}
     local -n _in_ref_ext_parts=${7}
-    local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_parts}"
+    local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_path_parts}"
     local _ending
     declare -i _ending_size
     declare -i _rest_size
@@ -271,7 +271,7 @@ pka_get_pkgarchive_parts() {
         _ret_ext_parts=".${_in_ref_ext_parts}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
-            "${_in_ref_ext_parts}" "${_in_ref_ext_parts}" "${_in_pkgarchive_parts}"
+            "${_in_ref_ext_parts}" "${_in_ref_ext_parts}" "${_in_pkgarchive_path_parts}"
     fi
 
     # ARCH
@@ -281,7 +281,7 @@ pka_get_pkgarchive_parts() {
         _ret_arch_parts="${_in_system_arch_parts}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch_parts}" "${_in_pkgarchive_parts}"
+            "${_in_system_arch_parts}" "${_in_pkgarchive_path_parts}"
     fi
 
     ###
@@ -294,16 +294,18 @@ pka_get_pkgarchive_parts() {
     if [[ ${_ret_buildvers_parts} != +([[:digit:]]) ]]; then
         ms_abort "${_fn}" \
             "$(gettext "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s'. Pkgarchive: <%s>")" \
-            "${_ret_buildvers_parts//[[:digit:]]}" "${_in_pkgarchive_parts}"
+            "${_ret_buildvers_parts//[[:digit:]]}" "${_in_pkgarchive_path_parts}"
     fi
 
     # NAME
     _rest_size=${_ending_size}+10  # add 10 for UTC Build timestamp
     _ret_name_parts=${_pkgarchive_basename:: -${_rest_size}}
     if [[ ! -n ${_ret_name_parts} ]]; then
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" "${_in_pkgarchive_parts}"
+        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
+            "${_in_pkgarchive_path_parts}"
     fi
 }
+
 
 #******************************************************************************************************************************
 # End of file
