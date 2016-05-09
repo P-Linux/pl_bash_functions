@@ -27,11 +27,15 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/source_matrix.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: so_prepare_src_matrix() CHECKSUMS array
 #******************************************************************************************************************************
 ts_so___so_prepare_src_matrix_checksums() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "so_prepare_src_matrix() CHECKSUMS array"
     local _pkgfile_fullpath="/var/cards_mk/ports/only_download/Pkgfile"
     local _srcdest_dir="/home/pkg_sources"
@@ -76,6 +80,10 @@ ts_so___so_prepare_src_matrix_checksums() {
     [[ ${_scrmtx[1:CHKSUM]} == 10000000000000000000000000000000 && ${_scrmtx[2:CHKSUM]} == SKIP && \
         ${_scrmtx[3:CHKSUM]} == "SKIP" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} "Test missing checksums - check SKIP checksum items."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_so___so_prepare_src_matrix_checksums
 
@@ -84,6 +92,8 @@ ts_so___so_prepare_src_matrix_checksums
 # TEST: so_prepare_src_matrix() multiple source arrays
 #******************************************************************************************************************************
 ts_so___so_prepare_src_matrix_multiple_source_arrays() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "so_prepare_src_matrix()  multiple source arrays"
     local _pkgfile_fullpath_1="/home/only_download_1/Pkgfile"
     local _pkgfile_fullpath_2="/home/only_download_2/Pkgfile"
@@ -150,6 +160,10 @@ ts_so___so_prepare_src_matrix_multiple_source_arrays() {
         ${_scrmtx[4:DESTPATH]} == "/home/only_download_2/mylocal_2.patch" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} \
         "Test 4. entry (from 2. Pkgfile) all Fields as expected. ENTRY: <${_sources_2[1]}>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_so___so_prepare_src_matrix_multiple_source_arrays
 
@@ -158,6 +172,8 @@ ts_so___so_prepare_src_matrix_multiple_source_arrays
 # TEST: so_prepare_src_matrix() no srcdst dir input
 #******************************************************************************************************************************
 ts_so___so_prepare_src_matrix_no_srcdst_dir_input() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "so_prepare_src_matrix() no srcdst dir input"
     local _pkgfile_fullpath="/home/only_download_1/Pkgfile"
     declare -A _scrmtx
@@ -191,6 +207,10 @@ ts_so___so_prepare_src_matrix_no_srcdst_dir_input() {
         ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/mylocal_1.patch" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} \
         "Test 2. entry no srcdst dir input all Fields as expected. ENTRY: <${_sources[1]}>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_so___so_prepare_src_matrix_no_srcdst_dir_input
 
@@ -199,6 +219,8 @@ ts_so___so_prepare_src_matrix_no_srcdst_dir_input
 # TEST: so_prepare_src_matrix() general errors
 #******************************************************************************************************************************
 ts_so___so_prepare_src_matrix_general_errors() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "so_prepare_src_matrix() general errors"
     local _pkgfile_fullpath="/var/cards_mk/ports/only_download/Pkgfile"
     local _srcdest_dir="/home/pkg_sources"
@@ -298,6 +320,10 @@ ts_so___so_prepare_src_matrix_general_errors() {
     _output=$((so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdest_dir}") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
         "'git|svn|hg|bzr source MUST NOT have a checksum: '10000000000000000000000000000000'. ENTRY: <git+https://haxelib.git>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_so___so_prepare_src_matrix_general_errors
 
@@ -306,6 +332,8 @@ ts_so___so_prepare_src_matrix_general_errors
 # TEST: so_prepare_src_matrix() check expected values
 #******************************************************************************************************************************
 ts_so___so_prepare_src_matrix_check_expected_values() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "so_prepare_src_matrix() check expected values"
     local _tmpstr
     declare -i _n
@@ -635,6 +663,10 @@ ts_so___so_prepare_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:DESTNAME]} == "trunk" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/trunk" ]]
     te_retval_0 _COUNT_OK _COUNT_FAILED ${?} "Test all fields - expected values. ENTRY: <${_sources[${_n}-1]}>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_so___so_prepare_src_matrix_check_expected_values
 
@@ -642,8 +674,9 @@ ts_so___so_prepare_src_matrix_check_expected_values
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

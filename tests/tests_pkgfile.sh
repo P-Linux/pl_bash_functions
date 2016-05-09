@@ -28,6 +28,8 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/pkgfile.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 # pkf_unset_official_pkgfile_variablespkf_unset_official_pkgfile_variables skip test for this function
 
@@ -36,6 +38,8 @@ declare -i _COUNT_FAILED=0
 # TEST: pkf_prepare_collections_lookup()
 #******************************************************************************************************************************
 ts_pkf___pkf_prepare_collections_lookup() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_prepare_collections_lookup()"
     local _tmp_dir=$(mktemp -d)
     local _croot="${_tmp_dir}/test_collection_root"
@@ -134,6 +138,10 @@ ts_pkf___pkf_prepare_collections_lookup() {
         "Test without collection: personal overlayer: base/autoconf."
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_prepare_collections_lookup
 
@@ -142,6 +150,8 @@ ts_pkf___pkf_prepare_collections_lookup
 # TEST: pkf_prepare_pkgfiles_to_process()
 #******************************************************************************************************************************
 ts_pkf___pkf_prepare_pkgfiles_to_process() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_prepare_pkgfiles_to_process()"
     local _tmp_dir=$(mktemp -d)
     local _croot="${_tmp_dir}/test_collection_root"
@@ -249,6 +259,10 @@ ts_pkf___pkf_prepare_pkgfiles_to_process() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_prepare_pkgfiles_to_process
 
@@ -257,6 +271,8 @@ ts_pkf___pkf_prepare_pkgfiles_to_process
 # TEST: pkf_validate_pkgvers()
 #******************************************************************************************************************************
 ts_pkf___pkf_validate_pkgvers() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_validate_pkgvers()"
     local _output
 
@@ -270,6 +286,10 @@ ts_pkf___pkf_validate_pkgvers() {
     _output=$((pkf_validate_pkgvers "0.1.0+ced" "Pkgfile") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "'pkgvers' contains invalid characters: '+'" \
         "Test pkgvers contains invalid characters."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_validate_pkgvers
 
@@ -278,6 +298,8 @@ ts_pkf___pkf_validate_pkgvers
 # TEST: pkf_get_only_pkgvers_abort()
 #******************************************************************************************************************************
 ts_pkf___pkf_get_only_pkgvers_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_get_only_pkgvers_abort()"
     local _testdir="${_TEST_SCRIPT_DIR}"
     local _output
@@ -295,6 +317,10 @@ ts_pkf___pkf_get_only_pkgvers_abort() {
     _output=$((pkf_get_only_pkgvers_abort "${_testdir}/files/Pkgfile_version_wrong_char") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "'pkgvers' contains invalid characters: '+'" \
         "Test <Pkgfile_version_wrong_char> pkgversion."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_get_only_pkgvers_abort
 
@@ -303,6 +329,8 @@ ts_pkf___pkf_get_only_pkgvers_abort
 # TEST: pkf_generate_pkgmd5sums()
 #******************************************************************************************************************************
 ts_pkf___pkf_generate_pkgmd5sums() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_generate_pkgmd5sums()"
     local _tmp_dir=$(mktemp -d)
     local _ports_dir="${_tmp_dir}/ports"
@@ -346,6 +374,10 @@ ts_pkf___pkf_generate_pkgmd5sums() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_generate_pkgmd5sums
 
@@ -355,6 +387,8 @@ ts_pkf___pkf_generate_pkgmd5sums
 # TEST: pkf_validate_pkgfile_port_path_name()
 #******************************************************************************************************************************
 ts_pkf___pkf_validate_pkgfile_port_path_name() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_validate_pkgfile_port_path_name()"
     local _fn="ts_do___do_download_source_file_general"
     local _tmp_dir_main=$(mktemp -d)
@@ -406,6 +440,10 @@ ts_pkf___pkf_validate_pkgfile_port_path_name() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir_main}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_validate_pkgfile_port_path_name
 
@@ -414,6 +452,8 @@ ts_pkf___pkf_validate_pkgfile_port_path_name
 # TEST: pkf_source_validate_pkgfile()
 #******************************************************************************************************************************
 ts_pkf___pkf_source_validate_pkgfile() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pkf_source_validate_pkgfile()"
     local _testdir="${_TEST_SCRIPT_DIR}"
     local  _required_func_names=("build")
@@ -543,6 +583,10 @@ ts_pkf___pkf_source_validate_pkgfile() {
 
     _output=$((pkf_source_validate_pkgfile "${_testdir}/files/Pkgfile_missing_var_pkgmd5sums" _required_func_names) 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Not a declared index array: 'pkgmd5sums' INFO"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pkf___pkf_source_validate_pkgfile
 
@@ -550,8 +594,9 @@ ts_pkf___pkf_source_validate_pkgfile
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

@@ -1,0 +1,13 @@
+1462707691#.cards.tar.xz#2.2.52#1#Commands for Manipulating POSIX Access Control Lists.#http://savannah.nongnu.org/projects/acl#peter1000
+ff097cb276710374b3ef4ef551dc29ab#acl#x86_64
+2daaae6c33d53d01591a84e05dbdd2d3#acl.devel#x86_64
+7de2e5831fc707094fa98029fade93fc#acl.de#any
+7c7d2fe8e3a0886db5b1770a7b45230c#acl.doc#any
+296626873a1d78269dcce7ec9cb87e4e#acl.es#any
+9140e3d8065533d61fa077e731602172#acl.fr#any
+0029f3a21d21534b2031a539f0e04065#acl.man#any
+239870fb9cd383e270e0b08ac773db1a#acl.sv#any
+866cff7556c9dc9ea81224459d8c00db#acl.README
+80eba83e7de06d46752f4158979ea3c2#dummy.patch
+d03ad0a50693b85015f2d420e2ed7d6a#otherfile.txt
+66b57281f54815208b199afabddfd05e#Pkgfile

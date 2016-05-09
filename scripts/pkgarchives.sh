@@ -51,16 +51,16 @@ pka_get_existing_pkgarchives() {
     local -n _in_system_arch_ge=${4}
     local -n _ref_ext_ge=${5}
     local _file
-    
+
     # NOTE: Check if no file is found: which returns still 2 results e.g. for acl
     #   /usr/ports/example_collection1/acl/acl*x86_64.cards.tar*
     # /usr/ports/example_collection1/acl/acl*any.cards.tar*
     #
-    # to fix this: instead of using a `subshell` and `shopt -s nullglob` 
+    # to fix this: instead of using a `subshell` and `shopt -s nullglob`
     #   it is in the most common cases faster to check it ourself
     for _file in "${_in_port_path_ge}/${_in_port_name_ge}"*"${_in_system_arch_ge}.${_ref_ext_ge}"* \
         "${_in_port_path_ge}/${_in_port_name_ge}"*"any.${_ref_ext_ge}"*; do
-        [[ ${_file} == *"*" ]] || _ret_extisting_pkgarchives+=("${_file}")            
+        [[ ${_file} == *"*" ]] || _ret_extisting_pkgarchives+=("${_file}")
     done
 }
 
@@ -116,7 +116,6 @@ pka_get_pkgarchive_name() {
     local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_path_n}"
     local _ext; pka_get_pkgarchive_ext _ext _pkgarchive_basename _ref_ext_n
     local _ending
-    declare -i _rest_size
 
     if [[ ${_pkgarchive_basename} == *"any${_ext}" ]]; then
         _ending="any${_ext}"
@@ -128,12 +127,10 @@ pka_get_pkgarchive_name() {
             "${_in_system_arch_n}" "${_in_pkgarchive_path_n}"
     fi
 
-    _rest_size=${#_ending}
-    ((_rest_size+=10)) # add 10 for UTC Build timestamp
-
-    _ret_name_n=${_pkgarchive_basename:: -${_rest_size}}
+    _ret_name_n=${_pkgarchive_basename:: -((${#_ending}+10))} # add 10 for UTC Build timestamp
     if [[ ! -n ${_ret_name_n} ]]; then
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" "${_in_pkgarchive_path_n}"
+        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
+            "${_in_pkgarchive_path_n}"
     fi
 }
 
@@ -242,6 +239,7 @@ pka_get_pkgarchive_ext() {
     fi
 }
 
+
 #******************************************************************************************************************************
 # Returns the pkgarchive individual parts.
 #
@@ -272,7 +270,6 @@ pka_get_pkgarchive_parts() {
     local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_path_parts}"
     local _ending
     declare -i _ending_size
-    declare -i _rest_size
 
     # EXT
     if [[ ${_pkgarchive_basename} == *"${_in_ref_ext_parts}.xz" ]]; then
@@ -308,11 +305,68 @@ pka_get_pkgarchive_parts() {
     fi
 
     # NAME
-    _rest_size=${_ending_size}+10  # add 10 for UTC Build timestamp
-    _ret_name_parts=${_pkgarchive_basename:: -${_rest_size}}
+    _ret_name_parts=${_pkgarchive_basename:: -((${_ending_size}+10))} # add 10 for UTC Build timestamp
     if [[ ! -n ${_ret_name_parts} ]]; then
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
             "${_in_pkgarchive_path_parts}"
+    fi
+}
+
+
+#******************************************************************************************************************************
+# Returns the pkgarchive name and architecture parts.
+#
+#   NOTE: for speed reason we do not use the other separate functions: this here takes approximately only 1/3 of the time.
+#
+#   ARGUMENTS
+#       `_ret_name_na`: a reference var: an empty string which will be updated with the result.
+#       `_ret_arch_na`: a reference var: an empty string which will be updated with the result.
+#       `_in_pkgarchive_path_na`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
+#       `_in_system_arch_na`: a reference var: the system architecture e.g. "$(uname -m)"
+#       `_ref_ext`: a reference var: the Reference pkgarchive extension withouth compression
+#
+#   USAGE
+#       local NAME ARCH
+#       pka_get_pkgarchive_name_arch NAME ARCH PKGARCHIVE CMK_ARCH CMK_PKG_EXT
+#******************************************************************************************************************************
+pka_get_pkgarchive_name_arch() {
+    local _fn="pka_get_pkgarchive_name_arch"
+    local -n _ret_name_na=${1}
+    local -n _ret_arch_na=${2}
+    local -n _in_pkgarchive_path_na=${3}
+    local -n _in_system_arch_na=${4}
+    local -n _in_ref_ext_na=${5}
+    local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_path_na}"
+    local _ending
+
+    # EXT
+    if [[ ${_pkgarchive_basename} == *"${_in_ref_ext_na}.xz" ]]; then
+        _ret_ext_parts=".${_in_ref_ext_na}.xz"
+    elif [[ ${_pkgarchive_basename} == *"${_in_ref_ext_na}" ]]; then
+        _ret_ext_parts=".${_in_ref_ext_na}"
+    else
+        ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
+            "${_in_ref_ext_na}" "${_in_ref_ext_na}" "${_in_pkgarchive_path_na}"
+    fi
+
+    # ARCH
+    if [[ ${_pkgarchive_basename} == *"any${_ret_ext_parts}" ]]; then
+        _ret_arch_na="any"
+    elif [[ ${_pkgarchive_basename} == *"${_in_system_arch_na}${_ret_ext_parts}" ]]; then
+        _ret_arch_na="${_in_system_arch_na}"
+    else
+        ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" \
+            "${_in_system_arch_na}" "${_in_pkgarchive_path_na}"
+    fi
+
+    ###
+    _ending="${_ret_arch_na}${_ret_ext_parts}"
+
+    # NAME
+    _ret_name_na=${_pkgarchive_basename:: -((${#_ending}+10))} # add 10 for UTC Build timestamp
+    if [[ ! -n ${_ret_name_na} ]]; then
+        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
+            "${_in_pkgarchive_path_na}"
     fi
 }
 

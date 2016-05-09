@@ -24,15 +24,23 @@ ms_format "${_THIS_SCRIPT_PATH}"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: ms_get_pl_bash_functions_version()
 #******************************************************************************************************************************
 ts_ms___ms_get_pl_bash_functions_version() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ms_get_pl_bash_functions_version()"
     local _version; ms_get_pl_bash_functions_version _version
 
     te_not_empty_val _COUNT_OK _COUNT_FAILED "${_version}" "Testing get pl_bash_functions package version."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_get_pl_bash_functions_version
 
@@ -41,6 +49,8 @@ ts_ms___ms_get_pl_bash_functions_version
 # TEST: ms_has_tested_version()
 #******************************************************************************************************************************
 ts_ms___ms_has_tested_version() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ms_has_tested_version()"
     local _ms_all_off=$(tput sgr0)
     local _ms_bold=$(tput bold)
@@ -55,6 +65,10 @@ ts_ms___ms_has_tested_version() {
 
     _output=$((ms_has_tested_version "${_pl_bash_functions_version}") 2>&1)
     te_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing same pl_bash_functions version."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_has_tested_version
 
@@ -63,11 +77,17 @@ ts_ms___ms_has_tested_version
 # TEST: ms_pl_bash_functions_installed_dir()
 #******************************************************************************************************************************
 ts_ms___ms_pl_bash_functions_installed_dir() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ms_pl_bash_functions_installed_dir() very limited test"
     local _installed_dir; ms_pl_bash_functions_installed_dir _installed_dir
     local _ref_script_dir=$(readlink -f "${_FUNCTIONS_DIR}")
 
     te_same_val _COUNT_OK _COUNT_FAILED "${_installed_dir}" "${_ref_script_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_pl_bash_functions_installed_dir
 
@@ -76,6 +96,8 @@ ts_ms___ms_pl_bash_functions_installed_dir
 # TEST: ms_more()
 #******************************************************************************************************************************
 ts_ms___ms_more() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ts_ms___ms_more()"
     local _filename="/home/testfile.txt"
     local _output
@@ -87,6 +109,10 @@ ts_ms___ms_more() {
     _MS_VERBOSE_MORE="yes"
     _output=$(ms_more "$(gettext "Source file: <%s>")" "${_filename}")
     te_not_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing _MS_VERBOSE_MORE=yes expect output."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_more
 
@@ -95,6 +121,8 @@ ts_ms___ms_more
 # TEST: ms_bold()
 #******************************************************************************************************************************
 ts_ms___ms_bold() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ts_ms___ms_bold()"
     local _filename="/home/testfile.txt"
     local _output
@@ -106,6 +134,10 @@ ts_ms___ms_bold() {
     _MS_VERBOSE="yes"
     _output=$(ms_bold "$(gettext "Source file: <%s>")" "${_filename}")
     te_not_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing _MS_VERBOSE=yes expect output."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_bold
 
@@ -114,6 +146,8 @@ ts_ms___ms_bold
 # TEST: ms_abort()
 #******************************************************************************************************************************
 ts_ms___ms_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ms_abort()"
     local _fn="ts_ms___ms_abort"
     local _filename="/home/testfile.txt"
@@ -128,6 +162,10 @@ ts_ms___ms_abort() {
 
     _output=$((ms_abort "${_fn}") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "FUNCTION 'ms_abort()': Requires AT LEAST '2' arguments. Got '1'"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_abort
 
@@ -136,6 +174,8 @@ ts_ms___ms_abort
 # TEST: ms_abort_remove_path()
 #******************************************************************************************************************************
 ts_ms___ms_abort_remove_path() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ms_abort_remove_path()"
     local _fn="ts_ms___ms_abort_remove_path"
     local _tmp_dir=$(mktemp -d)
@@ -180,6 +220,10 @@ ts_ms___ms_abort_remove_path() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_abort_remove_path
 
@@ -188,11 +232,17 @@ ts_ms___ms_abort_remove_path
 # TEST: ms_hrl()
 #******************************************************************************************************************************
 ts_ms___ms_hrl() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ms_hrl()"
     local _expected_output="${_MS_GREEN}#=========================#${_MS_ALL_OFF}"
     local _output=$(ms_hrl "${_MS_GREEN}" "#" "=" 25 "#")
 
     te_same_val _COUNT_OK _COUNT_FAILED "${_output}" "${_expected_output}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___ms_hrl
 
@@ -200,8 +250,9 @@ ts_ms___ms_hrl
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

@@ -26,11 +26,15 @@ source "${_FUNCTIONS_DIR}/utilities.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: ut_is_yes_no_var_abort()
 #******************************************************************************************************************************
 ts_ut___ut_is_yes_no_var_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_yes_no_var_abort()"
     local _fn="ts_ut___ut_is_yes_no_var_abort"
     local _test_var _output
@@ -59,6 +63,10 @@ ts_ut___ut_is_yes_no_var_abort() {
     _test_var="no"
     (ut_is_yes_no_var_abort "${_test_var}" "_test_var" "${_fn}" "Some Extra error info")
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test Variable no."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_yes_no_var_abort
 
@@ -67,6 +75,8 @@ ts_ut___ut_is_yes_no_var_abort
 # TEST: ut_is_str_var()
 #******************************************************************************************************************************
 ts_ut___ut_is_str_var() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_str_var()"
     local _not_assigned
     local _assigned_empty=""
@@ -110,6 +120,10 @@ ts_ut___ut_is_str_var() {
 
     # CLEAN UP
     unset _option_tux_assigned
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_str_var
 
@@ -118,6 +132,8 @@ ts_ut___ut_is_str_var
 # TEST: ut_is_empty_str_var()
 #******************************************************************************************************************************
 ts_ut___ut_is_empty_str_var() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_empty_str_var()"
     local _not_assigned
     local _assigned_empty=""
@@ -158,6 +174,10 @@ ts_ut___ut_is_empty_str_var() {
 
     # CLEAN UP
     unset _option_tux_assigned
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_empty_str_var
 
@@ -166,6 +186,8 @@ ts_ut___ut_is_empty_str_var
 # TEST: ut_is_str_var_abort()
 #******************************************************************************************************************************
 ts_ut___ut_is_str_var_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_str_var_abort()"
     local _fn="ts_ut___ut_is_str_var_abort"
     local _not_assigned
@@ -199,6 +221,10 @@ ts_ut___ut_is_str_var_abort() {
 
     (ut_is_str_var_abort "_option_rl_not_assigned" "${_fn}")
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test variable <_option_rl_not_assigned>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_str_var_abort
 
@@ -207,6 +233,8 @@ ts_ut___ut_is_str_var_abort
 # TEST: ut_is_idx_array_var()
 #******************************************************************************************************************************
 ts_ut___ut_is_idx_array_var() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_idx_array_var()"
     local _assigned_array=("a" "VALID ITEM2" "e f" 3 "VALID ITEM" 6 567)
     declare -a _not_assigned_array
@@ -244,6 +272,10 @@ ts_ut___ut_is_idx_array_var() {
 
     (ut_is_idx_array_var "_assigned_int") &> /dev/null
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test variable <_assigned_int>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_idx_array_var
 
@@ -252,6 +284,8 @@ ts_ut___ut_is_idx_array_var
 # TEST: ut_is_idx_array_abort()
 #******************************************************************************************************************************
 ts_ut___ut_is_idx_array_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_idx_array_abort()"
     local _fn="ts_ut___ut_is_idx_array_abort"
     local _assigned_array=("a" "VALID ITEM2" "e f" 3 "VALID ITEM" 6 567)
@@ -283,6 +317,10 @@ ts_ut___ut_is_idx_array_abort() {
 
     (ut_is_idx_array_abort "_not_assigned_array" "${_fn}")
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test variable <_not_assigned_array>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_idx_array_abort
 
@@ -291,6 +329,8 @@ ts_ut___ut_is_idx_array_abort
 # TEST: ut_is_associative_array_var()
 #******************************************************************************************************************************
 ts_ut___ut_is_associative_array_var() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_associative_array_var()"
     declare -A _assigned_array=(["a"]="a" ["VALID ITEM2"]="VALID ITEM2" ["e f"]="e f" ["3"]=3 ["VALID ITEM"]="VALID ITEM")
     declare -A _not_assigned_array
@@ -329,6 +369,10 @@ ts_ut___ut_is_associative_array_var() {
 
     (ut_is_associative_array_var "_assigned_int") &> /dev/null
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test variable <_assigned_int>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_associative_array_var
 
@@ -337,6 +381,8 @@ ts_ut___ut_is_associative_array_var
 # TEST: ut_ref_associative_array_abort()
 #******************************************************************************************************************************
 ts_ut___ut_ref_associative_array_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_ref_associative_array_abort()"
     local _fn="ts_ut___ut_ref_associative_array_abort"
     declare -A _assigned_array=(["a"]="a" ["VALID ITEM2"]="VALID ITEM2" ["e f"]="e f" ["3"]=3 ["VALID ITEM"]="VALID ITEM")
@@ -390,6 +436,10 @@ ts_ut___ut_ref_associative_array_abort() {
 
     (ut_ref_associative_array_abort "_ref__empty_array_set_ref_to_readonly" "${_fn}") &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test variable <_ref__empty_array_set_ref_to_readonly>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_ref_associative_array_abort
 
@@ -398,6 +448,8 @@ ts_ut___ut_ref_associative_array_abort
 # TEST: ut_count_substr()
 #******************************************************************************************************************************
 ts_ut___ut_count_substr() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_count_substr()"
     local _input="text::text::|text::text"
 
@@ -408,6 +460,10 @@ ts_ut___ut_count_substr() {
     te_same_val _COUNT_OK _COUNT_FAILED "$(ut_count_substr "X" "${_input}")" "0" "Test substr: X INPUT: <${_input}>"
 
     te_same_val _COUNT_OK _COUNT_FAILED "$(ut_count_substr "|" "")" "0" "Test substr: | EMPTY INPUT: <>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_count_substr
 
@@ -416,6 +472,8 @@ ts_ut___ut_count_substr
 # TEST: ut_strip_trailing_slahes()
 #******************************************************************************************************************************
 ts_ut___ut_strip_trailing_slahes() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_strip_trailing_slahes()"
     local _input_no_trailing_slash_extension="/home/testfile.txt"
     local _input_no_trailing_slash="/home/testdir"
@@ -438,6 +496,10 @@ ts_ut___ut_strip_trailing_slahes() {
 
     ut_strip_trailing_slahes _result "${_input_no_slashes}"
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "home_test_dir" "Test INPUT: <${_input_no_slashes}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_strip_trailing_slahes
 
@@ -446,6 +508,8 @@ ts_ut___ut_strip_trailing_slahes
 # TEST: ut_strip_whitespace()
 #******************************************************************************************************************************
 ts_ut___ut_strip_whitespace() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_strip_whitespace()"
     local _input_no_whitespace="Just a dummy text"
     local _input_leading_whitespace="       Just a dummy text"
@@ -464,6 +528,10 @@ ts_ut___ut_strip_whitespace() {
 
     ut_strip_whitespace _result "${_input_leading_trailing_whitespace}"
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "Just a dummy text" "Test INPUT: <${_input_leading_trailing_whitespace}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_strip_whitespace
 
@@ -472,6 +540,8 @@ ts_ut___ut_strip_whitespace
 # TEST: ut_get_prefix_shortest_empty()
 #******************************************************************************************************************************
 ts_ut___ut_get_prefix_shortest_empty() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_prefix_shortest_empty()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -482,6 +552,10 @@ ts_ut___ut_get_prefix_shortest_empty() {
 
     ut_get_prefix_shortest_empty _result "${_entry_no_delim}" "::"
     te_empty_val _COUNT_OK _COUNT_FAILED "${_result}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_prefix_shortest_empty
 
@@ -490,6 +564,8 @@ ts_ut___ut_get_prefix_shortest_empty
 # TEST: ut_get_prefix_longest_empty()
 #******************************************************************************************************************************
 ts_ut___ut_get_prefix_longest_empty() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_prefix_longest_empty()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -500,6 +576,10 @@ ts_ut___ut_get_prefix_longest_empty() {
 
     ut_get_prefix_longest_empty _result "${_entry_no_delim}" "::"
     te_empty_val _COUNT_OK _COUNT_FAILED "${_result}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_prefix_longest_empty
 
@@ -508,6 +588,8 @@ ts_ut___ut_get_prefix_longest_empty
 # TEST: ut_get_prefix_shortest_all()
 #******************************************************************************************************************************
 ts_ut___ut_get_prefix_shortest_all() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_prefix_shortest_all()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -518,6 +600,10 @@ ts_ut___ut_get_prefix_shortest_all() {
 
     ut_get_prefix_shortest_all _result "${_entry_no_delim}" "::"
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "${_entry_no_delim}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_prefix_shortest_all
 
@@ -526,6 +612,8 @@ ts_ut___ut_get_prefix_shortest_all
 # TEST: ut_get_prefix_longest_all()
 #******************************************************************************************************************************
 ts_ut___ut_get_prefix_longest_all() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_prefix_longest_all()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -536,6 +624,10 @@ ts_ut___ut_get_prefix_longest_all() {
 
     ut_get_prefix_longest_all _result "${_entry_no_delim}" "::"
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "${_entry_no_delim}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_prefix_longest_all
 
@@ -544,6 +636,8 @@ ts_ut___ut_get_prefix_longest_all
 # TEST: ut_get_postfix_shortest_empty()
 #******************************************************************************************************************************
 ts_ut___ut_get_postfix_shortest_empty() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_postfix_shortest_empty()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -555,6 +649,10 @@ ts_ut___ut_get_postfix_shortest_empty() {
 
     ut_get_postfix_shortest_empty _result "${_entry_no_delim}" "::"
     te_empty_val _COUNT_OK _COUNT_FAILED "${_result}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_postfix_shortest_empty
 
@@ -563,6 +661,8 @@ ts_ut___ut_get_postfix_shortest_empty
 # TEST: ut_get_postfix_longest_empty()
 #******************************************************************************************************************************
 ts_ut___ut_get_postfix_longest_empty() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_postfix_longest_empty()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -574,6 +674,10 @@ ts_ut___ut_get_postfix_longest_empty() {
 
     ut_get_postfix_longest_empty _result "${_entry_no_delim}" "::"
     te_empty_val _COUNT_OK _COUNT_FAILED "${_result}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_postfix_longest_empty
 
@@ -582,6 +686,8 @@ ts_ut___ut_get_postfix_longest_empty
 # TEST: ut_get_postfix_shortest_all()
 #******************************************************************************************************************************
 ts_ut___ut_get_postfix_shortest_all() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_postfix_shortest_all()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -593,6 +699,10 @@ ts_ut___ut_get_postfix_shortest_all() {
 
     ut_get_postfix_shortest_all _result "${_entry_no_delim}" "::"
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "${_entry_no_delim}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_postfix_shortest_all
 
@@ -601,6 +711,8 @@ ts_ut___ut_get_postfix_shortest_all
 # TEST: ut_get_postfix_longest_all()
 #******************************************************************************************************************************
 ts_ut___ut_get_postfix_longest_all() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_postfix_longest_all()"
     local _entry="NOEXTRACT::helper_scripts::https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
     local _entry_no_delim="https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a"
@@ -612,6 +724,10 @@ ts_ut___ut_get_postfix_longest_all() {
 
     ut_get_postfix_longest_all _result "${_entry_no_delim}" "::"
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "${_entry_no_delim}" "Test No Delimiter INPUT: <${_entry_no_delim}>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_postfix_longest_all
 
@@ -620,6 +736,8 @@ ts_ut___ut_get_postfix_longest_all
 # TEST: ut_get_cmd_option_values_array()
 #******************************************************************************************************************************
 ts_ut___ut_get_cmd_option_values_array() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_cmd_option_values_array()"
     local _array_with_short_option=(-v --version -i --install -cf /home/short_option/cmk.conf -h --help)
     local _array_with_long_option=(-v --version -i --install --config-file /home/long_option/cmk.conf -h --help)
@@ -692,6 +810,10 @@ ts_ut___ut_get_cmd_option_values_array() {
         "Test maximum expected values: 5. Found 3. INPUT: <_array_with_long_3_values_at_end>"
     te_same_val _COUNT_OK _COUNT_FAILED "${_n}" "7" \
         "Test index value was incremented. Found 3. INPUT: <_array_with_long_3_values_at_end>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_cmd_option_values_array
 
@@ -700,6 +822,8 @@ ts_ut___ut_get_cmd_option_values_array
 # TEST: ut_get_cmd_option_single_value_string()
 #******************************************************************************************************************************
 ts_ut___ut_get_cmd_option_single_value_string() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_cmd_option_single_value_string()"
     local _array_with_short_option=(-v --version -i --install -cf /home/short_option/cmk.conf -h --help)
     local _array_with_long_option=(-v --version -i --install --config-file /home/long_option/cmk.conf -h --help)
@@ -735,6 +859,10 @@ ts_ut___ut_get_cmd_option_single_value_string() {
     ut_get_cmd_option_single_value_string _result 4 _array_with_long_option_in_middle_no_value "no"
     te_empty_val _COUNT_OK _COUNT_FAILED "${_result}" \
         "Test _abort_if_no_value=no: <_array_with_long_option_in_middle_no_value>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_cmd_option_single_value_string
 
@@ -743,6 +871,8 @@ ts_ut___ut_get_cmd_option_single_value_string
 # TEST: ut_search_cmd_option_values_string()
 #******************************************************************************************************************************
 ts_ut___ut_search_cmd_option_values_string() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_search_cmd_option_values_string()"
     local _array_without_search_option=(-v --version -i --install -h --help)
     local _array_with_short_option=(-v --version -i --install -cf /home/short_option/cmk.conf -h --help)
@@ -829,6 +959,10 @@ ts_ut___ut_search_cmd_option_values_string() {
     ut_search_cmd_option_values_string _result "-cf" "--config-file" _array_with_long_3_values_at_end 5
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "value1 value2 value3" \
         "Test maximum expected values: 5.  Found 3. INPUT: <_array_with_long_3_values_at_end>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_search_cmd_option_values_string
 
@@ -837,6 +971,8 @@ ts_ut___ut_search_cmd_option_values_string
 # TEST: ut_basename()
 #******************************************************************************************************************************
 ts_ut___ut_basename() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ts_ut___ut_basename()"
     local _output _result
 
@@ -848,6 +984,10 @@ ts_ut___ut_basename() {
 
     ut_basename _result ""
     te_empty_val _COUNT_OK _COUNT_FAILED "${_result}" "Test empty INPUT: <>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_basename
 
@@ -856,6 +996,8 @@ ts_ut___ut_basename
 # TEST: ut_dirname()
 #******************************************************************************************************************************
 ts_ut___ut_dirname() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_dirname()"
     local _output _result
 
@@ -873,6 +1015,10 @@ ts_ut___ut_dirname() {
 
     ut_dirname _result ""
     te_same_val _COUNT_OK _COUNT_FAILED "${_result}" "." "Test empty input <>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_dirname
 
@@ -881,6 +1027,8 @@ ts_ut___ut_dirname
 # TEST: ut_is_abspath()
 #******************************************************************************************************************************
 ts_ut___ut_is_abspath() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_abspath()"
 
     (ut_is_abspath "test/Pkgfile")
@@ -891,6 +1039,10 @@ ts_ut___ut_is_abspath() {
 
     (ut_is_abspath "/home/Pkgfile")
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test absolute path </home/Pkgfile>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_abspath
 
@@ -899,6 +1051,8 @@ ts_ut___ut_is_abspath
 # TEST: ut_is_abspath_abort()
 #******************************************************************************************************************************
 ts_ut___ut_is_abspath_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_abspath_abort()"
     local _output
 
@@ -912,6 +1066,10 @@ ts_ut___ut_is_abspath_abort() {
 
     (ut_is_abspath_abort "/home/Pkgfile")
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test absolute path </home/Pkgfile>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_abspath_abort
 
@@ -920,6 +1078,8 @@ ts_ut___ut_is_abspath_abort
 # TEST: ut_dir_has_content_abort()
 #******************************************************************************************************************************
 ts_ut___ut_dir_has_content_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_dir_has_content_abort()"
     local _tmp_dir_empty=$(mktemp -d)
     local _tmp_dir_with_dir=$(mktemp -d)
@@ -957,6 +1117,10 @@ ts_ut___ut_dir_has_content_abort() {
     rm -rf "${_tmp_dir_with_file}"
     rm -rf "${_tmp_dir_with_link}"
     rm -f "${_tmp_dummy_file}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_dir_has_content_abort
 
@@ -965,7 +1129,9 @@ ts_ut___ut_dir_has_content_abort
 # TEST: ut_cd_safe_abort()
 #******************************************************************************************************************************
 ts_ut___ut_cd_safe_abort() {
-    te_print_function_msg "ut_cd_safe_abort()"
+    (source "${EXCHANGE_LOG}"
+
+    te_print_function_msg "ut_cd_safe_abortt()"
     local _tmp_dir=$(mktemp -d)
     local _output
 
@@ -982,6 +1148,10 @@ ts_ut___ut_cd_safe_abort() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_cd_safe_abort
 
@@ -1001,6 +1171,8 @@ ts_ut___ut_cd_safe_abort
 # TEST: ut_is_integer_greater()
 #******************************************************************************************************************************
 ts_ut___ut_is_integer_greater() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_integer_greater()"
 
     (ut_is_integer_greater 266)
@@ -1014,6 +1186,10 @@ ts_ut___ut_is_integer_greater() {
 
     (ut_is_integer_greater -199 -89)
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test INPUT: <ut_is_integer_greater -199 -89>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_integer_greater
 
@@ -1022,6 +1198,8 @@ ts_ut___ut_is_integer_greater
 # TEST: ut_repeat_failed_command()
 #******************************************************************************************************************************
 ts_ut___ut_repeat_failed_command() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_repeat_failed_command()"
     local _output
 
@@ -1040,6 +1218,10 @@ ts_ut___ut_repeat_failed_command() {
     _output=$((ut_repeat_failed_command 2 1 false) 2>&1)
     te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "WARNING: Command failed: '2' times" \
         "Test INPUT: <ut_repeat_failed_command 2 1 false> Find failed: 2 times WARNING message."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_repeat_failed_command
 
@@ -1048,6 +1230,8 @@ ts_ut___ut_repeat_failed_command
 # TEST: ut_in_array()
 #******************************************************************************************************************************
 ts_ut___ut_in_array() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_in_array()"
     local _test_array=("a" "VALID ITEM2" "e f" 3 "VALID ITEM" 6 567)
     local _output
@@ -1060,6 +1244,10 @@ ts_ut___ut_in_array() {
 
     (ut_in_array "VALID ITEM2" _test_array) &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test VALID ITEM2 item in array."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_in_array
 
@@ -1068,6 +1256,8 @@ ts_ut___ut_in_array
 # TEST: ut_got_function()
 #******************************************************************************************************************************
 ts_ut___ut_got_function() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_got_function()"
 
     _valid_function() {
@@ -1079,6 +1269,10 @@ ts_ut___ut_got_function() {
 
     (ut_got_function "_not_valid_function") &> /dev/null
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test Find <_not_valid_function>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_got_function
 
@@ -1087,6 +1281,8 @@ ts_ut___ut_got_function
 # TEST: ut_unset_functions()
 #******************************************************************************************************************************
 ts_ut___ut_unset_functions() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_unset_functions()"
     local _fn="ts_ut___ut_unset_functions"
     local _functions_to_unset=(test_func1 test_func3 undefined_function)
@@ -1119,6 +1315,10 @@ ts_ut___ut_unset_functions() {
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "unset <test_func2> not defined in array: Test if it is afterwards still set?."
 
     unset -f test_func1 test_func2 test_func3 undefined_function
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_unset_functions
 
@@ -1127,6 +1327,8 @@ ts_ut___ut_unset_functions
 # TEST: ut_unset_functions2()
 #******************************************************************************************************************************
 ts_ut___ut_unset_functions2() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_unset_functions2()"
     local _fn="ts_ut___ut_unset_functions2"
     declare -A _functions_to_unset=(["test_func1"]=0 ["test_func3"]=0 ["undefined_function"]=0)
@@ -1159,6 +1361,10 @@ ts_ut___ut_unset_functions2() {
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "unset <test_func2> not defined in array: Test if it is afterwards still set?."
 
     unset -f test_func1 test_func2 test_func3 undefined_function
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_unset_functions2
 
@@ -1167,12 +1373,18 @@ ts_ut___ut_unset_functions2
 # TEST: ut_source_safe_abort()
 #******************************************************************************************************************************
 ts_ut___ut_source_safe_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_source_safe_abort()"
     local _output
 
     _output=$((ut_source_safe_abort) 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Could not source file: <>" \
         "Test No file supplied: Could not source file: <>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_source_safe_abort
 
@@ -1181,6 +1393,8 @@ ts_ut___ut_source_safe_abort
 # TEST: ut_get_file_md5sum()
 #******************************************************************************************************************************
 ts_ut___ut_get_file_md5sum() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_file_md5sum()"
     local _orig_chksum="251aadc2351abf85b3dbfe7261f06218"
     local _text_file="$(dirname _THIS_SCRIPT_PATH)/files/md5sum_testfile.txt"
@@ -1192,6 +1406,10 @@ ts_ut___ut_get_file_md5sum() {
 
     ut_get_file_md5sum _chksum "${_none_existing_file}"
     te_empty_val _COUNT_OK _COUNT_FAILED "${_chksum}" "Test chksum none existing file path. Expected empty.'"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_file_md5sum
 
@@ -1200,6 +1418,8 @@ ts_ut___ut_get_file_md5sum
 # TEST: ut_get_file_md5sum_abort()
 #******************************************************************************************************************************
 ts_ut___ut_get_file_md5sum_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_get_file_md5sum_abort()"
     local _orig_chksum="251aadc2351abf85b3dbfe7261f06218"
     local _text_file="$(dirname _THIS_SCRIPT_PATH)/files/md5sum_testfile.txt"
@@ -1211,6 +1431,10 @@ ts_ut___ut_get_file_md5sum_abort() {
 
     _output=$((ut_get_file_md5sum_abort _chksum "${_none_existing_file}") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Not a readable file path: <./none_existing_file_path.no>"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_get_file_md5sum_abort
 
@@ -1219,6 +1443,8 @@ ts_ut___ut_get_file_md5sum_abort
 # TEST: ut_no_command_abort()
 #******************************************************************************************************************************
 ts_ut___ut_no_command_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_no_command_abort()"
     local _output
 
@@ -1228,6 +1454,10 @@ ts_ut___ut_no_command_abort() {
 
     (ut_no_command_abort "bash")
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test got command <bash>."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_no_command_abort
 
@@ -1236,6 +1466,8 @@ ts_ut___ut_no_command_abort
 # TEST: ut_got_internet()
 #******************************************************************************************************************************
 ts_ut___ut_got_internet() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_got_internet()"
     local _fn="ts_ut___ut_got_internet"
     local _output
@@ -1247,6 +1479,10 @@ ts_ut___ut_got_internet() {
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi
     te_retval_0 _COUNT_OK _COUNT_FAILED ${_ret} "Test got internet."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_got_internet
 
@@ -1255,6 +1491,8 @@ ts_ut___ut_got_internet
 # TEST: ut_is_git_uri_accessible()
 #******************************************************************************************************************************
 ts_ut___ut_is_git_uri_accessible() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_git_uri_accessible()"
     local _fn="ts_ut___ut_is_git_uri_accessible"
     local _git_uri="https://github.com/P-Linux/pl_bash_functions.git"
@@ -1275,6 +1513,10 @@ ts_ut___ut_is_git_uri_accessible() {
     fi
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Couldn't verify that the git uri is accessible:" \
         "Test wrong git uri."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_git_uri_accessible
 
@@ -1283,6 +1525,8 @@ ts_ut___ut_is_git_uri_accessible
 # TEST: ut_is_svn_uri_accessible()
 #******************************************************************************************************************************
 ts_ut___ut_is_svn_uri_accessible() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_svn_uri_accessible()"
     local _fn="ts_ut___ut_is_svn_uri_accessible"
     local _svn_uri="https://svn.code.sf.net/p/portmedia/code/portsmf/trunk"
@@ -1303,6 +1547,10 @@ ts_ut___ut_is_svn_uri_accessible() {
     fi
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Couldn't verify that the svn uri is accessible:" \
         "Test wrong git uri."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_svn_uri_accessible
 
@@ -1311,6 +1559,8 @@ ts_ut___ut_is_svn_uri_accessible
 # TEST: ut_is_hg_uri_accessible()
 #******************************************************************************************************************************
 ts_ut___ut_is_hg_uri_accessible() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ut_is_hg_uri_accessible()"
     local _fn="ts_ut___ut_is_hg_uri_accessible"
     local _hg_uri="https://bitbucket.org/bos/hg-tutorial-hello"
@@ -1331,6 +1581,10 @@ ts_ut___ut_is_hg_uri_accessible() {
     fi
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Couldn't verify that the hg uri is accessible:" \
         "Test wrong git uri."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ut___ut_is_hg_uri_accessible
 
@@ -1338,8 +1592,9 @@ ts_ut___ut_is_hg_uri_accessible
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

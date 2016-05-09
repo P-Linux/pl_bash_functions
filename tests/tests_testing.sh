@@ -21,11 +21,15 @@ te_print_header "testing.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: te_find_err_msg()
 #******************************************************************************************************************************
 ts_ms___te_find_err_msg() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_find_err_msg()"
     declare -i _dummy_ok=0
     declare -i _dummy_failed=0
@@ -51,7 +55,12 @@ ts_ms___te_find_err_msg() {
 
     # Optional extra info
     _output="Other output: Test expected to pass. Extra Info added. other output"
-    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Test expected to pass. Extra Info added." "This is some optionl info."
+    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Test expected to pass. Extra Info added." \
+        "This is some optionl info."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_find_err_msg
 
@@ -60,6 +69,8 @@ ts_ms___te_find_err_msg
 # TEST: te_find_info_msg()
 #******************************************************************************************************************************
 ts_ms___te_find_info_msg() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_find_info_msg()"
     declare -i _dummy_ok=0
     declare -i _dummy_failed=0
@@ -85,7 +96,12 @@ ts_ms___te_find_info_msg() {
 
     # Optional extra info
     _output="Other output: Test expected to pass. Extra Info added. other output"
-    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Test expected to pass. Extra Info added." "This is some optionl info."
+    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Test expected to pass. Extra Info added." \
+        "This is some optionl info."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_find_info_msg
 
@@ -96,6 +112,8 @@ ts_ms___te_find_info_msg
 # NOTE: a bit trick to test because of the formatted string
 #******************************************************************************************************************************
 ts_ms___te_same_val() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_same_val()"
     local _off=$(tput sgr0)
     local _bold=$(tput bold)
@@ -118,6 +136,10 @@ ts_ms___te_same_val() {
     # NOTE: Use here the previously tested te_find_err_msg
     _to_find="${_off}Expected value: <${_bold}/home/test${_off}> Got: <${_bold}/home/wrong${_off}> EXTRA INFO"
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "${_to_find}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_same_val
 
@@ -126,6 +148,8 @@ ts_ms___te_same_val
 # TEST: te_empty_val()
 #******************************************************************************************************************************
 ts_ms___te_empty_val() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_empty_val()"
     declare -i _dummy_ok=0
     declare -i _dummy_failed=0
@@ -139,6 +163,10 @@ ts_ms___te_empty_val() {
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_empty_val _dummy_ok _dummy_failed "wrong" "Testing wrong string value: expected empty.") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Testing wrong string value: expected empty."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_empty_val
 
@@ -147,6 +175,8 @@ ts_ms___te_empty_val
 # TEST: te_not_empty_val()
 #******************************************************************************************************************************
 ts_ms___te_not_empty_val() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_not_empty_val()"
     declare -i _dummy_ok=0
     declare -i _dummy_failed=0
@@ -160,6 +190,10 @@ ts_ms___te_not_empty_val() {
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_not_empty_val _dummy_ok _dummy_failed "" "Testing wrong string value: expected not empty.") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Testing wrong string value: expected not empty."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_not_empty_val
 
@@ -168,6 +202,8 @@ ts_ms___te_not_empty_val
 # TEST: te_retval_0()
 #******************************************************************************************************************************
 ts_ms___te_retval_0() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_retval_0()"
     declare -i _dummy_ok=0
     declare -i _dummy_failed=0
@@ -181,6 +217,10 @@ ts_ms___te_retval_0() {
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_err_msg _dummy_ok _dummy_failed 1 "Testing FAILED return value (1): expected (0).") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Testing FAILED return value (1): expected (0)."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_retval_0
 
@@ -189,6 +229,8 @@ ts_ms___te_retval_0
 # TEST: te_retval_1()
 #******************************************************************************************************************************
 ts_ms___te_retval_1() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "te_retval_1()"
     declare -i _dummy_ok=0
     declare -i _dummy_failed=0
@@ -202,6 +244,10 @@ ts_ms___te_retval_1() {
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_err_msg _dummy_ok _dummy_failed 1 "Testing FAILED return value (0): expected (1).") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Testing FAILED return value (0): expected (1)."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ms___te_retval_1
 
@@ -209,8 +255,9 @@ ts_ms___te_retval_1
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

@@ -28,11 +28,15 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/pkgarchives.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: pka_get_existing_pkgarchives()
 #******************************************************************************************************************************
 ts_pka___pka_get_existing_pkgarchives() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_get_existing_pkgarchives()"
     local _tmp_dir=$(mktemp -d)
     local _port_name1="port1"
@@ -77,6 +81,10 @@ ts_pka___pka_get_existing_pkgarchives() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_get_existing_pkgarchives
 
@@ -85,6 +93,8 @@ ts_pka___pka_get_existing_pkgarchives
 # TEST: pka_remove_existing_pkgarchives()
 #******************************************************************************************************************************
 ts_pka___pka_remove_existing_pkgarchives() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_remove_existing_pkgarchives()"
     local _fn="ts_pka___pka_remove_existing_pkgarchives"
     local _tmp_dir=$(mktemp -d)
@@ -131,6 +141,10 @@ ts_pka___pka_remove_existing_pkgarchives() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_remove_existing_pkgarchives
 
@@ -139,6 +153,8 @@ ts_pka___pka_remove_existing_pkgarchives
 # TEST: pka_get_pkgarchive_name()
 #******************************************************************************************************************************
 ts_pka___pka_get_pkgarchive_name() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_get_pkgarchive_name()"
     local _fn="ts_pka___pka_get_pkgarchive_name"
     local _system_arch=$(uname -m)
@@ -162,6 +178,10 @@ ts_pka___pka_get_pkgarchive_name() {
     _pkgarchive="/home/test/attr.devel1462570367x86_64.cards.tar.xz"
     pka_get_pkgarchive_name _name _pkgarchive _system_arch _ref_ext
     te_same_val _COUNT_OK _COUNT_FAILED "${_name}" "attr.devel"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_get_pkgarchive_name
 
@@ -170,6 +190,8 @@ ts_pka___pka_get_pkgarchive_name
 # TEST: pka_get_pkgarchive_buildvers()
 #******************************************************************************************************************************
 ts_pka___pka_get_pkgarchive_buildvers() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_get_pkgarchive_buildvers()"
     local _fn="ts_pka___pka_get_pkgarchive_buildvers"
     local _system_arch=$(uname -m)
@@ -193,6 +215,10 @@ ts_pka___pka_get_pkgarchive_buildvers() {
     _pkgarchive="/home/test/cards.devel1460651449x86_64.cards.tar.xz"
     pka_get_pkgarchive_buildvers _buildvers _pkgarchive _system_arch _ref_ext
     te_same_val _COUNT_OK _COUNT_FAILED "${_buildvers}" "1460651449"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_get_pkgarchive_buildvers
 
@@ -201,6 +227,8 @@ ts_pka___pka_get_pkgarchive_buildvers
 # TEST: pka_get_pkgarchive_arch()
 #******************************************************************************************************************************
 ts_pka___pka_get_pkgarchive_arch() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_get_pkgarchive_arch()"
     local _fn="ts_pka___pka_get_pkgarchive_arch"
     local _system_arch=$(uname -m)
@@ -223,6 +251,10 @@ ts_pka___pka_get_pkgarchive_arch() {
     _pkgarchive="/home/test/attr.devel1462570367${_system_arch}.cards.tar.xz"
     pka_get_pkgarchive_arch _arch _pkgarchive _system_arch _ref_ext
     te_same_val _COUNT_OK _COUNT_FAILED "${_arch}" "${_system_arch}" "Test pkgarchive system arch: ${_system_arch}."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_get_pkgarchive_arch
 
@@ -231,6 +263,8 @@ ts_pka___pka_get_pkgarchive_arch
 # TEST: pka_get_pkgarchive_ext()
 #******************************************************************************************************************************
 ts_pka___pka_get_pkgarchive_ext() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_get_pkgarchive_ext()"
     local _fn="ts_pka___pka_get_pkgarchive_ext"
     local _ref_ext="cards.tar"
@@ -252,6 +286,10 @@ ts_pka___pka_get_pkgarchive_ext() {
     _pkgarchive="attr.fr1462570367any.cards.tar.xz"
     pka_get_pkgarchive_ext _ext _pkgarchive _ref_ext
     te_same_val _COUNT_OK _COUNT_FAILED "${_ext}" ".cards.tar.xz" "Test compressed pkgarchive extension. only file name."
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_get_pkgarchive_ext
 
@@ -259,7 +297,9 @@ ts_pka___pka_get_pkgarchive_ext
 #******************************************************************************************************************************
 # TEST: pka_get_pkgarchive_parts()
 #******************************************************************************************************************************
-ts_pka___pka_get_pkgarchive_parts() {
+ts_pka___pka_get_pkgarchive_parts(){
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pka_get_pkgarchive_parts()"
     local _fn="ts_pka___pka_get_pkgarchive_parts"
     local _system_arch=$(uname -m)
@@ -276,20 +316,10 @@ ts_pka___pka_get_pkgarchive_parts() {
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
         "A pkgarchive 'architecture' part MUST be: '${_system_arch}' or 'any'. Pkgarchive: <${_pkgarchive}>"
 
-    _pkgarchive="/home/test/attr.man1462570367wrong.cards.tar.xz"
-    _output=$((pka_get_pkgarchive_parts _name _buildvers _arch _ext _pkgarchive _system_arch _ref_ext) 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
-        "A pkgarchive 'architecture' part MUST be: '${_system_arch}' or 'any'. Pkgarchive: <${_pkgarchive}>"
-
     _pkgarchive="/home/test/attr.man14error367any.cards.tar.xz"
     _output=$((pka_get_pkgarchive_parts _name _buildvers _arch _ext _pkgarchive _system_arch _ref_ext) 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
         "'buildvers' MUST NOT be empty and only contain digits and not: 'error'. Pkgarchive: <${_pkgarchive}>"
-
-    _pkgarchive="/home/test/attr.man1462570367wrong.cards.tar.xz"
-    _output=$((pka_get_pkgarchive_parts _name _buildvers _arch _ext _pkgarchive _system_arch _ref_ext) 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
-        "A pkgarchive 'architecture' part MUST be: '${_system_arch}' or 'any'. Pkgarchive: <${_pkgarchive}>"
 
     _pkgarchive="/home/test/1462570367any.cards.tar"
     _output=$((pka_get_pkgarchive_parts _name _buildvers _arch _ext _pkgarchive _system_arch _ref_ext) 2>&1)
@@ -309,14 +339,64 @@ ts_pka___pka_get_pkgarchive_parts() {
     te_same_val _COUNT_OK _COUNT_FAILED "${_buildvers}" "1460651449"
     te_same_val _COUNT_OK _COUNT_FAILED "${_arch}" "x86_64"
     te_same_val _COUNT_OK _COUNT_FAILED "${_ext}" ".cards.tar.xz"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pka___pka_get_pkgarchive_parts
 
 
 #******************************************************************************************************************************
+# TEST: pka_get_pkgarchive_name_arch()
+#******************************************************************************************************************************
+ts_pka___pka_get_pkgarchive_name_arch() {
+    (source "${EXCHANGE_LOG}"
 
+    te_print_function_msg "pka_get_pkgarchive_name_arch()"
+    local _fn="ts_pka___pka_get_pkgarchive_name_arch"
+    local _system_arch=$(uname -m)
+    local _ref_ext="cards.tar"
+    local _output _name _arch _pkgarchive
+
+    _pkgarchive="/home/test/attr.man1462570367any.wrong.tar.xz"
+    _output=$((pka_get_pkgarchive_name_arch _name _arch _pkgarchive _system_arch _ref_ext) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "A pkgarchive 'extension' part MUST end with: 'cards.tar' or 'cards.tar.xz'. Pkgarchive: <${_pkgarchive}>"
+
+    _pkgarchive="/home/test/attr.man1462570367wrong.cards.tar.xz"
+    _output=$((pka_get_pkgarchive_name_arch _name _arch _pkgarchive _system_arch _ref_ext) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "A pkgarchive 'architecture' part MUST be: '${_system_arch}' or 'any'. Pkgarchive: <${_pkgarchive}>"
+
+    _pkgarchive="/home/test/1462570367any.cards.tar"
+    _output=$((pka_get_pkgarchive_name_arch _name _arch _pkgarchive _system_arch _ref_ext) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <${_pkgarchive}>"
+
+    _pkgarchive="/home/test/attr.man1462570367any.cards.tar"
+    pka_get_pkgarchive_name_arch _name _arch _pkgarchive _system_arch _ref_ext
+    te_same_val _COUNT_OK _COUNT_FAILED "${_name}" "attr.man"
+    te_same_val _COUNT_OK _COUNT_FAILED "${_arch}" "any"
+
+    _pkgarchive="cards1460651449x86_64.cards.tar.xz"
+    pka_get_pkgarchive_name_arch _name _arch _pkgarchive _system_arch _ref_ext
+    te_same_val _COUNT_OK _COUNT_FAILED "${_name}" "cards"
+    te_same_val _COUNT_OK _COUNT_FAILED "${_arch}" "x86_64"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
+}
+ts_pka___pka_get_pkgarchive_name_arch
+
+
+
+#******************************************************************************************************************************
+
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

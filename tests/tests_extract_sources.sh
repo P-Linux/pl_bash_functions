@@ -28,6 +28,8 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/extract_sources.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 do_got_extract_programs_abort
 
@@ -36,6 +38,8 @@ do_got_extract_programs_abort
 # TEST: ex_extract_source() files abort
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_files_abort() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() files abort"
     local _fn="ts_ex___ex_extract_source_files_abort"
     local _tmp_dir=$(mktemp -d)
@@ -122,6 +126,10 @@ ts_ex___ex_extract_source_files_abort() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_files_abort
 
@@ -130,6 +138,8 @@ ts_ex___ex_extract_source_files_abort
 # TEST: ex_extract_source() local files
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_local_files() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() local files"
     local _tmp_dir=$(mktemp -d)
     local _pkgfile_fullpath="${_tmp_dir}/ports/dummy/Pkgfile"
@@ -195,6 +205,10 @@ ts_ex___ex_extract_source_local_files() {
     # CLEAN UP
     rm -rf "${_tmp_dir}"
     rm -rf "${_tmp_dir2}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_local_files
 
@@ -203,6 +217,8 @@ ts_ex___ex_extract_source_local_files
 # TEST: ex_extract_source() files normal extract
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_files_normal_extract() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() files normal extract"
     local _fn="ts_ex___ex_extract_source_files_normal_extract"
     local _tmp_dir=$(mktemp -d)
@@ -341,6 +357,10 @@ ts_ex___ex_extract_source_files_normal_extract() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_files_normal_extract
 
@@ -349,6 +369,8 @@ ts_ex___ex_extract_source_files_normal_extract
 # TEST: ex_extract_source() files NOEXTRACT
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_files__noextract() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() files NOEXTRACT"
     local _fn="ts_ex___ex_extract_source_files__noextract"
     local _tmp_dir=$(mktemp -d)
@@ -393,6 +415,10 @@ ts_ex___ex_extract_source_files__noextract() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_files__noextract
 
@@ -401,6 +427,8 @@ ts_ex___ex_extract_source_files__noextract
 # TEST: ex_extract_source() git
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_git() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() git"
     local _fn="ts_ex___ex_extract_source_git"
     local _tmp_dir=$(mktemp -d)
@@ -449,6 +477,10 @@ ts_ex___ex_extract_source_git() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_git
 
@@ -457,6 +489,8 @@ ts_ex___ex_extract_source_git
 # TEST: ex_extract_source() svn
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_svn() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() svn"
     local _fn="ts_ex___ex_extract_source_svn"
     local _tmp_dir=$(mktemp -d)
@@ -487,6 +521,10 @@ ts_ex___ex_extract_source_svn() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_svn
 
@@ -495,6 +533,8 @@ ts_ex___ex_extract_source_svn
 # TEST: ex_extract_source() hg
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_hg() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() hg"
     local _fn="ts_ex___ex_extract_source_hg"
     local _tmp_dir=$(mktemp -d)
@@ -531,6 +571,10 @@ ts_ex___ex_extract_source_hg() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_hg
 
@@ -539,6 +583,8 @@ ts_ex___ex_extract_source_hg
 # TEST: ex_extract_source() bzr
 #******************************************************************************************************************************
 ts_ex___ex_extract_source_bzr() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ex_extract_source() bzr"
     local _fn="ts_ex___ex_extract_source_bzr"
     local _tmp_dir=$(mktemp -d)
@@ -570,6 +616,10 @@ ts_ex___ex_extract_source_bzr() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_ex___ex_extract_source_bzr
 
@@ -577,8 +627,9 @@ ts_ex___ex_extract_source_bzr
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

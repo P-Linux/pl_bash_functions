@@ -25,11 +25,15 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/localization.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: lo_generate_pot_file()
 #******************************************************************************************************************************
 ts_lo___lo_generate_pot_file() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "lo_generate_pot_file()"
     local _srcfile="${_FUNCTIONS_DIR}/msg.sh"
     local _wrong_srcfile="none_existing.sh"
@@ -68,6 +72,10 @@ ts_lo___lo_generate_pot_file() {
 
     # CLEAN UP
     rm -rf "${_outdir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_lo___lo_generate_pot_file
 
@@ -76,6 +84,8 @@ ts_lo___lo_generate_pot_file
 # TEST: lo_generate_po_files()
 #******************************************************************************************************************************
 ts_lo___lo_generate_po_files() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "lo_generate_po_files()"
     local _srcfiles=("${_FUNCTIONS_DIR}/msg.sh")
     local _utf8_languages=("de_DE.UTF-8" "en_US.UTF-8" "pt_BR.UTF-8")
@@ -122,6 +132,10 @@ ts_lo___lo_generate_po_files() {
 
     # CLEAN UP
     rm -rf "${_outdir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_lo___lo_generate_po_files
 
@@ -129,8 +143,9 @@ ts_lo___lo_generate_po_files
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

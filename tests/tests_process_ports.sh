@@ -30,11 +30,15 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/process_ports.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 
 #******************************************************************************************************************************
 # TEST: pr_make_pkg_build_dir()
 #******************************************************************************************************************************
 ts_pr___pr_make_pkg_build_dir() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pr_make_pkg_build_dir()"
     local _tmp_dir=$(mktemp -d)
     local _pkg_build_dir _tmp_pkg_build_dir_file _tmp_srcdir_file _tmp_pkgdir_file
@@ -71,6 +75,10 @@ ts_pr___pr_make_pkg_build_dir() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pr___pr_make_pkg_build_dir
 
@@ -79,6 +87,8 @@ ts_pr___pr_make_pkg_build_dir
 # TEST: pr_remove_existing_backup_pkgfile()
 #******************************************************************************************************************************
 ts_pr___pr_remove_existing_backup_pkgfile() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pr_remove_existing_backup_pkgfile()"
     local _fn="ts_pr___pr_remove_existing_backup_pkgfile"
     local _tmp_dir=$(mktemp -d)
@@ -106,6 +116,10 @@ ts_pr___pr_remove_existing_backup_pkgfile() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pr___pr_remove_existing_backup_pkgfile
 
@@ -114,6 +128,8 @@ ts_pr___pr_remove_existing_backup_pkgfile
 # TEST: pr_remove_downloaded_sources()
 #******************************************************************************************************************************
 ts_pr___pr_remove_downloaded_sources() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pr_remove_downloaded_sources()"
     local _fn="ts_pr___pr_remove_downloaded_sources"
     local _tmp_dir=$(mktemp -d)
@@ -175,6 +191,10 @@ ts_pr___pr_remove_downloaded_sources() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pr___pr_remove_downloaded_sources
 
@@ -183,6 +203,8 @@ ts_pr___pr_remove_downloaded_sources
 # TEST: pr_update_pkgfile_pkgmd5sums()
 #******************************************************************************************************************************
 ts_pr___pr_update_pkgfile_pkgmd5sums() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pr_update_pkgfile_pkgmd5sums()"
     local _fn="ts_pr___pr_update_pkgfile_pkgmd5sums"
     local _tmp_dir=$(mktemp -d)
@@ -226,6 +248,10 @@ ts_pr___pr_update_pkgfile_pkgmd5sums() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pr___pr_update_pkgfile_pkgmd5sums
 
@@ -234,6 +260,8 @@ ts_pr___pr_update_pkgfile_pkgmd5sums
 # TEST: pr_update_port_repo_file()
 #******************************************************************************************************************************
 ts_pr___pr_update_port_repo_file() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "pr_update_port_repo_file()"
     local _fn="ts_pr___pr_update_port_repo_file"
     local _tmp_dir=$(mktemp -d)
@@ -322,6 +350,10 @@ ts_pr___pr_update_port_repo_file() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_pr___pr_update_port_repo_file
 
@@ -329,8 +361,9 @@ ts_pr___pr_update_port_repo_file
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

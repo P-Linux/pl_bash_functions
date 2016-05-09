@@ -28,6 +28,8 @@ ut_source_safe_abort "${_FUNCTIONS_DIR}/download_sources.sh"
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0
 
+EXCHANGE_LOG=$(mktemp)
+
 do_got_download_programs_abort
 
 
@@ -35,6 +37,8 @@ do_got_download_programs_abort
 # TEST: do_downloadable_source()
 #******************************************************************************************************************************
 ts_do___do_downloadable_source() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ts_do___do_downloadable_source()"
     local _fn="ts_do___do_downloadable_source"
     local _tmp_dir=$(mktemp -d)
@@ -111,6 +115,10 @@ ts_do___do_downloadable_source() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_downloadable_source
 
@@ -119,6 +127,8 @@ ts_do___do_downloadable_source
 # TEST: do_download_source() file general
 #******************************************************************************************************************************
 ts_do___do_download_source_file_general() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "ts_do___do_download_source_file_general()"
     local _fn="ts_do___do_download_source_file_general"
     local _tmp_dir=$(mktemp -d)
@@ -197,6 +207,10 @@ ts_do___do_download_source_file_general() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_file_general
 
@@ -205,6 +219,8 @@ ts_do___do_download_source_file_general
 # TEST: do_download_source() local files
 #******************************************************************************************************************************
 ts_do___do_download_source_local_files() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() local files"
     local _tmp_dir=$(mktemp -d)
     local _pkgfile_fullpath="${_tmp_dir}/ports/dummy/Pkgfile"
@@ -249,6 +265,10 @@ ts_do___do_download_source_local_files() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_local_files
 
@@ -257,6 +277,8 @@ ts_do___do_download_source_local_files
 # TEST: do_download_source() file ftp
 #******************************************************************************************************************************
 ts_do___do_download_source_file_ftp() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() file ftp"
     local _fn="ts_do___do_download_source_file_ftp"
     local _tmp_dir=$(mktemp -d)
@@ -311,6 +333,10 @@ ts_do___do_download_source_file_ftp() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_file_ftp
 
@@ -319,6 +345,8 @@ ts_do___do_download_source_file_ftp
 # TEST: do_download_source() file http
 #******************************************************************************************************************************
 ts_do___do_download_source_file_http() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() file http"
     local _fn="ts_do___do_download_source_file_http"
     local _tmp_dir=$(mktemp -d)
@@ -381,6 +409,10 @@ ts_do___do_download_source_file_http() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_file_http
 
@@ -389,6 +421,8 @@ ts_do___do_download_source_file_http
 # TEST: do_download_source() file https
 #******************************************************************************************************************************
 ts_do___do_download_source_file_https() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() file https"
     local _fn="ts_do___do_download_source_file_https"
     local _tmp_dir=$(mktemp -d)
@@ -447,6 +481,10 @@ ts_do___do_download_source_file_https() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_file_https
 
@@ -455,6 +493,8 @@ ts_do___do_download_source_file_https
 # TEST: do_download_source() git
 #******************************************************************************************************************************
 ts_do___do_download_source_git() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() git"
     local _fn="ts_do___do_download_source_git"
     local _tmp_dir=$(mktemp -d)
@@ -512,6 +552,10 @@ ts_do___do_download_source_git() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_git
 
@@ -520,6 +564,8 @@ ts_do___do_download_source_git
 # TEST: do_download_source() svn
 #******************************************************************************************************************************
 ts_do___do_download_source_svn() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() svn"
     local _fn="ts_do___do_download_source_svn"
     local _tmp_dir=$(mktemp -d)
@@ -585,6 +631,10 @@ ts_do___do_download_source_svn() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_svn
 
@@ -593,6 +643,8 @@ ts_do___do_download_source_svn
 # TEST: do_download_source() hg
 #******************************************************************************************************************************
 ts_do___do_download_source_hg() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() hg"
     local _fn="ts_do___do_download_source_hg"
     local _tmp_dir=$(mktemp -d)
@@ -650,6 +702,10 @@ ts_do___do_download_source_hg() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_hg
 
@@ -658,6 +714,8 @@ ts_do___do_download_source_hg
 # TEST: do_download_source() bzr
 #******************************************************************************************************************************
 ts_do___do_download_source_bzr() {
+    (source "${EXCHANGE_LOG}"
+
     te_print_function_msg "do_download_source() bzr"
     local _fn="ts_do___do_download_source_bzr"
     local _tmp_dir=$(mktemp -d)
@@ -714,6 +772,10 @@ ts_do___do_download_source_bzr() {
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
 }
 ts_do___do_download_source_bzr
 
@@ -721,8 +783,9 @@ ts_do___do_download_source_bzr
 
 #******************************************************************************************************************************
 
+source "${EXCHANGE_LOG}"
 te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
-
+rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file
