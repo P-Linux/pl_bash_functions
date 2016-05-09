@@ -358,6 +358,70 @@ ts_pr___pr_update_port_repo_file() {
 ts_pr___pr_update_port_repo_file
 
 
+#******************************************************************************************************************************
+# TEST: pr_update_collection_repo_file()
+#******************************************************************************************************************************
+ts_pr___pr_update_collection_repo_file() {
+    (source "${EXCHANGE_LOG}"
+
+    te_print_function_msg "pr_update_collection_repo_file()"
+    local _fn="ts_pr___pr_update_collection_repo_file"
+    local _tmp_dir=$(mktemp -d)
+    local _collection_path="${_tmp_dir}/example_collection1"
+    local _acl_port_path="${_collection_path}/acl"
+    local _cpio_port_path="${_collection_path}/cpio"
+    local _repo=".PKGREPO"
+    local _collection_repofile_path="${_collection_path}/${_repo}"
+    local _portname _port_path _repofile_content _ref_repofile_content
+
+    # Make files
+    cp -rf "${_TEST_SCRIPT_DIR}/files/example_collection1" "${_collection_path}"
+    cp -f "${_collection_path}/acl_ref.PKGREPO" "${_acl_port_path}/${_repo}"
+    cp -f "${_collection_path}/cpio_ref.PKGREPO" "${_cpio_port_path}/${_repo}"
+
+    rm -f "${_collection_repofile_path}"
+
+    _portname="acl"
+    _port_path="${_acl_port_path}"
+    pr_update_collection_repo_file _portname _port_path _repo &> /dev/null
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_collection_repo_file function return value. New File."
+
+    [[ -f ${_collection_repofile_path} ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test Collection-Repo-File was created."
+
+    _portname="cpio"
+    _port_path="${_cpio_port_path}"
+    pr_update_collection_repo_file _portname _port_path _repo &> /dev/null
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_collection_repo_file function return value. Update File."
+
+    _repofile_content=$(<"${_collection_repofile_path}")
+    _ref_repofile_content=$(<"${_collection_path}/collection_ref1.PKGREPO")
+    [[ ${_repofile_content} == ${_ref_repofile_content} ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? \
+        "Test Collection-Repo-File content is the same as the Reference Collection1-Repo-file content."
+
+    _portname="acl"
+    _port_path="${_acl_port_path}"
+    pr_update_collection_repo_file _portname _port_path _repo &> /dev/null
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test update same port again."
+
+    _repofile_content=$(<"${_collection_repofile_path}")
+    _ref_repofile_content=$(<"${_collection_path}/collection_ref2.PKGREPO")
+    [[ ${_repofile_content} == ${_ref_repofile_content} ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? \
+        "Test Collection-Repo-File content is the same as the Reference Collection2-Repo-file content."
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
+}
+ts_pr___pr_update_collection_repo_file
+
+
+
 
 #******************************************************************************************************************************
 

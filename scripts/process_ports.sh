@@ -234,7 +234,7 @@ pr_update_port_repo_file() {
     local -n _in_system_arch=${4}
     local -n _in_ref_ext=${5}
     local -n _in_ref_repo_filename=${6}
-    local _repo_filepath="${_in_port_path}/${_in_ref_repo_filename}"
+    local _repo_file_path="${_in_port_path}/${_in_ref_repo_filename}"
     local _final_str=""
     local _existing_pkg_archives=()
     local _pkgfile_basename; ut_basename _pkgfile_basename "${_in_pkgfile_path}"
@@ -276,8 +276,8 @@ pr_update_port_repo_file() {
         _url="n.a."
     fi
 
-    # Always delete first any exiating: _repo_filepath
-    rm -f "${_repo_filepath}"
+    # Always delete first any exiating: _repo_file_path
+    rm -f "${_repo_file_path}"
 
     if (( ${#_existing_pkg_archives[@]} > 0 )); then
         # use the first entry to get general data
@@ -312,7 +312,49 @@ pr_update_port_repo_file() {
     ut_get_file_md5sum _md5sum "${_in_pkgfile_path}"
     _final_str+="${_md5sum}#${_pkgfile_basename}\n"
 
-    echo -e "${_final_str}" > "${_repo_filepath}"
+    echo -e "${_final_str}" > "${_repo_file_path}"
+}
+
+
+#******************************************************************************************************************************
+# Generate a new/update a collection-repo-file with the ports entry line.
+#
+#   ARGUMENTS
+#       `_in_port_name`: a reference var: port name
+#       `_in_port_path`: a reference var: port absolute path
+#       `_in_ref_repo_filename`: a reference var: The reference repo file name.
+#
+#   USAGE
+#       CMK_PORTNAME="hwinfo"
+#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       pr_update_collection_repo_file CMK_PORTNAME CMK_PORT_PATH CMK_REPO
+#******************************************************************************************************************************
+pr_update_collection_repo_file() {
+    local -n _in_port_name=${1}
+    local -n _in_port_path=${2}
+    local -n _in_ref_repo_filename=${3}
+    local _repo_file_path="${_in_port_path}/${_in_ref_repo_filename}"
+    local _collection_repo_file_path="${_in_port_path}/../${_in_ref_repo_filename}"
+    local  _md5sum _buildvers _ext _vers _rel _description _url _packager _first_line
+
+    ms_more "$(gettext "Updating collection repo file for Port: <%s>")" "${_in_port_path}"
+
+    if [[ -f ${_repo_file_path} ]]; then
+        read -r _first_line < "${_repo_file_path}"
+		if [[ ${_first_line:10:1} = "#" ]]; then
+            saveifs=${IFS}
+            IFS="#" read _buildvers _ext _vers _rel _description _url _packager <<< "${_first_line}"
+            IFS=${saveifs}
+
+            # Remove any existing entry line
+            [[ -f ${_collection_repo_file_path} ]] && sed -i "/#${_in_port_name}#/d" "${_collection_repo_file_path}"
+            ut_get_file_md5sum_abort _md5sum "${_repo_file_path}"
+
+            # Append it
+            echo "${_md5sum}#${_buildvers}#${_in_port_name}#${_vers}#${_rel}#${_description}#${_url}#${_packager}#${_ext}" \
+                >> "${_collection_repo_file_path}"
+        fi
+    fi
 }
 
 
