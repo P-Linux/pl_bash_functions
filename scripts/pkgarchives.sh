@@ -372,5 +372,34 @@ pka_get_pkgarchive_name_arch() {
 
 
 #******************************************************************************************************************************
+# Returns 'yes' if the pkgarchive is up-to-date otherwise 'no'
+#
+#   ARGUMENTS
+#       `_ret_result`: a reference var: an empty string which will be updated with the result.
+#       `_in_pkgfile_path`: absolute path to the ports pkgfile
+#       `_in_pkgarchive_path`: a reference var: the full path of a pkgarchive to check
+#
+#   USAGE
+#       local PKGARCHIVE_IS_UP_TO_DATE=""
+#       pka_is_pkgarchive_up_to_date PKGARCHIVE_IS_UP_TO_DATE PKGFILE_PATH PKGARCHIVE_PATH
+#******************************************************************************************************************************
+pka_is_pkgarchive_up_to_date() {
+    local _fn="pka_is_pkgarchive_up_to_date"
+    local -n _ret_result=${1}
+    local -n _in_pkgfile_path=${2}
+    local -n _in_pkgarchive_path=${3}
+
+    _ret_result="no"
+	if [[ -f ${_in_pkgarchive_path} ]]; then
+		_ret_result="yes"
+        if [[ ! -f ${_in_pkgfile_path} ]]; then
+            ms_abort "${_fn}" "$(gettext "Corresponding Pkgfile does not exist. Path: <%s>")" "${_in_pkgfile_path}"
+        fi
+		[[ ${_in_pkgfile_path} -nt ${_in_pkgarchive_path} ]] && _ret_result="no"
+	fi
+}
+
+
+#******************************************************************************************************************************
 # End of file
 #******************************************************************************************************************************

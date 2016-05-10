@@ -391,6 +391,65 @@ ts_pka___pka_get_pkgarchive_name_arch() {
 ts_pka___pka_get_pkgarchive_name_arch
 
 
+#******************************************************************************************************************************
+# TEST: pka_is_pkgarchive_up_to_date()
+#******************************************************************************************************************************
+ts_pka___pka_is_pkgarchive_up_to_date() {
+    (source "${EXCHANGE_LOG}"
+
+    te_print_function_msg "pka_is_pkgarchive_up_to_date()"
+    local _fn="ts_pka___pka_is_pkgarchive_up_to_date"
+    local _tmp_dir=$(mktemp -d)
+    local _port_path1="${_tmp_dir}/port1"
+    local _output _is_up_to_date _pkgfile_path _pkgarchive_path_older _pkgarchive_path_newer _pkgarchive_path_not_existing
+    local _pkgfile_path_not_existing
+
+    # create port dirs
+    mkdir -p "${_port_path1}"
+
+    _pkgarchive_path_older="${_port_path1}/attr0000000000x86_64.cards.tar.xz"
+    _pkgfile_path="${_port_path1}/Pkgfile"
+    _pkgarchive_path_newer="${_port_path1}/attr0000000001x86_64.cards.tar.xz"
+    # Create the testfiles in the correct order
+    echo "_pkgarchive_path_older" > "${_pkgarchive_path_older}"
+    sleep 2
+    echo "_pkgfile_path" > "${_pkgfile_path}"
+    sleep 2
+    echo "_pkgarchive_path_newer" > "${_pkgarchive_path_newer}"
+    if [[ ! ${_pkgfile_path} -nt ${_pkgarchive_path_older} ]]; then
+        te_warn "${_fn}" "Erro in test setup: _pkgfile_path: <%s> (%s) is not newer than _pkgarchive_path_older: <%s>  (%s)" \
+            "${_pkgfile_path}" "$(stat -c %Y ${_pkgfile_path})" \
+            "${_pkgarchive_path_older}" "$(stat -c %Y ${_pkgarchive_path_older})"
+    fi
+    if [[ ${_pkgfile_path} -nt ${_pkgarchive_path_newer} ]]; then
+        te_warn "${_fn}" "Erro in test setup: _pkgfile_path: <%s> (%s) is not older than _pkgarchive_path_newer: <%s>  (%s)" \
+            "${_pkgfile_path}" "$(stat -c %Y ${_pkgfile_path})" \
+            "${_pkgarchive_path_newer}" "$(stat -c %Y ${_pkgarchive_path_newer})"
+    fi
+    _pkgarchive_path_not_existing="${_port_path1}/none_existing_pkgarchive"
+    pka_is_pkgarchive_up_to_date _is_up_to_date _pkgfile_path _pkgarchive_path_not_existing
+    te_same_val _COUNT_OK _COUNT_FAILED "${_is_up_to_date}" "no" "Test <_pkgarchive_path_not_existing>."
+
+    pka_is_pkgarchive_up_to_date _is_up_to_date _pkgfile_path _pkgarchive_path_older
+    te_same_val _COUNT_OK _COUNT_FAILED "${_is_up_to_date}" "no" "Test <_pkgarchive_path_older than _pkgfile_path>."
+
+    pka_is_pkgarchive_up_to_date _is_up_to_date _pkgfile_path _pkgarchive_path_newer
+    te_same_val _COUNT_OK _COUNT_FAILED "${_is_up_to_date}" "yes" "Test <_pkgarchive_path_newer than _pkgfile_path>."
+
+    _pkgfile_path_not_existing="${_port_path1}/none_existing_pkgfile"
+    _output=$((pka_is_pkgarchive_up_to_date _is_up_to_date _pkgfile_path_not_existing _pkgarchive_path_newer) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "Corresponding Pkgfile does not exist. Path: <${_pkgfile_path_not_existing}>"
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
+}
+ts_pka___pka_is_pkgarchive_up_to_date
+
 
 #******************************************************************************************************************************
 
