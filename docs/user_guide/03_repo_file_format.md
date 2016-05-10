@@ -97,4 +97,18 @@ md5sum#pkgfile-basename
 ## Collection-Repo-File
 
 Will be only updated if a Port-Repo-File exists and contains archive file entries: information is extracted from the first 
-line.
+line of the Port-Repo-File.
+
+**EXAMPLE**
+
+```text
+733f214a972cba5c70921a1181a392ef#1462741466#cpio#2.11#3#A tool.#http://www.gnu.org/software/cpio/#peter1000#.cards.tar.xz
+```
+
+
+### Line Syntax
+
+```text
+Port-Repo-File md5sum#buildversion#portname#pkgversion#pkgrelease#pkgdescription#pkgurl#pkgpackager#.extension any .compression
+```
+
