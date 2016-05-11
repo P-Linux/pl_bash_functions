@@ -361,6 +361,47 @@ pr_update_collection_repo_file() {
 }
 
 
+#******************************************************************************************************************************
+# Searches for files in `_in_dir_path` and strips: Binaries, Libraries (*.so) Libraries (*.a) and Kernel modules (*.ko)
+#
+#   ARGUMENTS
+#       `_in_dir_path`: absolute directory path: root dir for filesearch.
+#
+#   USAGE
+#       pr_strip_files "${pkgdir}"
+#******************************************************************************************************************************
+pr_strip_files() {
+    local _in_dir_path=${1}
+    local _file
+    
+    pushd "${_in_dir_path}" &> /dev/null
+    find . -type f -perm -u+w -print0 2>/dev/null | while read -rd '' _file ; do
+        case "$(file -bi "${_file}")" in
+            *application/x-executable*) 
+                strip "--strip-all" "${_file}"              # Binaries
+                ;;
+            *application/x-sharedlib*)  
+                strip "--strip-unneeded" "${_file}"         # Libraries (.so)
+                ;;
+            *application/x-archive*)   
+                strip "--strip-debug" "${_file}"            # Libraries (.a)
+                ;;
+            *application/x-object*)
+                case "${_file}" in
+                    *.ko)               
+                        strip "--strip-unneeded" "${_file}"  # Kernel modules
+                        ;;
+                    *) continue;;
+                esac;;
+
+            *) continue ;;
+        esac
+    done
+    popd &> /dev/null
+}
+
+
+
 
 #******************************************************************************************************************************
 # End of file

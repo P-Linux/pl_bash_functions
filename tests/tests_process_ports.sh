@@ -422,6 +422,43 @@ ts_pr___pr_update_collection_repo_file() {
 ts_pr___pr_update_collection_repo_file
 
 
+#******************************************************************************************************************************
+# TEST: pr_strip_files()
+#******************************************************************************************************************************
+ts_pr___pr_strip_files() {
+    (source "${EXCHANGE_LOG}"
+
+    te_print_function_msg "pr_strip_files()"
+    local _fn="ts_pr___pr_strip_files"
+    local _tmp_dir=$(mktemp -d)
+
+    # Create test files/folders
+    bsdtar -p -C "${_tmp_dir}/" -xf "${_TEST_SCRIPT_DIR}/files/example_to_strip.tar.xz"
+
+    if ! [[ $(file -b "${_tmp_dir}/example_to_strip/attr/.libs/attr") == "ELF"*"executable"*"not stripped" && \
+        $(file -b "${_tmp_dir}/example_to_strip/setfattr/.libs/setfattr") == "ELF"*"executable"*"not stripped" && \
+        $(file -b "${_tmp_dir}/example_to_strip/libattr/.libs/libattr.so.1.1.0") == "ELF"*"shared object"*"not stripped" && \
+        $(file -b "${_tmp_dir}/example_to_strip/getfattr/.libs/getfattr") == "ELF"*"executable"*"not stripped" ]]; then
+        te_warn "${_fn}" "Test-Case setup error: Can not find 'not stripped' info."
+    fi
+
+    (pr_strip_files "${_tmp_dir}")
+
+    [[ $(file -b "${_tmp_dir}/example_to_strip/attr/.libs/attr") != *"not stripped"* && \
+        $(file -b "${_tmp_dir}/example_to_strip/setfattr/.libs/setfattr") != *"not stripped"* && \
+        $(file -b "${_tmp_dir}/example_to_strip/libattr/.libs/libattr.so.1.1.0") != *"not stripped"* && \
+        $(file -b "${_tmp_dir}/example_to_strip/getfattr/.libs/getfattr") != *"not stripped"* ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED ${?} "Test 4 files: Seems to be stripped ok -  can not find: <not stripped>."
+
+    # CLEAN UP
+    rm -rf "${_tmp_dir}"
+
+    ###
+    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    )
+}
+ts_pr___pr_strip_files
+
 
 #******************************************************************************************************************************
 
