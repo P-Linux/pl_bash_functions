@@ -313,7 +313,7 @@ pr_update_port_repo_file() {
 	fi
 
     ut_get_file_md5sum _md5sum "${_in_pkgfile_path}"
-    _final_str+="${_md5sum}#${_pkgfile_basename}\n"
+    _final_str+="${_md5sum}#${_pkgfile_basename}"
 
     echo -e "${_final_str}" > "${_repo_file_path}"
 }
