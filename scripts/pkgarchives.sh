@@ -34,7 +34,7 @@ set +o noclobber
 #       `_in_port_name_ge`: a reference var: port name
 #       `_in_port_path_ge`: a reference var: port absolute path
 #       `_in_system_arch_ge`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_ref_ext_ge`: a reference var: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_ref_ext_ge`: a reference var: The extention name of a package tar archive file withouth any compression specified.
 #
 #   USAGE
 #       TARGETS=()
@@ -49,7 +49,7 @@ pka_get_existing_pkgarchives() {
     local -n _in_port_name_ge=${2}
     local -n _in_port_path_ge=${3}
     local -n _in_system_arch_ge=${4}
-    local -n _ref_ext_ge=${5}
+    local -n _in_ref_ext_ge=${5}
     local _file
 
     # NOTE: Check if no file is found: which returns still 2 results e.g. for acl
@@ -58,39 +58,63 @@ pka_get_existing_pkgarchives() {
     #
     # to fix this: instead of using a `subshell` and `shopt -s nullglob`
     #   it is in the most common cases faster to check it ourself
-    for _file in "${_in_port_path_ge}/${_in_port_name_ge}"*"${_in_system_arch_ge}.${_ref_ext_ge}"* \
-        "${_in_port_path_ge}/${_in_port_name_ge}"*"any.${_ref_ext_ge}"*; do
+    for _file in "${_in_port_path_ge}/${_in_port_name_ge}"*"${_in_system_arch_ge}.${_in_ref_ext_ge}"* \
+        "${_in_port_path_ge}/${_in_port_name_ge}"*"any.${_in_ref_ext_ge}"*; do
         [[ ${_file} == *"*" ]] || _ret_extisting_pkgarchives+=("${_file}")
     done
 }
 
 
 #******************************************************************************************************************************
-# Remove existing pkgarchives.
+# Remove existing pkgarchives. NOTE: This does not search for any pkgarchives in subdirectories to allow for backups.
 #
 #   ARGUMENTS
 #       `_in_port_name_re`: a reference var: port name
 #       `_in_port_path_re`: a reference var: port absolute path
 #       `_in_system_arch_re`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_ref_ext_re`: a reference var: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_ref_ext_re`: a reference var: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_pkgarchive_backup_dir`: a reference var: NONE or absolute path to a pkgarchive backup dir
+#                                    if NONE: existing_pkgarchives will be deleted, else moved to the _in_pkgarchive_backup_dir
 #
 #   USAGE
 #       CMK_PORTNAME="hwinfo"
 #       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       CMK_ARCH="$(uname -m)"
 #       CMK_PKG_EXT="cards.tar"
-#       pka_remove_existing_pkgarchives CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT
+#       pka_remove_existing_pkgarchives CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT CMK_PKGARCHIVE_BACKUP_DIR
 #******************************************************************************************************************************
 pka_remove_existing_pkgarchives() {
+    local _fn="pka_remove_existing_pkgarchives"
+    (( ${#} != 5 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
     local -n _in_port_name_re=${1}
     local -n _in_port_path_re=${2}
     local -n _in_system_arch_re=${3}
-    local -n _ref_ext_re=${4}
-    local _find1="${_in_port_name_re}*${_in_system_arch_re}.${_ref_ext_re}*"
-    local _find2="${_in_port_name_re}*any.${_ref_ext_re}*"
+    local -n _in_ref_ext_re=${4}
+    local -n _in_pkgarchive_backup_dir=${5}
+    local _find1="${_in_port_name_re}*${_in_system_arch_re}.${_in_ref_ext_re}*"
+    local _find2="${_in_port_name_re}*any.${_in_ref_ext_re}*"
 
-    ms_more "$(gettext "Removing any existing pkgarchive files for Port <%s>")" "${_in_port_path_re}"
-    find "${_in_port_path_re}" \( -name "${_find1}" -or -name "${_find2}" \) -delete
+    if [[ ! -n ${_in_pkgarchive_backup_dir} ]]; then
+        ms_abort "${_fn}" "$(gettext "FUNCTION Argument 5 (_in_pkgarchive_backup_dir) MUST NOT be empty.")"
+    fi
+    if [[ ${_in_pkgarchive_backup_dir} == "NONE" ]]; then
+        ms_more "$(gettext "Removing any existing pkgarchive files for Port <%s>")" "${_in_port_path_re}"
+        
+        for _file in "${_in_port_path_re}/${_in_port_name_re}"*"${_in_system_arch_re}.${_in_ref_ext_re}"* \
+            "${_in_port_path_re}/${_in_port_name_re}"*"any.${_in_ref_ext_re}"*; do
+            [[ ${_file} == *"*" ]] || rm -f "${_file}"
+        done
+    else
+        ms_more "$(gettext "Moving any existing pkgarchive files for Port <%s>")" "${_in_port_path_re}"
+        ms_more_i "$(gettext "Moving to pkgarchive_backup_dir: <%s>")" "${_in_pkgarchive_backup_dir}"
+        
+        ut_dir_is_rwx_abort "${_in_pkgarchive_backup_dir}" "yes" "_in_pkgarchive_backup_dir"
+        
+        for _file in "${_in_port_path_re}/${_in_port_name_re}"*"${_in_system_arch_re}.${_in_ref_ext_re}"* \
+            "${_in_port_path_re}/${_in_port_name_re}"*"any.${_in_ref_ext_re}"*; do
+            [[ ${_file} == *"*" ]] || mv -f "${_file}" "${_in_pkgarchive_backup_dir}"
+        done
+    fi
 }
 
 
@@ -101,7 +125,7 @@ pka_remove_existing_pkgarchives() {
 #       `_ret_name`: a reference var: an empty string which will be updated with the result.
 #       `_in_pkgarchive_path_n`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_n`: a reference var: the system architecture e.g. "$(uname -m)"
-#       `_ref_ext_n`: a reference var: the Reference pkgarchive extension withouth compression
+#       `_in_ref_ext_n`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
 #       local NAME=""
@@ -112,9 +136,9 @@ pka_get_pkgarchive_name() {
     local -n _ret_name_n=${1}
     local -n _in_pkgarchive_path_n=${2}
     local -n _in_system_arch_n=${3}
-    local -n _ref_ext_n=${4}
+    local -n _in_ref_ext_n=${4}
     local _pkgarchive_basename; ut_basename _pkgarchive_basename "${_in_pkgarchive_path_n}"
-    local _ext; pka_get_pkgarchive_ext _ext _pkgarchive_basename _ref_ext_n
+    local _ext; pka_get_pkgarchive_ext _ext _pkgarchive_basename _in_ref_ext_n
     local _ending
 
     if [[ ${_pkgarchive_basename} == *"any${_ext}" ]]; then
@@ -142,7 +166,7 @@ pka_get_pkgarchive_name() {
 #       `_ret_buildvers_b`: a reference var: an empty string which will be updated with the result.
 #       `_in_pkgarchive_path_b`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_b`: a reference var: the system architecture e.g. "$(uname -m)"
-#       `_ref_ext_b`: a reference var: the Reference pkgarchive extension withouth compression
+#       `_in_ref_ext_b`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
 #       local BUILDVERS=""
@@ -153,8 +177,8 @@ pka_get_pkgarchive_buildvers() {
     local -n _ret_buildvers_b=${1}
     local -n _in_pkgarchive_path_b=${2}
     local -n _in_system_arch_b=${3}
-    local -n _ref_ext_b=${4}
-    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_path_b _ref_ext_b
+    local -n _in_ref_ext_b=${4}
+    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_path_b _in_ref_ext_b
     local _ending
     declare -i _ending_size
 
@@ -186,7 +210,7 @@ pka_get_pkgarchive_buildvers() {
 #       `_ret_arch_a`: a reference var: an empty string which will be updated with the result.
 #       `_in_pkgarchive_path_a`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_a`: a reference var: the system architecture e.g. "$(uname -m)"
-#       `_ref_ext_a`: a reference var: the Reference pkgarchive extension withouth compression
+#       `_in_ref_ext_a`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
 #       local ARCH=""
@@ -197,8 +221,8 @@ pka_get_pkgarchive_arch() {
     local -n _ret_arch_a=${1}
     local -n _in_pkgarchive_path_a=${2}
     local -n _in_system_arch_a=${3}
-    local -n _ref_ext_a=${4}
-    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_path_a _ref_ext_a
+    local -n _in_ref_ext_a=${4}
+    local _ext; pka_get_pkgarchive_ext _ext _in_pkgarchive_path_a _in_ref_ext_a
 
     if [[ ${_in_pkgarchive_path_a} == *"any${_ext}" ]]; then
         _ret_arch_a="any"
@@ -217,7 +241,7 @@ pka_get_pkgarchive_arch() {
 #   ARGUMENTS
 #       `_ret_ext_e`: a reference var: an empty string which will be updated with the result.
 #       `_in_pkgarchive_path_e`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
-#       `_ref_ext_e`: a reference var: the Reference pkgarchive extension withouth compression
+#       `_in_ref_ext_e`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
 #       local EXTENTION=""
@@ -227,15 +251,15 @@ pka_get_pkgarchive_ext() {
     local _fn="pka_get_pkgarchive_ext"
     local -n _ret_ext_e=${1}
     local -n _in_pkgarchive_path_e=${2}
-    local -n _ref_ext_e=${3}
+    local -n _in_ref_ext_e=${3}
 
-    if [[ ${_in_pkgarchive_path_e} == *"${_ref_ext_e}.xz" ]]; then
-        _ret_ext_e=".${_ref_ext_e}.xz"
-    elif [[ ${_in_pkgarchive_path_e} == *"${_ref_ext_e}" ]]; then
-        _ret_ext_e=".${_ref_ext_e}"
+    if [[ ${_in_pkgarchive_path_e} == *"${_in_ref_ext_e}.xz" ]]; then
+        _ret_ext_e=".${_in_ref_ext_e}.xz"
+    elif [[ ${_in_pkgarchive_path_e} == *"${_in_ref_ext_e}" ]]; then
+        _ret_ext_e=".${_in_ref_ext_e}"
     else
         ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
-            "${_ref_ext_e}" "${_ref_ext_e}" "${_in_pkgarchive_path_e}"
+            "${_in_ref_ext_e}" "${_in_ref_ext_e}" "${_in_pkgarchive_path_e}"
     fi
 }
 
@@ -252,7 +276,7 @@ pka_get_pkgarchive_ext() {
 #       `_ret_ext_parts`: a reference var: an empty string which will be updated with the result.
 #       `_in_pkgarchive_path_parts`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_parts`: a reference var: the system architecture e.g. "$(uname -m)"
-#       `_ref_ext`: a reference var: the Reference pkgarchive extension withouth compression
+#       `_in_ref_ext`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
 #       local NAME BUILDVERS ARCH EXT
@@ -323,7 +347,7 @@ pka_get_pkgarchive_parts() {
 #       `_ret_arch_na`: a reference var: an empty string which will be updated with the result.
 #       `_in_pkgarchive_path_na`: a reference var: the full path of a pkgarchive or just the pkgarchive file name
 #       `_in_system_arch_na`: a reference var: the system architecture e.g. "$(uname -m)"
-#       `_ref_ext`: a reference var: the Reference pkgarchive extension withouth compression
+#       `_in_ref_ext_na`: a reference var: the Reference pkgarchive extension withouth compression
 #
 #   USAGE
 #       local NAME ARCH
@@ -376,7 +400,7 @@ pka_get_pkgarchive_name_arch() {
 #
 #   ARGUMENTS
 #       `_ret_result`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgfile_path`: absolute path to the ports pkgfile
+#       `_in_pkgfile_path` a reference var: absolute path to the ports pkgfile
 #       `_in_pkgarchive_path`: a reference var: the full path of a pkgarchive to check
 #
 #   USAGE

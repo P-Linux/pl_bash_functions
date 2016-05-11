@@ -228,6 +228,7 @@ pr_update_pkgfile_pkgmd5sums() {
 #******************************************************************************************************************************
 pr_update_port_repo_file() {
     local _fn="pr_update_port_repo_file"
+    (( ${#} != 6 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION Requires EXACT '6' arguments. Got '%s'")" "${#}"
     local -n _in_pkgfile_path=${1}
     local -n _in_port_name=${2}
     local -n _in_port_path=${3}

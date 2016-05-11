@@ -444,7 +444,7 @@ ts_do___do_download_source_file_https() {
     so_prepare_src_matrix _scrmtx _sources _checksums "${_pkgfile_fullpath}" "${_srcdst_dir}" &> /dev/null
     _download_mirrors=("http://none.existing.download/mirror_wrong/")
     _output=$((do_download_source _scrmtx "yes" _download_mirrors) 2>&1)
-    _ret=${?}
+    _ret=$?
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi
@@ -458,7 +458,7 @@ ts_do___do_download_source_file_https() {
     _download_mirrors=()
     _download_prog="curl"
     _output=$((do_download_source _scrmtx "yes" _download_mirrors "${_download_prog}") 2>&1)
-    _ret=${?}
+    _ret=$?
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi
@@ -473,7 +473,7 @@ ts_do___do_download_source_file_https() {
     _download_prog="curl"
     _download_prog_opts="-q --fail --connect-timeout 3"
     _output=$((do_download_source _scrmtx "yes" _download_mirrors "${_download_prog}" "${_download_prog_opts}") 2>&1)
-    _ret=${?}
+    _ret=$?
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi

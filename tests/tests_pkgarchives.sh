@@ -104,10 +104,23 @@ ts_pka___pka_remove_existing_pkgarchives() {
     local _pkg_ext="cards.tar"
     local _pkgarchive
     local _targets=()
+    local _pkgarchive_backup_dir
 
     # Make files
     mkdir -p "${_port_path1}"
     mkdir -p "${_port_path1}/subfolder"
+
+    _output=$((pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "FUNCTION Requires EXACT '5' arguments. Got '4'"
+    
+    _pkgarchive_backup_dir=""
+    _output=$((pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext _pkgarchive_backup_dir) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "FUNCTION Argument 5 (_in_pkgarchive_backup_dir) MUST NOT be empty."
+    
+    _pkgarchive_backup_dir="${_port_path1}/pkgarchive_backup"
+    _output=$((pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext _pkgarchive_backup_dir) 2>&1)
+    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "_in_pkgarchive_backup_dir does not exist: <${_pkgarchive_backup_dir}" "Test none existing pkgarchive_backup_dir."
 
     touch "${_port_path1}/README"
     touch "${_port_path1}/test"
@@ -124,20 +137,74 @@ ts_pka___pka_remove_existing_pkgarchives() {
     if (( ${?} )); then
         te_warn "_fn" "Test Error: did not find the created files."
     fi
+    
+    _pkgarchive_backup_dir="NONE"
+    pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext _pkgarchive_backup_dir
 
-    pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext
-
-    (ut_in_array "${_port_path1}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz" _targets)
+    [[ -f "${_port_path1}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz" ]]
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 1. pkgarchive file was removed."
 
-    (ut_in_array "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz" _targets)
+    [[ -f "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz" ]]
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 2. pkgarchive file was removed."
 
-    (ut_in_array "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz" _targets)
+    [[ -f "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz" ]]
     te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 3. pkgarchive file was removed."
 
-    (ut_in_array "${_port_path1}/subfolder/${_port_name1}man1458148355${_arch}.${_pkg_ext}" _targets)
-    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 4. pkgarchive file (in subfolder) was removed."
+    [[ -f "${_port_path1}/subfolder/${_port_name1}man1458148355${_arch}.${_pkg_ext}" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 4. pkgarchive file (in subfolder) was not removed."
+
+    touch "${_port_path1}/README"
+    touch "${_port_path1}/test"
+    touch "${_port_path1}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz"
+    touch "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz"
+    touch "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz"
+    touch "${_port_path1}/subfolder/${_port_name1}man1458148355${_arch}.${_pkg_ext}"
+
+    # check they really exist
+    [[ -f "${_port_path1}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz" && \
+       -f "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz" && \
+       -f "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz" && \
+       -f "${_port_path1}/subfolder/${_port_name1}man1458148355${_arch}.${_pkg_ext}" ]]
+    if (( ${?} )); then
+        te_warn "_fn" "Test Error: did not find the created files."
+    fi
+    
+    _pkgarchive_backup_dir="${_port_path1}/pkgarchive_backup"
+    mkdir -p "${_pkgarchive_backup_dir}"
+    
+    _output=$(pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext _pkgarchive_backup_dir)
+    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "*Moving any existing pkgarchive files for Port*Moving to pkgarchive_backup_dir:*" \
+        "Test moving existing pkgarchives to new _backup_dir."
+
+    [[ -f "${_port_path1}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 1. pkgarchive file was removed."
+
+    [[ -f "${_port_path1}/${_port_name1}1458148355any.${_pkg_ext}.xz" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 2. pkgarchive file was removed."
+
+    [[ -f "${_port_path1}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 3. pkgarchive file was removed."
+
+    [[ -f "${_port_path1}/subfolder/${_port_name1}man1458148355${_arch}.${_pkg_ext}" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 4. pkgarchive file (in subfolder) was not removed."
+
+    [[ -f "${_pkgarchive_backup_dir}/${_port_name1}1458148355${_arch}.${_pkg_ext}.xz" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 1. pkgarchive file exists in pkgarchive_backup_dir."
+
+    [[ -f "${_pkgarchive_backup_dir}/${_port_name1}1458148355any.${_pkg_ext}.xz" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 2. pkgarchive file exists in pkgarchive_backup_dir."
+
+    [[ -f "${_pkgarchive_backup_dir}/${_port_name1}devel1458148355${_arch}.${_pkg_ext}.xz" ]]
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test 3. pkgarchive file exists in pkgarchive_backup_dir."
+
+    [[ -f "${_pkgarchive_backup_dir}/${_port_name1}man1458148355${_arch}.${_pkg_ext}" ]]
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test 4. pkgarchive file (in subfolder) does not exist in pkgarchive_backup_dir."
+
+    _output=$(pka_remove_existing_pkgarchives _port_name1 _port_path1 _arch _pkg_ext _pkgarchive_backup_dir)
+    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" \
+        "*Moving any existing pkgarchive files for Port*Moving to pkgarchive_backup_dir:*" \
+        "Test moving existing pkgarchives to exiting _backup_dir."
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
