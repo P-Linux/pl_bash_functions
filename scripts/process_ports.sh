@@ -212,29 +212,29 @@ pr_update_pkgfile_pkgmd5sums() {
 #       The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
 #
 #   ARGUMENTS
-#       `_in_pkgfile_path`: a reference var: pkgfile path
-#       `_in_port_name`: a reference var: port name
-#       `_in_port_path`: a reference var: port absolute path
-#       `_in_system_arch`: a reference var: architecture e.g.: "$(uname -m)"
-#       `_in_ref_ext`: a reference var: The extention name of a package tar archive file withouth any compression specified.
-#       `_in_ref_repo_filename`: a reference var: The reference repo file name.
+#       `_in_pkgfile_path`: pkgfile path
+#       `_in_port_name`: port name
+#       `_in_port_path`: port absolute path
+#       `_in_system_arch`: architecture e.g.: "$(uname -m)"
+#       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_ref_repo_filename`: The reference repo file name.
 #
 #   USAGE
-#       CMK_PORTNAME="hwinfo"
-#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       PORTNAME="hwinfo"
+#       PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       CMK_ARCH="$(uname -m)"
 #       CMK_PKG_EXT="cards.tar"
-#       pr_update_port_repo_file CMK_PKGFILE_PATH CMK_PORTNAME CMK_PORT_PATH CMK_ARCH CMK_PKG_EXT CMK_REPO
+#       pr_update_port_repo_file "${PKGFILE_PATH}" "${PORTNAME}" "${PORT_PATH}" "${CMK_ARCH}" "${CMK_PKG_EXT}" "${CMK_REPO}"
 #******************************************************************************************************************************
 pr_update_port_repo_file() {
     local _fn="pr_update_port_repo_file"
     (( ${#} != 6 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION Requires EXACT '6' arguments. Got '%s'")" "${#}"
-    local -n _in_pkgfile_path=${1}
-    local -n _in_port_name=${2}
-    local -n _in_port_path=${3}
-    local -n _in_system_arch=${4}
-    local -n _in_ref_ext=${5}
-    local -n _in_ref_repo_filename=${6}
+    local _in_pkgfile_path=${1}
+    local _in_port_name=${2}
+    local _in_port_path=${3}
+    local _in_system_arch=${4}
+    local _in_ref_ext=${5}
+    local _in_ref_repo_filename=${6}
     local _repo_file_path="${_in_port_path}/${_in_ref_repo_filename}"
     local _final_str=""
     local _existing_pkg_archives=()
@@ -253,7 +253,8 @@ pr_update_port_repo_file() {
     fi
 
     _existing_pkg_archives=()
-    pka_get_existing_pkgarchives _existing_pkg_archives _in_port_name _in_port_path _in_system_arch _in_ref_ext
+    pka_get_existing_pkgarchives _existing_pkg_archives "${_in_port_name}" "${_in_port_path}" "${_in_system_arch}" \
+        "${_in_ref_ext}"
 
     if [[ ${pkgpackager} == *"#"* ]]; then
         _packager=${pkgpackager/"#"/"\#"}
@@ -284,14 +285,15 @@ pr_update_port_repo_file() {
         # use the first entry to get general data
         _pkgarchive_path=${_existing_pkg_archives[0]}
         pka_get_pkgarchive_parts _pkgarchive_name _pkgarchive_buildvers _pkgarchive_arch _pkgarchive_ext \
-            _pkgarchive_path _in_system_arch _in_ref_ext
+            "${_pkgarchive_path}" "${_in_system_arch}" "${_in_ref_ext}"
         _final_str+="${_pkgarchive_buildvers}#${_pkgarchive_ext}#${pkgvers}#${pkgrel}#${_description}#${_url}#${_packager}\n"
 
         # Do the individual package archive files
         for _pkgarchive_path in "${_existing_pkg_archives[@]}"; do
 			ut_basename _pkgarchive_basename "${_pkgarchive_path}"
             ut_get_file_md5sum_abort _md5sum "${_pkgarchive_path}"
-            pka_get_pkgarchive_name_arch _pkgarchive_name _pkgarchive_arch _pkgarchive_path _in_system_arch _in_ref_ext
+            pka_get_pkgarchive_name_arch _pkgarchive_name _pkgarchive_arch "${_pkgarchive_path}" "${_in_system_arch}" \
+                "${_in_ref_ext}"
             _final_str+="${_md5sum}#${_pkgarchive_name}#${_pkgarchive_arch}\n"
 		done
 
@@ -321,19 +323,19 @@ pr_update_port_repo_file() {
 # Generate a new/update a collection-repo-file with the ports entry line.
 #
 #   ARGUMENTS
-#       `_in_port_name`: a reference var: port name
-#       `_in_port_path`: a reference var: port absolute path
-#       `_in_ref_repo_filename`: a reference var: The reference repo file name.
+#       `_in_port_name`: port name
+#       `_in_port_path`: port absolute path
+#       `_in_ref_repo_filename`: The reference repo file name.
 #
 #   USAGE
 #       CMK_PORTNAME="hwinfo"
 #       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       pr_update_collection_repo_file CMK_PORTNAME CMK_PORT_PATH CMK_REPO
+#       pr_update_collection_repo_file "${CMK_PORTNAME}" "${CMK_PORT_PATH}" "${CMK_REPO}"
 #******************************************************************************************************************************
 pr_update_collection_repo_file() {
-    local -n _in_port_name=${1}
-    local -n _in_port_path=${2}
-    local -n _in_ref_repo_filename=${3}
+    local _in_port_name=${1}
+    local _in_port_path=${2}
+    local _in_ref_repo_filename=${3}
     local _repo_file_path="${_in_port_path}/${_in_ref_repo_filename}"
     local _collection_repo_file_path="${_in_port_path}/../${_in_ref_repo_filename}"
     local  _md5sum _buildvers _ext _vers _rel _description _url _packager _first_line

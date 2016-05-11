@@ -282,7 +282,8 @@ ts_pr___pr_update_port_repo_file() {
     _pkgfile_path="${_acl_port_path}/Pkgfile"
     _portname="acl"
     _port_path="${_acl_port_path}"
-    _output=$((pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo) 2>&1)
+    _output=$((pr_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_port_path}" "${_arch}" "${_pkg_ext}" \
+        "${_repo}") 2>&1)
     te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}"\
         "Could not get expected Pkgfile variable! Hint: did you forget to source the pkgfile: <${_pkgfile_path}>"
 
@@ -296,7 +297,7 @@ ts_pr___pr_update_port_repo_file() {
         te_warn "_fn" "Test Error: 'acl' Port-Repo-File should have been removed."
     fi
     pkf_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cmk_groups_func_names _cmk_groups
-    pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo &> /dev/null
+    pr_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_port_path}" "${_arch}" "${_pkg_ext}" "${_repo}" &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_port_repo_file function return value."
 
     [[ -f ${_port_repo_file} ]]
@@ -316,7 +317,7 @@ ts_pr___pr_update_port_repo_file() {
         te_warn "_fn" "Test Error: 'cpio' Port-Repo-File should have been removed."
     fi
     pkf_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cmk_groups_func_names _cmk_groups
-    pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo &> /dev/null
+    pr_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_port_path}" "${_arch}" "${_pkg_ext}" "${_repo}" &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_port_repo_file function return value."
 
     [[ -f ${_port_repo_file} ]]
@@ -337,7 +338,7 @@ ts_pr___pr_update_port_repo_file() {
     rm -f "${_cpio_port_path}/cpio.fi1462741466any.cards.tar.xz"
     rm -f "${_cpio_port_path}/cpio.nl1462741466any.cards.tar.xz"
     pkf_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cmk_groups_func_names _cmk_groups
-    pr_update_port_repo_file _pkgfile_path _portname _port_path _arch _pkg_ext _repo &> /dev/null
+    pr_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_port_path}" "${_arch}" "${_pkg_ext}" "${_repo}" &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_port_repo_file function return value."
 
     [[ -f ${_port_repo_file} ]]
@@ -383,7 +384,7 @@ ts_pr___pr_update_collection_repo_file() {
 
     _portname="acl"
     _port_path="${_acl_port_path}"
-    pr_update_collection_repo_file _portname _port_path _repo &> /dev/null
+    pr_update_collection_repo_file "${_portname}" "${_port_path}" "${_repo}" &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_collection_repo_file function return value. New File."
 
     [[ -f ${_collection_repofile_path} ]]
@@ -391,7 +392,7 @@ ts_pr___pr_update_collection_repo_file() {
 
     _portname="cpio"
     _port_path="${_cpio_port_path}"
-    pr_update_collection_repo_file _portname _port_path _repo &> /dev/null
+    pr_update_collection_repo_file "${_portname}" "${_port_path}" "${_repo}" &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test pr_update_collection_repo_file function return value. Update File."
 
     _repofile_content=$(<"${_collection_repofile_path}")
@@ -402,7 +403,7 @@ ts_pr___pr_update_collection_repo_file() {
 
     _portname="acl"
     _port_path="${_acl_port_path}"
-    pr_update_collection_repo_file _portname _port_path _repo &> /dev/null
+    pr_update_collection_repo_file "${_portname}" "${_port_path}" "${_repo}" &> /dev/null
     te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test update same port again."
 
     _repofile_content=$(<"${_collection_repofile_path}")
@@ -419,7 +420,6 @@ ts_pr___pr_update_collection_repo_file() {
     )
 }
 ts_pr___pr_update_collection_repo_file
-
 
 
 
