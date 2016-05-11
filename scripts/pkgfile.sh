@@ -237,22 +237,22 @@ pkf_prepare_pkgfiles_to_process() {
 #
 #   ARGUMENTS
 #       `_pkgvers`: _pkgvers string
-#       `_pkgfile_path`: absolute path to the pkgfile
+#       `$2 (_pkgfile_path)`: absolute path to the pkgfile
 #
 #   USAGE:
 #       pkf_validate_pkgvers "1.3.5" "${CMK_PKGFILE_PATH}"
 #******************************************************************************************************************************
 pkf_validate_pkgvers() {
     local _pkgvers=${1}
-    local _pkgfile_path=${2}
+    # skip assignment:  _pkgfile_path=${2}
 
     if [[ -n ${_pkgvers} ]]; then
         if [[ ${_pkgvers} == *[![:alnum:].]* ]]; then
             ms_abort "pkf_validate_pkgvers" "$(gettext "'pkgvers' contains invalid characters: '%s' File: <%s>")" \
-                "${_pkgvers//[[:alnum:].]}" "${_pkgfile_path}"
+                "${_pkgvers//[[:alnum:].]}" "${2}"
         fi
     else
-        ms_abort "pkf_validate_pkgvers" "$(gettext "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
+        ms_abort "pkf_validate_pkgvers" "$(gettext "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${2}"
     fi
 }
 
@@ -261,7 +261,7 @@ pkf_validate_pkgvers() {
 # Return Pkgfile / Port Version: Checks only the version syntax
 #
 #   ARGUMENTS
-#       `_pkgfile_path`: absolute path to the pkgfile
+#       `$1 (_pkgfile_path)`: absolute path to the pkgfile
 #
 #   USAGE:
 #       pkf_get_only_pkgvers_abort "${CMK_PKGFILE_PATH}"
@@ -270,16 +270,18 @@ pkf_validate_pkgvers() {
 #******************************************************************************************************************************
 pkf_get_only_pkgvers_abort() {
     (
-        local _fn="pkf_get_only_pkgvers_abort"
-        [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
-        local _pkgfile_path=${1}
+        if [[ ! -n $1 ]]; then
+            ms_abort "pkf_get_only_pkgvers_abort" \
+                "$(gettext "FUNCTION 'pkf_get_only_pkgvers_abort()': Argument 1 MUST NOT be empty.")"
+        fi
+        # skip assignment: _pkgfile_path=${1}
 
         # unset all official related variable
         pkf_unset_official_pkgfile_variables
 
-        ut_source_safe_abort "${_pkgfile_path}"
+        ut_source_safe_abort "${1}"
 
-        pkf_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
+        pkf_validate_pkgvers "${pkgvers}" "${1}"
         printf "%s\n" "${pkgvers}"
     )
 }
@@ -299,14 +301,14 @@ pkf_get_only_pkgvers_abort() {
 #       pkf_generate_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
 #******************************************************************************************************************************
 pkf_generate_pkgmd5sums() {
-    local _fn="pkf_generate_pkgmd5sums"
     local -n _ret_pkgmd5sums=${1}
     local -n _in_pkgp_scrmtx=${2}
     declare -i _n
     local _md5sum _entry _protocol _destpath
 
     if [[ ! -v _in_pkgp_scrmtx[NUM_IDX] ]]; then
-        ms_abort "${_fn}" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+        ms_abort "pkf_generate_pkgmd5sums" \
+            "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
     fi
 
     for (( _n=1; _n <= ${_in_pkgp_scrmtx[NUM_IDX]}; _n++ )); do
@@ -319,11 +321,13 @@ pkf_generate_pkgmd5sums() {
                     _md5sum=$(md5sum "${_destpath}")
                     _md5sum=${_md5sum:0:32}
                     if [[ ! -n ${_md5sum} ]]; then
-                        ms_abort "${_fn}" "$(gettext "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")" \
-                            "${_destpath}" "${_entry}"
+                        ms_abort "pkf_generate_pkgmd5sums"\
+                            "$(gettext "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")"  "${_destpath}" \
+                            "${_entry}"
                     fi
                 else
-                    ms_abort "${_fn}" "$(gettext "Not a readable file path: <%s> Entry: <%s>")" "${_destpath}" "${_entry}"
+                    ms_abort "pkf_generate_pkgmd5sums" "$(gettext "Not a readable file path: <%s> Entry: <%s>")" \
+                        "${_destpath}" "${_entry}"
                 fi
                 _ret_pkgmd5sums+=("${_md5sum}")
                 ;;

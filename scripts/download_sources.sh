@@ -58,13 +58,12 @@ do_abort_different_origin_uri() {
 #       `_download_prog`:       The download agent used to fetch ftp|http|https source files: `curl` or `wget`
 #******************************************************************************************************************************
 do_got_download_programs_abort() {
-    local _fn="do_got_download_programs_abort"
     local _download_prog=${1:-"wget"}
 
     case "${_download_prog}" in
         curl) ut_no_command_abort "curl" ;;
         wget) ut_no_command_abort "wget" ;;
-        *)  ms_abort "${_fn}" "$(gettext "Unsupported _download_prog: '%s'")" "${_download_prog}" ;;
+        *)  ms_abort "do_got_download_programs_abort" "$(gettext "Unsupported _download_prog: '%s'")" "${_download_prog}" ;;
     esac
     ut_no_command_abort "git"
     ut_no_command_abort "svn"

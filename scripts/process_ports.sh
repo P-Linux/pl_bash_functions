@@ -28,17 +28,18 @@ set +o noclobber
 #
 # sets Variables:
 #
-#       | Variable Name | Description                             |
-#       |:--------------|:----------------------------------------|
-#       | `pkgdir`      | package directory: _pkg_build_dir/pkg   |
-#       | `srcdir`      | sources directory: _pkg_build_dir/src   |
+#       | Variable Name | Description                                   |
+#       |:--------------|:----------------------------------------------|
+#       | `pkgdir`      | build package directory: _pkg_build_dir/pkg   |
+#       | `srcdir`      | build sources directory: _pkg_build_dir/src   |
 #
 #   ARGUMENTS
 #       `_pkg_build_dir`: Path to the PKG_BUILD_DIR
 #******************************************************************************************************************************
 pr_make_pkg_build_dir() {
-    local _fn="pr_make_pkg_build_dir"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
+    if [[ ! -n $1 ]]; then
+        ms_abort "pr_make_pkg_build_dir" "$(gettext "FUNCTION 'pr_make_pkg_build_dir()': Argument 1 MUST NOT be empty.")"
+    fi
     local _pkg_build_dir=${1}
     pkgdir="${_pkg_build_dir}/pkg"
     srcdir="${_pkg_build_dir}/src"
@@ -65,7 +66,6 @@ pr_make_pkg_build_dir() {
 #       pr_remove_downloaded_sources SCRMTX FILTER
 #******************************************************************************************************************************
 pr_remove_downloaded_sources() {
-    local _fn="pr_remove_downloaded_sources"
     local -n _in_pr_rds_scrmtx=${1}
     if [[ -n $2 ]]; then
         local -n _in_filter_protocols=${2}
@@ -77,12 +77,14 @@ pr_remove_downloaded_sources() {
 
     if [[ -v _in_filter_protocols["local"] ]]; then
         _in_filter_protocols_keys_string=${!_in_filter_protocols[@]}
-        ms_abort "${_fn}" "$(gettext "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <%s>")" \
+        ms_abort "pr_remove_downloaded_sources" \
+            "$(gettext "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <%s>")" \
             "${_in_filter_protocols_keys_string}"
     fi
 
     if [[ ! -v _in_pr_rds_scrmtx[NUM_IDX] ]]; then
-        ms_abort "${_fn}" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+        ms_abort "pr_remove_downloaded_sources" \
+            "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
     fi
 
     for (( _n=1; _n <= ${_in_pr_rds_scrmtx[NUM_IDX]}; _n++ )); do
@@ -401,8 +403,73 @@ pr_strip_files() {
 }
 
 
+#******************************************************************************************************************************
+# Builds the ports pkgarchives.
+#       The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
+#
+#   ARGUMENTS
+#       `_in_pkgfile_path` absolute path to the ports pkgfile
+#       `_in_port_name`: port name
+#       `_in_port_path`: port absolute path
+#       `_in_buildvers`: buildversion Unix-Timestamp
+#       `_in_system_arch`: architecture e.g.: "$(uname -m)"
+#       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_use_compression`: yes or no
+#       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
+#       `_build_srcdir`: Path to a directory where the sources where extracted to.
+#       `_build_pkgdir`: Path to a directory where the build files are packed.
+#
+#   USAGE
+#       CMK_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo/Pkgfile"
+#       CMK_PORTNAME="hwinfo"
+#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       pr_build_pkgarchives "${CMK_PKGFILE_PATH}" "${CMK_PORTNAME}" "${CMK_PORT_PATH}" "${CMK_BUILDVERS}" "${CMK_ARCH}" \
+#           "${CMK_PKG_EXT}" "${CMK_COMPRESS_PKG}" "${CMK_STRIP}" "${srcdir}" "${pkgdir}"
+#******************************************************************************************************************************
+pr_build_pkgarchives() {
+    local _fn="pr_build_pkgarchives"
+    (( ${#} != 10 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION Requires EXACT '10' arguments. Got '%s'")" "${#}"
+    local _in_pkgfile_path=${1}
+    local _in_port_name=${2}
+    local _in_port_path=${3}
+    local _in_buildvers=${4}
+    local _in_system_arch=${5}
+    local _in_ref_ext=${6}
+    local _in_use_compression=${7}
+    local _strip_files=${8}
+    local _build_srcdir=${9}
+    local _build_pkgdir=${10}
+    local _main_pkgarchive_path="${_in_port_path}${_in_buildvers}${_in_system_arch}.${_in_ref_ext}"
 
+    if [[ ${_in_use_compression} == "yes" ]]; then
+        _main_pkgarchive_path="${_main_pkgarchive_path}.xz"
+    elif [[ ${_in_use_compression} != "no" ]]; then
+        ms_abort "${_fn}" "$(gettext "FUNCTION Argument 7 (_in_use_compression) MUST be 'yes' or 'no'. Got: '%s'")" \
+            "${_in_use_compression}"
+    fi
+    
+    ms_msg "$(gettext "Building pkgarchives for Port: <%s>")" "${_in_port_path}"
 
+    if (( ${EUID} != 0 )); then
+        ms_warn2 "$(gettext "Pkgarchives should be built as root.")"
+    fi
+    
+    ut_cd_safe_abort "${srcdir}"
+    
+        
+    ### RUN BUILD
+    (set -e -x; build)
+    
+    if (( ${?} == 0 )); then
+        if [[ "${_strip_files}" == "yes" ]]; then
+            # TODO: strip_files
+            pr_strip_files "${_build_pkgdir}"
+        fi
+        # TODO: compress_manpages
+        echo ":::TODO::: TODO: compress_manpages:"
+        
+    fi
+}
 #******************************************************************************************************************************
 # End of file
 #******************************************************************************************************************************

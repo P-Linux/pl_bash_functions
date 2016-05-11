@@ -109,10 +109,9 @@ ms_pl_bash_functions_installed_dir() {
 #       ms_format "${_THIS_SCRIPT_PATH}"
 #******************************************************************************************************************************
 ms_format() {
-    local _fn="ms_format"
     if (( ${#} != 1 )); then
         # REMEMBER: we can not use gettext or ms_abort for this messages
-        printf "-> FUNCTION '%s()': Requires EXACT '1' argument. Got '%s'\n\n" "${_fn}" "${#}" >&2
+        printf "-> FUNCTION 'ms_format()': Requires EXACT '1' argument. Got '%s'\n\n" "${#}" >&2
         exit 1
     fi
     local _calling_script_path=${1}
@@ -121,7 +120,7 @@ ms_format() {
 
     if [[ ! $(type -p "gettext") || ! $(type -p "tput") ]]; then
         # REMEMBER: we can not use gettext or ms_abort for this messages
-        printf "-> FUNCTION '%s()': MISSING COMMAND: 'gettext' and 'tput' are both required.\n\n" "${_fn}" >&2
+        printf "-> FUNCTION 'ms_format()': MISSING COMMAND: 'gettext' and 'tput' are both required.\n\n" >&2
         exit 1
     fi
 
@@ -381,17 +380,17 @@ ms_header_i() {
 #******************************************************************************************************************************
 ms_hrl() {
     (( ${#} != 5 )) && ms_abort "ms_hrl" "$(gettext "FUNCTION 'ms_hrl()': Requires EXACT '5' arguments. Got '%s'")" "${#}"
-    local _format=${1}
-    local _start_txt=${2}
-    local _repeated_text=${3}
+    # skip assignment:  _format=${1}
+    # skip assignment:  _start_txt=${2}
+    # skip assignment:  _repeated_text=${3}
     local _repeat_number=${4}
-    local _end_text=${5}
+    # skip assignment:  _end_text=${5}
     local _complete_line=""
 
     while (( ${#_complete_line} < ${_repeat_number} )); do
-        _complete_line+=${_repeated_text}
+        _complete_line+=${3}
     done
-    printf "${_format}%s%s%s${_MS_ALL_OFF}\n" "${_start_txt}" "${_complete_line:0:_repeat_number}" "${_end_text}" >&1
+    printf "${1}%s%s%s${_MS_ALL_OFF}\n" "${2}" "${_complete_line:0:_repeat_number}" "${5}" >&1
 }
 
 

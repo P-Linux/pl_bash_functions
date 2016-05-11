@@ -31,10 +31,10 @@ set +o noclobber
 #   ARGUMENTS
 #       `_ret_extisting_pkgarchives`: a reference var: an empty index array which will be updated with the absolut path to any
 #                                     port pkgarchives
-#       `_in_port_name`: port name
-#       `_in_port_path`: port absolute path
-#       `_in_system_arch`: architecture e.g.: "$(uname -m)"
-#       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
+#       `$2 (_in_port_name)`: port name
+#       `$3 (_in_port_path)`: port absolute path
+#       `$4 (_in_system_arch)`: architecture e.g.: "$(uname -m)"
+#       `$5 (_in_ref_ext)`: The extention name of a package tar archive file withouth any compression specified.
 #
 #   USAGE
 #       TARGETS=()
@@ -46,10 +46,10 @@ set +o noclobber
 #******************************************************************************************************************************
 pka_get_existing_pkgarchives() {
     local -n _ret_extisting_pkgarchives=${1}
-    local _in_port_name=${2}
-    local _in_port_path=${3}
-    local _in_system_arch=${4}
-    local _in_ref_ext=${5}
+    # skip assignment:  _in_port_name=${2}
+    # skip assignment:  _in_port_path=${3}
+    # skip assignment:  _in_system_arch=${4}
+    # skip assignment:  _in_ref_ext=${5}
     local _file
 
     # NOTE: Check if no file is found: which returns still 2 results e.g. for acl
@@ -58,8 +58,7 @@ pka_get_existing_pkgarchives() {
     #
     # to fix this: instead of using a `subshell` and `shopt -s nullglob`
     #   it is in the most common cases faster to check it ourself
-    for _file in "${_in_port_path}/${_in_port_name}"*"${_in_system_arch}.${_in_ref_ext}"* \
-        "${_in_port_path}/${_in_port_name}"*"any.${_in_ref_ext}"*; do
+    for _file in "${3}/${2}"*"${4}.${5}"* "${3}/${2}"*"any.${5}"*; do
         [[ ${_file} == *"*" ]] || _ret_extisting_pkgarchives+=("${_file}")
     done
 }
@@ -91,8 +90,6 @@ pka_remove_existing_pkgarchives() {
     local _in_system_arch=${3}
     local _in_ref_ext=${4}
     local _in_pkgarchive_backup_dir=${5}
-    local _find1="${_in_port_name}*${_in_system_arch}.${_in_ref_ext}*"
-    local _find2="${_in_port_name}*any.${_in_ref_ext}*"
 
     if [[ ! -n ${_in_pkgarchive_backup_dir} ]]; then
         ms_abort "${_fn}" "$(gettext "FUNCTION Argument 5 (_in_pkgarchive_backup_dir) MUST NOT be empty.")"
@@ -248,7 +245,6 @@ pka_get_pkgarchive_arch() {
 #       pka_get_pkgarchive_ext EXTENTION "${PKGARCHIVE}" "${CMK_PKG_EXT}"
 #******************************************************************************************************************************
 pka_get_pkgarchive_ext() {
-    local _fn="pka_get_pkgarchive_ext"
     local -n _ret_ext_e=${1}
     local _in_pkgarchive_path=${2}
     local _in_ref_ext=${3}
@@ -258,8 +254,9 @@ pka_get_pkgarchive_ext() {
     elif [[ ${_in_pkgarchive_path} == *"${_in_ref_ext}" ]]; then
         _ret_ext_e=".${_in_ref_ext}"
     else
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
-            "${_in_ref_ext}" "${_in_ref_ext}" "${_in_pkgarchive_path}"
+        ms_abort "pka_get_pkgarchive_ext" \
+            "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")"   "${_in_ref_ext}" \
+            "${_in_ref_ext}" "${_in_pkgarchive_path}"
     fi
 }
 
@@ -400,26 +397,25 @@ pka_get_pkgarchive_name_arch() {
 #
 #   ARGUMENTS
 #       `_ret_result`: a reference var: an empty string which will be updated with the result.
-#       `_in_pkgfile_path`: absolute path to the ports pkgfile
-#       `_in_pkgarchive_path`: the full path of a pkgarchive to check
+#       `$2 (_in_pkgfile_path)`: absolute path to the ports pkgfile
+#       `$3 (_in_pkgarchive_path)`: the full path of a pkgarchive to check
 #
 #   USAGE
 #       local PKGARCHIVE_IS_UP_TO_DATE=""
 #       pka_is_pkgarchive_up_to_date PKGARCHIVE_IS_UP_TO_DATE "${PKGFILE_PATH}" "${PKGARCHIVE_PATH}"
 #******************************************************************************************************************************
 pka_is_pkgarchive_up_to_date() {
-    local _fn="pka_is_pkgarchive_up_to_date"
     local -n _ret_result=${1}
-    local _in_pkgfile_path=${2}
-    local _in_pkgarchive_path=${3}
+    # skip assignment:  _in_pkgfile_path=${2}
+    # skip assignment:  _in_pkgarchive_path=${3}
 
     _ret_result="no"
-	if [[ -f ${_in_pkgarchive_path} ]]; then
+	if [[ -f ${3} ]]; then
 		_ret_result="yes"
-        if [[ ! -f ${_in_pkgfile_path} ]]; then
-            ms_abort "${_fn}" "$(gettext "Corresponding Pkgfile does not exist. Path: <%s>")" "${_in_pkgfile_path}"
+        if [[ ! -f ${2} ]]; then
+            ms_abort "pka_is_pkgarchive_up_to_date" "$(gettext "Corresponding Pkgfile does not exist. Path: <%s>")" "${2}"
         fi
-		[[ ${_in_pkgfile_path} -nt ${_in_pkgarchive_path} ]] && _ret_result="no"
+		[[ ${2} -nt ${3} ]] && _ret_result="no"
 	fi
 }
 

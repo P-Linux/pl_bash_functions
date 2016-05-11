@@ -244,8 +244,9 @@ used variabled as: local
 In general:
 
 * FIRST: Checks for valid function input arguments
-* SECOND: all function arguments are assigned to local variables before they are used.
-    * **Exception:** in small functions they are not re-assigned to local variables
+* SECOND: most function arguments are assigned to local variables before they are used.
+    * **Exception:** in small functions they are not re-assigned to local variables as arguments ar limited in bash: 
+        *Error: Argument list too long*
 * THIRD: any other used variable are declared "local"
 * Fourth: comes the rest of the code
 

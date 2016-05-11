@@ -60,9 +60,8 @@ do_got_extract_programs_abort() {
 #       ex_extract_source SCRMTX "BUILD_SRCDIR" "$KEEP_BUILD_SRCDIR"
 #******************************************************************************************************************************
 ex_extract_source() {
-    local _fn="ex_extract_source"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
-    [[ -n $2 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '2': MUST NOT be empty")" "${_fn}"
+    [[ -n $1 ]] || ms_abort "ex_extract_source" "$(gettext "FUNCTION: 'ex_extract_source)' Argument '1': MUST NOT be empty")"
+    [[ -n $2 ]] || ms_abort "ex_extract_source" "$(gettext "FUNCTION: 'ex_extract_source()' Argument '2': MUST NOT be empty")"
     local -n _in_ex_scrmtx=${1}
     local _build_srcdir=${2}
     local _remove_build_dir=${3:-"yes"}
@@ -71,7 +70,8 @@ ex_extract_source() {
 
 
     if [[ ! -v _in_ex_scrmtx[NUM_IDX] ]]; then
-        ms_abort "${_fn}" "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+        ms_abort "ex_extract_source" \
+            "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
     fi
 
     for (( _n=1; _n <= ${_in_ex_scrmtx[NUM_IDX]}; _n++ )); do
@@ -100,8 +100,9 @@ ex_extract_source() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_only_copy() {
-    local _fn="ex_extract_only_copy"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
+    if [[ ! -n $1 ]]; then
+        ms_abort "ex_extract_only_copy" "$(gettext "FUNCTION: 'ex_extract_only_copy()' Argument '1': MUST NOT be empty")"
+    fi
     declare -i _idx=${1}
     local -n _in_ex_scrmtx_c=${2}
     local _build_srcdir=${3}
@@ -110,7 +111,7 @@ ex_extract_only_copy() {
     local _finalpath="${_build_srcdir}/${_in_ex_scrmtx_c[${_idx}:DESTNAME]}"
 
     if [[ ! -e ${_destpath} ]]; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_only_copy" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "File copy source  not found: <%s>")" "${_destpath}"
     fi
 
@@ -119,7 +120,7 @@ ex_extract_only_copy() {
 
     cp -f "${_destpath}" "${_finalpath}"
     if (( ${?} )); then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_only_copy" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Failure while copying <%s> to <%s>")" "${_destpath}" "${_finalpath}"
     fi
 }
@@ -137,8 +138,9 @@ ex_extract_only_copy() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_file() {
-    local _fn="ex_extract_file"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
+    if ! [[ -n $1 ]]; then
+        ms_abort "ex_extract_file" "$(gettext "FUNCTION: 'ex_extract_file()' Argument '1': MUST NOT be empty")"
+    fi
     declare -i _idx=${1}
     local -n _in_ex_scrmtx_f=${2}
     local _build_srcdir=${3}
@@ -153,12 +155,12 @@ ex_extract_file() {
     if [[ -e ${_destpath} ]]; then
         local _file_type=$(file -bizL "${_destpath}")
     else
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" "$(gettext "File source  not found: <%s>")" \
-            "${_destpath}"
+        ms_abort_remove_path "ex_extract_file" "${_remove_build_dir}" "${_build_srcdir}" \
+            "$(gettext "File source  not found: <%s>")" "${_destpath}"
     fi
 
     if [[ ${_noextract} == "NOEXTRACT" ]]; then
-        ms_more "$(gettext "%s() only copy: noextract: '%s'")" "${_fn}" "${_noextract}"
+        ms_more "$(gettext "ex_extract_file() only copy: noextract: '%s'")" "${_noextract}"
         ex_extract_only_copy ${_idx}  _in_ex_scrmtx_f "${_build_srcdir}" "${_remove_build_dir}"
         return 0
     fi
@@ -210,7 +212,7 @@ ex_extract_file() {
     fi
 
     if (( ${_ret} )); then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_file" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Failed to extract file <%s> to <%s>")" "${_destpath}" "${_build_srcdir}"
     fi
 

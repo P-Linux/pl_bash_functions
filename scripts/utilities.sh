@@ -29,8 +29,8 @@ set +o noclobber
 #
 #   ARGUMENTS:
 #       `_in_var`: the variable.
-#       `_var_name`: the name of a variable. IMPORTANT: only the name no $
-#       `_caller_name`: e.g. function name from where this was called for error messages
+#       `$2 (_var_name)`: the name of a variable. IMPORTANT: only the name no $
+#       `$3 (_caller_name`): e.g. function name from where this was called for error messages
 #
 #   OPTIONAL ARGUMENTS
 #       `_extra_info`: optional additional info to add to any error messages
@@ -49,17 +49,17 @@ ut_is_yes_no_var_abort() {
     [[ -n ${2} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 2 MUST NOT be empty.")"
     [[ -n ${3} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 3 MUST NOT be empty.")"
     local _in_var=${1}
-    local _var_name=${2}
-    local _caller_name=${3}
+    # skip assignment:  _var_name=${2}
+    # skip assignment:  _caller_name=${3}
     local _extra_info=${4:-""}
 
     if [[ ${_in_var} != "yes" && ${_in_var} != "no" ]]; then
         if [[ -n ${_extra_info} ]]; then
             ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' VARIBLE: '%s' MUST be set to: 'yes' or 'no'. Got: '%s' INFO: %s")" \
-                "${_caller_name}" "${_var_name}" "${_in_var}" "${_extra_info}"
+                "${3}" "${2}" "${_in_var}" "${_extra_info}"
         else
             ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' VARIBLE: '%s' MUST be set to: 'yes' or 'no'. Got: '%s'")" \
-                "${_caller_name}" "${_var_name}" "${_in_var}"
+                "${3}" "${2}" "${_in_var}"
         fi
     fi
 }
@@ -106,8 +106,8 @@ ut_is_empty_str_var() {
 # Aborts if the variable is not a 'string variable'
 #
 #   ARGUMENTS:
-#       `_var_name`: the name of a variable. IMPORTANT: only the name no $
-#       `_caller_name`: e.g. function name from where this was called for error messages
+#       `$1 (_var_name)`: the name of a variable. IMPORTANT: only the name no $
+#       `$2 (_caller_name`): e.g. function name from where this was called for error messages
 #
 #   OPTIONAL ARGUMENTS
 #       `_extra_info`: optional additional info to add to any error messages
@@ -123,16 +123,15 @@ ut_is_str_var_abort() {
     fi
     [[ -n ${1} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 1 MUST NOT be empty.")"
     [[ -n ${2} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 2 MUST NOT be empty.")"
-    local _var_name=${1}
-    local _caller_name=${2}
+    # skip assignment:  _var_name=${1}
+    # skip assignment:  _caller_name=${2}
     local _extra_info=${3:-""}
-    if ! ut_is_str_var "${_var_name}"; then
+    if ! ut_is_str_var "${1}"; then
         if [[ -n ${_extra_info} ]]; then
-            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared string variable: '%s' INFO: %s")" "${_caller_name}" \
-                "${_var_name}" "${_extra_info}"
+            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared string variable: '%s' INFO: %s")" "${2}" "${1}" \
+                "${_extra_info}"
         else
-            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared string variable: '%s'")" "${_caller_name}" \
-                "${_var_name}"
+            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared string variable: '%s'")" "${2}" "${1}"
         fi
     fi
 }
@@ -159,8 +158,8 @@ ut_is_idx_array_var() {
 # Aborts if the variable is not a 'index array variable'
 #
 #   ARGUMENTS:
-#       `_var_name`: the name of a variable. IMPORTANT: only the name no $
-#       `_caller_name`: e.g. function name from where this was called for error messages
+#       `$1 (_var_name)`: the name of a variable. IMPORTANT: only the name no $
+#       `$2 (_caller_name`): e.g. function name from where this was called for error messages
 #
 #   OPTIONAL ARGUMENTS
 #       `_extra_info`: optional additional info to add to any error messages
@@ -176,15 +175,15 @@ ut_is_idx_array_abort() {
     fi
     [[ -n ${1} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 1 MUST NOT be empty.")"
     [[ -n ${2} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 2 MUST NOT be empty.")"
-    local _var_name=${1}
-    local _caller_name=${2}
+    # skip assignment:  _var_name=${1}
+    # skip assignment:  _caller_name=${2}
     local _extra_info=${3:-""}
-    if ! ut_is_idx_array_var "${_var_name}"; then
+    if ! ut_is_idx_array_var "${1}"; then
         if [[ -n ${_extra_info} ]]; then
-            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared index array: '%s' INFO: %s")" "${_caller_name}" \
-                "${_var_name}" "${_extra_info}"
+            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared index array: '%s' INFO: %s")" "${2}" "${1}" \
+                "${_extra_info}"
         else
-            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared index array: '%s'")" "${_caller_name}" "${_var_name}"
+            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a declared index array: '%s'")" "${2}" "${1}"
         fi
     fi
 }
@@ -210,7 +209,7 @@ ut_is_associative_array_var() {
 #
 #   ARGUMENTS:
 #       `_ref_name`: the reference name of the array IMPORTANT: only the name no $
-#       `_caller_name`: e.g. function name from where this was called for error messages
+#       `$2 (_caller_name`): e.g. function name from where this was called for error messages
 #
 #   USAGE
 #       declare -A _testarray=([a]="Value 1" [b]="Value 2"
@@ -225,19 +224,17 @@ ut_ref_associative_array_abort() {
     [[ -n ${1} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 1 MUST NOT be empty.")"
     [[ -n ${2} ]] || ms_abort "${_fn}" "$(gettext "FUNCTION Argument 2 MUST NOT be empty.")"
     local _ref_name=${1}
-    local _caller_name=${2}
+    # skip assignment:  _caller_name=${2}
     local _line="$(declare -p | grep -E "declare -n[lrtux]{0,4} ${_ref_name}=\"[[:alnum:]_]{0,}\"")"
     local _tmp_var
 
     if [[ ! -n ${_line} ]]; then
-        ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${_caller_name}" \
-            "${_ref_name}"
+        ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${2}" "${_ref_name}"
     fi
     # extract the name: still has the ending double quote
     _tmp_var=${_line#*\"}
     if ! ut_is_associative_array_var "${_tmp_var:: -1}"; then
-        ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${_caller_name}" \
-            "${_ref_name}"
+        ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${2}" "${_ref_name}"
     fi
 }
 
