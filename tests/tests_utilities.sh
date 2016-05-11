@@ -1085,30 +1085,35 @@ ts_ut___ut_dir_has_content_abort() {
     local _tmp_dir_with_dir=$(mktemp -d)
     local _tmp_dir_with_file=$(mktemp -d)
     local _tmp_dir_with_link=$(mktemp -d)
+    local _tmp_dir_with_hiddenfile=$(mktemp -d)
     local _tmp_dummy_file=$(mktemp)
     local _none_existing_dir=${_tmp_dir_empty}/_none_existing_dir
 
     mkdir "${_tmp_dir_with_dir}/subfolder"
     touch "${_tmp_dir_with_file}/simple_file.txt"
+    touch "${_tmp_dir_with_hiddenfile}/.hidden.txt"
     ln -s "${_tmp_dummy_file}" "${_tmp_dir_with_link}/_dummy_file_link"
 
     (ut_dir_has_content_abort "${_tmp_dir_empty}")
-    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test has content <_tmp_dir_empty>."
+    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Test has no content <_tmp_dir_empty>."
 
     (ut_dir_has_content_abort "${_tmp_dir_with_dir}")
-    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test Not empty <_tmp_dir_with_dir>."
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test has content <_tmp_dir_with_dir>."
 
     if ut_dir_has_content_abort "${_none_existing_dir}"; then
-        te_ms_failed _COUNT_FAILED "Comman usage example: Test has no content <_none_existing_dir>"
+        te_ms_failed _COUNT_FAILED "Common usage example: Test has no content <_none_existing_dir>"
     else
-        te_ms_ok _COUNT_OK "Comman usage example: Test has no content <_none_existing_dir>"
+        te_ms_ok _COUNT_OK "Common usage example: Test has no content <_none_existing_dir>"
     fi
 
     (ut_dir_has_content_abort "${_tmp_dir_with_file}")
-    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test Not empty <_tmp_dir_with_file>."
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test has content <_tmp_dir_with_file>."
+
+    (ut_dir_has_content_abort "${_tmp_dir_with_hiddenfile}")
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test has hidden content <_tmp_dir_with_hiddenfile>."
 
     (ut_dir_has_content_abort "${_tmp_dir_with_link}")
-    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test Not empty <_tmp_dir_with_link>."
+    te_retval_0 _COUNT_OK _COUNT_FAILED $? "Test has content <_tmp_dir_with_link>."
 
 
     # CLEAN UP
@@ -1116,6 +1121,7 @@ ts_ut___ut_dir_has_content_abort() {
     rm -rf "${_tmp_dir_with_dir}"
     rm -rf "${_tmp_dir_with_file}"
     rm -rf "${_tmp_dir_with_link}"
+    rm -rf "${_tmp_dir_with_hiddenfile}"
     rm -f "${_tmp_dummy_file}"
 
     ###
@@ -1474,7 +1480,7 @@ ts_ut___ut_got_internet() {
     declare -i _ret
 
     _output=$((ut_got_internet) 2>&1)
-    _ret=$?
+    _ret=${?}
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi
@@ -1501,7 +1507,7 @@ ts_ut___ut_is_git_uri_accessible() {
     declare -i _ret
 
     _output=$((ut_is_git_uri_accessible "${_git_uri}") 2>&1)
-    _ret=$?
+    _ret=${?}
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi
@@ -1535,7 +1541,7 @@ ts_ut___ut_is_svn_uri_accessible() {
     declare -i _ret
 
     _output=$((ut_is_svn_uri_accessible "${_svn_uri}") 2>&1)
-    _ret=$?
+    _ret=${?}
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi
@@ -1569,7 +1575,7 @@ ts_ut___ut_is_hg_uri_accessible() {
     declare -i _ret
 
     _output=$((ut_is_hg_uri_accessible "${_hg_uri}") 2>&1)
-    _ret=$?
+    _ret=${?}
     if [[ ${_output} == *"Couldn't verify internet-connection by pinging popular sites."* ]]; then
         te_warn "${_fn}" "Internet access is REQUIRED for this test."
     fi

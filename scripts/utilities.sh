@@ -854,24 +854,24 @@ ut_is_abspath_abort() {
 #       if ! ut_dir_has_content_abort "${_dir}"; then
 #           echo "do something: dir does not exist or is empty and readable e.g. clone into it"
 #       fi
-#
-# NOTE: keep this in a subshell it's faster than saving the shopt setting
 #******************************************************************************************************************************
 ut_dir_has_content_abort() {
-    (
-        local _fn="ut_dir_has_content_abort"
-        local _in_dir=${1}
-        declare -i _ret=1
-        local _content
+    local _fn="ut_dir_has_content_abort"
+    local _in_dir=${1}
+    declare -i _ret=1
+    local _content
 
-        shopt -s nullglob dotglob
-        if [[ -d ${_in_dir} ]]; then
-            [[ -r ${_in_dir} ]] || ms_abort "${_fn}" "$(gettext "Directory exists but is not readable: <%s>")" "${_in_dir}"
-            _content=("${_in_dir}"/*)
-            (( ${#_content[@]} > 0 )) && _ret=0
+    if [[ -d ${_in_dir} ]]; then
+        [[ -r ${_in_dir} ]] || ms_abort "${_fn}" "$(gettext "Directory exists but is not readable: <%s>")" "${_in_dir}"
+        _content=("${_in_dir}"/*)
+        if (( ${#_content[@]} > 1 )); then
+            _ret=0
+        # Do this much faster checkup instead of 'shopt -s nullglob' in subshell
+        elif [[ ${_content[0]} != "${_in_dir}/*" ]]; then
+            _ret=0
         fi
-        return ${_ret}
-    )
+    fi
+    return ${_ret}
 }
 
 
@@ -921,7 +921,7 @@ ut_dir_is_rwx_abort() {
 #
 #   USAGE
 #       ut_file_is_r_abort "testdir/test_file.txt"
-#       ut_file_is_r_abort "$TEST_FILE" "yes" "Pkgfile"
+#       ut_file_is_r_abort "${TEST_FILE}" "yes" "Pkgfile"
 #******************************************************************************************************************************
 ut_file_is_r_abort() {
     local _fn="ut_file_is_r_abort"
