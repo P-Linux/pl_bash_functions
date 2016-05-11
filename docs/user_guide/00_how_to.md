@@ -113,6 +113,7 @@ portable scripts, this feature will be removed in a future release of grep, and 
 ### BASH shopt Options
 
 `shopt -s extglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
+`shopt -s dotglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
 
 
 ### BASH Options
@@ -139,7 +140,7 @@ customary_cleanup_function() {
 }
 
 unset GREP_OPTIONS
-shopt -s extglob
+shopt -s extglob dotglob
 
 declare -r _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
 declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
@@ -182,7 +183,7 @@ customary_cleanup_function() {
 #### 02. Set/Unset Required Options
 
 unset GREP_OPTIONS
-shopt -s extglob
+shopt -s extglob dotglob
 
 
 #### 03. Get Current Script Path

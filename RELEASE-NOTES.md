@@ -8,10 +8,11 @@
 
 * some speed improvements
 * adds requirement for permission to overwrite files: `set +o noclobber`
+* adds requirement for: `shopt -s dotglob`
 * adds separate: pkgarchives.sh
 * new functions and tests
 * Changes to local source files from `Local source MUST NOT start with a slash.` to `Local source MUST NOT contain any slash.`
-    * Reason for Port-Repo-Files we do want to include all the local files but nothing in subdirectories.
+    * Reason: for Port-Repo-Files we do want to include all the local files but nothing in subdirectories.
 * Run tests in subshells to isolate them a bit
 
 ## v0.9.1 (2016-05-05)
