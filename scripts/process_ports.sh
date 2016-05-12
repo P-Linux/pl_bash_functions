@@ -398,5 +398,42 @@ pr_strip_files() {
 
 
 #******************************************************************************************************************************
+# Searches for files in `_in_dir_path` and compresses man and info files.
+#
+#   ARGUMENTS
+#       `$1 (_in_dir_path)`: absolute directory path: root dir for filesearch.
+#       `$2 (_in_match_filename_pattern)`: pattern to be used in the filesearch.
+#
+#   USAGE
+#       Compress manpages
+#           pr_compress_man_info_pages "${_build_pkgdir}" "*/share/man*/*"
+#       Compress infopages
+#           pr_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*" 
+#******************************************************************************************************************************
+pr_compress_man_info_pages() {
+    # skip assignment:  _in_dir_path=${1}
+    # skip assignment:  _in_match_filename_pattern=${2}
+    local _file _link_target _link_target_dir
+
+    pushd "${1}" &> /dev/null
+    find . -type f -path "${2}" | while read -r _file ; do
+        [[ ${_file} != *".gz" ]] && gzip -9 "${_file}"
+    done
+    
+	find . -type l -path "${2}" | while read _file; do
+		_link_target=$(readlink -n "${_file}")
+        # TODO recheck if that could be improved
+		_link_target="${_link_target##*/}"
+		_link_target="${_link_target%%.gz}.gz"
+		rm -f "${_file}"
+		_file="${_file%%.gz}.gz"
+        ut_dirname _link_target_dir "${_file}"
+		[[ -e "${_link_target_dir}/${_link_target}" ]] && ln -sf "${_link_target}" "${_file}"
+	done
+    popd &> /dev/null
+}
+
+
+#******************************************************************************************************************************
 # End of file
 #******************************************************************************************************************************

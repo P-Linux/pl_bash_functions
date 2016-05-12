@@ -843,7 +843,7 @@ ut_is_abspath_abort() {
 
 
 #******************************************************************************************************************************
-# Return code: (0) if a directory exists, is readable and has content else (1). Aborts if it exists but is not redable.
+# Return code: (0) if a directory exists, is readable and has content else (1). Aborts if it exists but is not readable.
 #                                  Remember: You need read permission on the directory, or it will always appear empty.
 #
 #   USAGE:
