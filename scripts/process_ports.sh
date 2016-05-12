@@ -435,5 +435,105 @@ pr_compress_man_info_pages() {
 
 
 #******************************************************************************************************************************
+# Builds the ports pkgarchives.
+#       The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
+#
+#   ARGUMENTS
+#       `_in_pkgfile_path` absolute path to the ports pkgfile
+#       `_in_port_name`: port name
+#       `_in_port_path`: port absolute path
+#       `_in_buildvers`: buildversion Unix-Timestamp
+#       `_in_system_arch`: architecture e.g.: "$(uname -m)"
+#       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
+#       `_in_use_compression`: yes or no
+#       `_in_cmk_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile:
+#       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
+#       `_build_srcdir`: Path to a directory where the sources where extracted to.
+#       `_build_pkgdir`: Path to a directory where the build files are temporarly installed/copied to.
+#
+#   USAGE
+#       CMK_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo/Pkgfile"
+#       CMK_PORTNAME="hwinfo"
+#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       pr_build_pkgarchives "${CMK_PKGFILE_PATH}" "${CMK_PORTNAME}" "${CMK_PORT_PATH}" "${CMK_BUILDVERS}" "${CMK_ARCH}" \
+#           "${CMK_PKG_EXT}" "${CMK_COMPRESS_PKG}" "${CMK_STRIP}" CMK_GROUPS "${srcdir}" "${pkgdir}"
+#******************************************************************************************************************************
+pr_build_pkgarchives() {
+    (( ${#} != 11 )) &&  ms_abort "pr_build_pkgarchives" "$(gettext "FUNCTION Requires EXACT '11' arguments. Got '%s'")" "${#}"
+    local _in_pkgfile_path=${1}
+    local _in_port_name=${2}
+    local _in_port_path=${3}
+    local _in_buildvers=${4}
+    local _in_system_arch=${5}
+    local _in_ref_ext=${6}
+    local _in_use_compression=${7}
+    local _in_strip_files=${8}
+    local -n _in_cmk_groups=${9}    
+    local _build_srcdir=${10}
+    local _build_pkgdir=${11}
+    local _main_pkgarchive_path="${_in_port_path}${_in_buildvers}${_in_system_arch}.${_in_ref_ext}"
+    local _build_successful
+    local _group
+    
+    if [[ ${_in_use_compression} == "yes" ]]; then
+        _main_pkgarchive_path="${_main_pkgarchive_path}.xz"
+    elif [[ ${_in_use_compression} != "no" ]]; then
+        ms_abort "pr_build_pkgarchives" \
+            "$(gettext "FUNCTION Argument 7 (_in_use_compression) MUST be 'yes' or 'no'. Got: '%s'")" "${_in_use_compression}"
+    fi
+
+    ms_msg "$(gettext "Building pkgarchives for Port: <%s>")" "${_in_port_path}"
+
+    if (( ${EUID} != 0 )); then
+        ms_warn2 "$(gettext "Pkgarchives should be built as root.")"
+    fi
+
+    ut_cd_safe_abort "${_build_srcdir}"
+
+    ### RUN BUILD
+    _build_successful="no"
+    (set -e -x; "build")
+
+    ut_cd_safe_abort "${_build_pkgdir}"
+    if (( ${?} == 0 )); then
+        if [[ "${_in_strip_files}" == "yes" ]]; then
+            pr_strip_files "${_build_pkgdir}"
+        fi
+        
+        ## Compress manpages
+        pr_compress_man_info_pages "${_build_pkgdir}" "*/share/man*/*"
+        ## Compress infopages
+        pr_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
+        
+        echo "TODO: REMOVE THIS LATER: CMK_GROUPS=()"
+        CMK_GROUPS=()
+        ## Process any groups
+        for _group in "${CMK_GROUPS[@]}"; do
+            _build_successful="yes"
+            echo "NOT FINISHED: Processing group: <${_group}>"
+            if ut_got_function "${_group}"; then
+                (set -e -x; "${group}")
+				(( ${?} )) && ms_abort "pr_build_pkgarchives" "$(gettext "Building pkgarchives for Port: <%s>")" \
+                    "${_in_port_path}"
+            else
+                echo "TODO: PACK/REMOVE GROUPS"
+            fi
+        done
+        
+        ## Process any locale
+        echo "TODO: Process any locale"
+        
+        ## Create the main pkgarchive
+        ut_dir_has_content_abort "${_build_pkgdir}"
+        bsdtar -r -f "${_in_port_path}/${_in_port_name}${_in_buildvers}${_in_system_arch}.${_in_ref_ext}" *
+        
+        
+    fi
+    
+    echo "UNFINSIHED"
+}
+
+
+#******************************************************************************************************************************
 # End of file
 #******************************************************************************************************************************
