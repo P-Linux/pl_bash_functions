@@ -142,7 +142,6 @@ customary_cleanup_function() {
 unset GREP_OPTIONS
 shopt -s extglob dotglob
 
-declare -r _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
 declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 
 source "${_PL_BASH_FUNCTIONS_DIR}/trap_exit.sh"
@@ -151,7 +150,7 @@ trap "tr_trap_exit_interrupted \"customary_cleanup_function\"" INT
 trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
 
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
-ms_format "${_THIS_SCRIPT_PATH}"
+ms_format
 
 #_MS_VERBOSE="yes"          NOTE: This defaults to: yes
 #_MS_VERBOSE_MORE="yes"     NOTE: This defaults to: yes
@@ -186,16 +185,7 @@ unset GREP_OPTIONS
 shopt -s extglob dotglob
 
 
-#### 03. Get Current Script Path
-
-If the variable is not needed get it later as input argument for function `ms_format`.
-
-```bash
-declare -r _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
-```
-
-
-#### 04. Get PL_BASH_FUNCTIONS_DIR
+#### 03. Get PL_BASH_FUNCTIONS_DIR
 
 Specify where the *pl_bash_functions package is installed*: need the *scripts ddirectory.
 
@@ -204,7 +194,7 @@ declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 ```
 
 
-#### 05. Set Trap
+#### 04. Set Trap
 
 Generally it is a good thing to set `traps`.
 
@@ -216,19 +206,17 @@ trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
 ```
 
 
-#### 06. Source 'msg.sh'
+#### 05. Source 'msg.sh'
 
 This is usually done first because other *pl_bash_functions package* files may use them. Run function: `ms_format` which
 sets important global variables for  the *pl_bash_functions package* message system.
 
-We pass the calling script PATH to the function in case of error messages.
-
 ```bash
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
-ms_format "${_THIS_SCRIPT_PATH}"
+ms_format
 ```
 
-#### 07. Optional Set Message Verbosity
+#### 06. Optional Set Message Verbosity
 
 **GENERAL LEVEL**
 
@@ -251,14 +239,14 @@ Optionally one can set it to `_MS_VERBOSE_MORE="no" ` to skip such  additional m
     The Verbosity Levels work independently to silence both one needs to set BOTH levles to `false`
 
 
-#### 08. Optional Print A Main Header
+#### 07. Optional Print A Main Header
 
 ```bash
 ms_header "${_MS_GREEN}" "$(gettext "Just Testing...")"
 ```
 
 
-#### 09. Optional Request User Confirmation
+#### 08. Optional Request User Confirmation
 
 It is recommendet that in end-user scripts a request for user action is set.
 
@@ -276,7 +264,7 @@ ms_request_continue "root"
 ```
 
 
-#### 10. Optional Test 'pl_bash_functions' Version
+#### 09. Optional Test 'pl_bash_functions' Version
 
 Test if the `pl_bash_functions version` is the one which your script was tested with.
 
@@ -285,7 +273,7 @@ ms_has_tested_version "0.9.1"
 ```
 
 
-#### 11. Source 'utilities.sh'
+#### 10. Source 'utilities.sh'
 
 ```bash
 source ""${_PL_BASH_FUNCTIONS_DIR}/utilities.sh"
@@ -296,7 +284,7 @@ source ""${_PL_BASH_FUNCTIONS_DIR}/utilities.sh"
     Afterwards use function: `ut_source_safe_abort` to source any other files.
 
 
-#### 12. Source Other Files
+#### 11. Source Other Files
 
 After that source any needed other files.
 
@@ -304,7 +292,7 @@ After that source any needed other files.
 ut_source_safe_abort "anything_else......"
 ```
 
-#### 13. Optional Check Needed Programs
+#### 12. Optional Check Needed Programs
 
 This does only check for the main programs.
 

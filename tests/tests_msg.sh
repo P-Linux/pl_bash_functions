@@ -19,7 +19,7 @@ source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "msg.sh"
 
 source "${_FUNCTIONS_DIR}/msg.sh"
-ms_format "${_THIS_SCRIPT_PATH}"
+ms_format
 
 declare -i _COUNT_OK=0
 declare -i _COUNT_FAILED=0

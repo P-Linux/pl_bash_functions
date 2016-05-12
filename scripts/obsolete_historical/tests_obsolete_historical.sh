@@ -19,7 +19,7 @@ source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "obsolete_historical.sh"
 
 source "${_FUNCTIONS_DIR}/msg.sh"
-ms_format "${_THIS_SCRIPT_PATH}"
+ms_format
 
 source "${_TEST_SCRIPT_DIR}/obsolete_historical.sh"
 

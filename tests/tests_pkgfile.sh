@@ -19,7 +19,7 @@ source "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "pkgfile.sh"
 
 source "${_FUNCTIONS_DIR}/msg.sh"
-ms_format "${_THIS_SCRIPT_PATH}"
+ms_format
 
 source "${_FUNCTIONS_DIR}/utilities.sh"
 ut_source_safe_abort "${_FUNCTIONS_DIR}/source_matrix.sh"

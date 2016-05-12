@@ -30,16 +30,15 @@ set +o noclobber
 ms_get_pl_bash_functions_version() {
     local _fn="ms_get_pl_bash_functions_version"
     local -n _ret_result=${1}
-    local _this_script_dir_msg; ms_pl_bash_functions_installed_dir _this_script_dir_msg
-    local _main_conf_file_path="${_this_script_dir_msg}/main_conf.sh"
+    local pl_bash_functions_installed_dir; ms_pl_bash_functions_installed_dir pl_bash_functions_installed_dir
     local _msg1=$(gettext "HINT:")
     local _msg2=$(gettext "MAYBE you forgot to run 'make install' or 'make generate'!")
 
-    if ! source "${_main_conf_file_path}"; then
+    if ! source "${pl_bash_functions_installed_dir}/main_conf.sh"; then
         echo
         echo
         printf "${_MS_YELLOW}   => ${_msg1}${_MS_ALL_OFF} ${_msg2}${_MS_ALL_OFF}\n"
-        ms_abort "${_fn}" "$(gettext "Could not source: <%s>")" "${_main_conf_file_path}"
+        ms_abort "${_fn}" "$(gettext "Could not source: <%s>")" "${pl_bash_functions_installed_dir}/main_conf.sh"
     fi
     _ret_result=${_PL_BASH_FUNCTIONS_VERSION}
 
@@ -99,22 +98,9 @@ ms_pl_bash_functions_installed_dir() {
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
-# Sets the message formatting and related command checks
-#
-#   ARGUMENTS
-#       `_calling_script_path`: We pass the calling script PATH to the function in case of error messages.
-#
-#   USAGE
-#
-#       ms_format "${_THIS_SCRIPT_PATH}"
+# Sets the message formatting and related command checks.     USAGE: ms_format
 #******************************************************************************************************************************
 ms_format() {
-    if (( ${#} != 1 )); then
-        # REMEMBER: we can not use gettext or ms_abort for this messages
-        printf "-> FUNCTION 'ms_format()': Requires EXACT '1' argument. Got '%s'\n\n" "${#}" >&2
-        exit 1
-    fi
-    local _calling_script_path=${1}
     _MS_VERBOSE="yes"
     _MS_VERBOSE_MORE="yes"
 
