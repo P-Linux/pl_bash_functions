@@ -270,10 +270,8 @@ pkf_validate_pkgvers() {
 #******************************************************************************************************************************
 pkf_get_only_pkgvers_abort() {
     (
-        if [[ ! -n $1 ]]; then
-            ms_abort "pkf_get_only_pkgvers_abort" \
+        [[ -n $1 ]] || ms_abort "pkf_get_only_pkgvers_abort" \
                 "$(gettext "FUNCTION 'pkf_get_only_pkgvers_abort()': Argument 1 MUST NOT be empty.")"
-        fi
         # skip assignment: _pkgfile_path=${1}
 
         # unset all official related variable
@@ -320,11 +318,9 @@ pkf_generate_pkgmd5sums() {
                 if [[ -f ${_destpath} && -r ${_destpath} ]]; then
                     _md5sum=$(md5sum "${_destpath}")
                     _md5sum=${_md5sum:0:32}
-                    if [[ ! -n ${_md5sum} ]]; then
-                        ms_abort "pkf_generate_pkgmd5sums"\
-                            "$(gettext "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")"  "${_destpath}" \
-                            "${_entry}"
-                    fi
+                    [[ -n ${_md5sum} ]] || ms_abort "pkf_generate_pkgmd5sums" \
+                                            "$(gettext "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")"  \
+                                            "${_destpath}" "${_entry}"
                 else
                     ms_abort "pkf_generate_pkgmd5sums" "$(gettext "Not a readable file path: <%s> Entry: <%s>")" \
                         "${_destpath}" "${_entry}"
@@ -392,10 +388,9 @@ pkf_validate_pkgfile_port_path_name() {
         ms_abort "${_fn}" "$(gettext "PORTNAME MUST have at least 2 and maximum 50 characters. Got: '%s' PATH: <%s>")" \
             "${_portname_size}" "${_pkgfile_path}"
     fi
-    if [[ ${_portname} == *[![:alnum:]-_+]* ]]; then
-        ms_abort "${_fn}" "$(gettext "PORTNAME contains invalid characters: '%s' PATH: <%s>")" \
-            "${_portname//[[:alnum:]-_+]}" "${_pkgfile_path}"
-    fi
+    [[ ${_portname} == *[![:alnum:]-_+]* ]] && ms_abort "${_fn}" \
+                                                "$(gettext "PORTNAME contains invalid characters: '%s' PATH: <%s>")" \
+                                                "${_portname//[[:alnum:]-_+]}" "${_pkgfile_path}"
     if [[ ${_portname} == [![:alnum:]]* ]]; then
         ms_abort "${_fn}" "$(gettext "PORTNAME MUST start with an alphanumeric character. Got: '%s' PATH: <%s>")" \
             "${_portname:0:1}" "${_pkgfile_path}"
@@ -474,10 +469,8 @@ pkf_source_validate_pkgfile() {
 
     ##### Pkgfile-Header
     # pkgpackager
-    if [[ ! -n ${pkgpackager} ]]; then
-        ms_abort "${_fn}" "$(gettext "Variable 'pkgpackager' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
-    fi
-
+    [[ -n ${pkgpackager} ]] || ms_abort "${_fn}" \
+                                "$(gettext "Variable 'pkgpackager' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
     # pkgdesc
     _pkgdesc_size=${#pkgdesc}
     if (( ${_pkgdesc_size} < 10 || ${_pkgdesc_size} > 110 )); then
@@ -524,9 +517,8 @@ pkf_source_validate_pkgfile() {
 
     ### Check required Pkgfile functions exist
     for _func in "${_in_cmk_required_function_names[@]}"; do
-        if ! ut_got_function "${_func}"; then
-            ms_abort "${_fn}" "$(gettext "Required Function '%s' not specified in File: <%s>")" "${_func}" "${_pkgfile_path}"
-        fi
+        ut_got_function "${_func}" || ms_abort "${_fn}" "$(gettext "Required Function '%s' not specified in File: <%s>")" \
+                                        "${_func}" "${_pkgfile_path}"
     done
 }
 

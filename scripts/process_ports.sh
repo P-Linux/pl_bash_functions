@@ -34,18 +34,18 @@ set +o noclobber
 #       | `srcdir`      | build sources directory: _pkg_build_dir/src   |
 #
 #   ARGUMENTS
-#       `_pkg_build_dir`: Path to the PKG_BUILD_DIR
+#       `$1 (_pkg_build_dir)`: Path to the PKG_BUILD_DIR
 #******************************************************************************************************************************
 pr_make_pkg_build_dir() {
     if [[ ! -n $1 ]]; then
         ms_abort "pr_make_pkg_build_dir" "$(gettext "FUNCTION 'pr_make_pkg_build_dir()': Argument 1 MUST NOT be empty.")"
     fi
-    local _pkg_build_dir=${1}
-    pkgdir="${_pkg_build_dir}/pkg"
-    srcdir="${_pkg_build_dir}/src"
+    # skip assignment:  _pkg_build_dir=${1}
+    pkgdir="${1}/pkg"
+    srcdir="${1}/src"
     umask 0022
 
-    rm -rf "${_pkg_build_dir}"
+    rm -rf "${1}"
     mkdir -p "${pkgdir}" "${srcdir}"
 }
 
@@ -72,7 +72,7 @@ pr_remove_downloaded_sources() {
     else
         declare -A _in_filter_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
     fi
-    local _in_filter_protocols_keys_string _destpath
+    local _in_filter_protocols_keys_string
     declare -i _n
 
     if [[ -v _in_filter_protocols["local"] ]]; then
@@ -89,10 +89,9 @@ pr_remove_downloaded_sources() {
 
     for (( _n=1; _n <= ${_in_pr_rds_scrmtx[NUM_IDX]}; _n++ )); do
         if [[ -v _in_filter_protocols[${_in_pr_rds_scrmtx[${_n}:PROTOCOL]}] ]]; then
-            _destpath=${_in_pr_rds_scrmtx[${_n}:DESTPATH]}
-            if [[ -e ${_destpath} ]]; then
-                ms_more "$(gettext "Removing source <%s>")" "${_destpath}"
-                rm -rf "${_destpath}"
+            if [[ -e${_in_pr_rds_scrmtx[${_n}:DESTPATH]} ]]; then
+                ms_more "$(gettext "Removing source <%s>")" "${_in_pr_rds_scrmtx[${_n}:DESTPATH]}"
+                rm -rf "${_in_pr_rds_scrmtx[${_n}:DESTPATH]}"
             fi
         fi
     done
@@ -156,7 +155,7 @@ pr_update_pkgfile_pkgmd5sums() {
     local _final_str=""
     local _temp_str=""
     # tests are slightly faster for ints
-    local _found_start=0
+    declare -i _found_start=0
     declare -i _add_rest=0
     local _backup_pkgfile="${_in_pkgfile_path}.bak"
 
@@ -169,9 +168,7 @@ pr_update_pkgfile_pkgmd5sums() {
         if (( ${_add_rest} )); then
              _final_str+="${_line}\n"
         elif (( ${_found_start} )); then
-            if [[ ${_line} == *")"* ]]; then
-                _do_end_of_array
-            fi
+            [[ ${_line} == *")"* ]] && _do_end_of_array
         elif [[ ${_line} == *"pkgmd5sums=("* ]]; then
             ut_get_prefix_shortest_all _temp_str "${_line}" "pkgmd5sums=("
             if [[ -n ${_temp_str} ]]; then
@@ -195,9 +192,7 @@ pr_update_pkgfile_pkgmd5sums() {
                 _final_str+="pkgmd5sums=()\n"
             fi
 
-            if [[ ${_line} == *")"* ]]; then
-                _do_end_of_array
-            fi
+            [[ ${_line} == *")"* ]] && _do_end_of_array
             _found_start=1
         else
             _final_str+="${_line}\n"
@@ -215,11 +210,11 @@ pr_update_pkgfile_pkgmd5sums() {
 #
 #   ARGUMENTS
 #       `_in_pkgfile_path`: pkgfile path
-#       `_in_port_name`: port name
+#       `$2 (_in_port_name)`: port name
 #       `_in_port_path`: port absolute path
 #       `_in_system_arch`: architecture e.g.: "$(uname -m)"
 #       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
-#       `_in_ref_repo_filename`: The reference repo file name.
+#       `$6 (_in_ref_repo_filename)`: The reference repo file name.
 #
 #   USAGE
 #       PORTNAME="hwinfo"
@@ -232,12 +227,12 @@ pr_update_port_repo_file() {
     local _fn="pr_update_port_repo_file"
     (( ${#} != 6 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION Requires EXACT '6' arguments. Got '%s'")" "${#}"
     local _in_pkgfile_path=${1}
-    local _in_port_name=${2}
+    # skip assignment:  _in_port_name=${2}
     local _in_port_path=${3}
     local _in_system_arch=${4}
     local _in_ref_ext=${5}
-    local _in_ref_repo_filename=${6}
-    local _repo_file_path="${_in_port_path}/${_in_ref_repo_filename}"
+    # skip assignment:  _in_ref_repo_filename=${6}
+    local _repo_file_path="${_in_port_path}/${6}"
     local _final_str=""
     local _existing_pkg_archives=()
     local _pkgfile_basename; ut_basename _pkgfile_basename "${_in_pkgfile_path}"
@@ -255,8 +250,7 @@ pr_update_port_repo_file() {
     fi
 
     _existing_pkg_archives=()
-    pka_get_existing_pkgarchives _existing_pkg_archives "${_in_port_name}" "${_in_port_path}" "${_in_system_arch}" \
-        "${_in_ref_ext}"
+    pka_get_existing_pkgarchives _existing_pkg_archives "${2}" "${_in_port_path}" "${_in_system_arch}" "${_in_ref_ext}"
 
     if [[ ${pkgpackager} == *"#"* ]]; then
         _packager=${pkgpackager/"#"/"\#"}
@@ -327,7 +321,7 @@ pr_update_port_repo_file() {
 #   ARGUMENTS
 #       `_in_port_name`: port name
 #       `_in_port_path`: port absolute path
-#       `_in_ref_repo_filename`: The reference repo file name.
+#       `$3 (_in_ref_repo_filename)`: The reference repo file name.
 #
 #   USAGE
 #       CMK_PORTNAME="hwinfo"
@@ -337,9 +331,9 @@ pr_update_port_repo_file() {
 pr_update_collection_repo_file() {
     local _in_port_name=${1}
     local _in_port_path=${2}
-    local _in_ref_repo_filename=${3}
-    local _repo_file_path="${_in_port_path}/${_in_ref_repo_filename}"
-    local _collection_repo_file_path="${_in_port_path}/../${_in_ref_repo_filename}"
+    # skip assignment:  _in_ref_repo_filename=${3}
+    local _repo_file_path="${_in_port_path}/${3}"
+    local _collection_repo_file_path="${_in_port_path}/../${3}"
     local  _md5sum _buildvers _ext _vers _rel _description _url _packager _first_line
 
     ms_more "$(gettext "Updating collection repo file for Port: <%s>")" "${_in_port_path}"
@@ -367,30 +361,30 @@ pr_update_collection_repo_file() {
 # Searches for files in `_in_dir_path` and strips: Binaries, Libraries (*.so) Libraries (*.a) and Kernel modules (*.ko)
 #
 #   ARGUMENTS
-#       `_in_dir_path`: absolute directory path: root dir for filesearch.
+#       `$1 (_in_dir_path)`: absolute directory path: root dir for filesearch.
 #
 #   USAGE
 #       pr_strip_files "${pkgdir}"
 #******************************************************************************************************************************
 pr_strip_files() {
-    local _in_dir_path=${1}
+    # skip assignment:  _in_dir_path=${1}
     local _file
-    
-    pushd "${_in_dir_path}" &> /dev/null
+
+    pushd "${1}" &> /dev/null
     find . -type f -perm -u+w -print0 2>/dev/null | while read -rd '' _file ; do
         case "$(file -bi "${_file}")" in
-            *application/x-executable*) 
+            *application/x-executable*)
                 strip "--strip-all" "${_file}"              # Binaries
                 ;;
-            *application/x-sharedlib*)  
+            *application/x-sharedlib*)
                 strip "--strip-unneeded" "${_file}"         # Libraries (.so)
                 ;;
-            *application/x-archive*)   
+            *application/x-archive*)
                 strip "--strip-debug" "${_file}"            # Libraries (.a)
                 ;;
             *application/x-object*)
                 case "${_file}" in
-                    *.ko)               
+                    *.ko)
                         strip "--strip-unneeded" "${_file}"  # Kernel modules
                         ;;
                     *) continue;;
@@ -403,73 +397,6 @@ pr_strip_files() {
 }
 
 
-#******************************************************************************************************************************
-# Builds the ports pkgarchives.
-#       The ports Pkgfile MUST have been already sourced. See also function: pkf_source_validate_pkgfile().
-#
-#   ARGUMENTS
-#       `_in_pkgfile_path` absolute path to the ports pkgfile
-#       `_in_port_name`: port name
-#       `_in_port_path`: port absolute path
-#       `_in_buildvers`: buildversion Unix-Timestamp
-#       `_in_system_arch`: architecture e.g.: "$(uname -m)"
-#       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
-#       `_in_use_compression`: yes or no
-#       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
-#       `_build_srcdir`: Path to a directory where the sources where extracted to.
-#       `_build_pkgdir`: Path to a directory where the build files are packed.
-#
-#   USAGE
-#       CMK_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo/Pkgfile"
-#       CMK_PORTNAME="hwinfo"
-#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       pr_build_pkgarchives "${CMK_PKGFILE_PATH}" "${CMK_PORTNAME}" "${CMK_PORT_PATH}" "${CMK_BUILDVERS}" "${CMK_ARCH}" \
-#           "${CMK_PKG_EXT}" "${CMK_COMPRESS_PKG}" "${CMK_STRIP}" "${srcdir}" "${pkgdir}"
-#******************************************************************************************************************************
-pr_build_pkgarchives() {
-    local _fn="pr_build_pkgarchives"
-    (( ${#} != 10 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION Requires EXACT '10' arguments. Got '%s'")" "${#}"
-    local _in_pkgfile_path=${1}
-    local _in_port_name=${2}
-    local _in_port_path=${3}
-    local _in_buildvers=${4}
-    local _in_system_arch=${5}
-    local _in_ref_ext=${6}
-    local _in_use_compression=${7}
-    local _strip_files=${8}
-    local _build_srcdir=${9}
-    local _build_pkgdir=${10}
-    local _main_pkgarchive_path="${_in_port_path}${_in_buildvers}${_in_system_arch}.${_in_ref_ext}"
-
-    if [[ ${_in_use_compression} == "yes" ]]; then
-        _main_pkgarchive_path="${_main_pkgarchive_path}.xz"
-    elif [[ ${_in_use_compression} != "no" ]]; then
-        ms_abort "${_fn}" "$(gettext "FUNCTION Argument 7 (_in_use_compression) MUST be 'yes' or 'no'. Got: '%s'")" \
-            "${_in_use_compression}"
-    fi
-    
-    ms_msg "$(gettext "Building pkgarchives for Port: <%s>")" "${_in_port_path}"
-
-    if (( ${EUID} != 0 )); then
-        ms_warn2 "$(gettext "Pkgarchives should be built as root.")"
-    fi
-    
-    ut_cd_safe_abort "${srcdir}"
-    
-        
-    ### RUN BUILD
-    (set -e -x; build)
-    
-    if (( ${?} == 0 )); then
-        if [[ "${_strip_files}" == "yes" ]]; then
-            # TODO: strip_files
-            pr_strip_files "${_build_pkgdir}"
-        fi
-        # TODO: compress_manpages
-        echo ":::TODO::: TODO: compress_manpages:"
-        
-    fi
-}
 #******************************************************************************************************************************
 # End of file
 #******************************************************************************************************************************

@@ -7,4 +7,4 @@
 #       Configuration file for 'pl_bash_functions'
 #
 #******************************************************************************************************************************
-declare -r _PL_BASH_FUNCTIONS_VERSION='0.9.1'
+declare -r _PL_BASH_FUNCTIONS_VERSION='0.9.2'

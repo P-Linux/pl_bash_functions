@@ -16,14 +16,14 @@ _EX_VERSION="0.1.1"
 # Example: test functions to compare speed and usage
 #******************************************************************************************************************************
 example_print_version() {
-    local _version="0.9.1"
+    local _version="0.1.1"
     printf "%s\n" "${_version}"
 }
 
 
 example_ret_result_version () {
     local -n _ret_result=$1
-    _ret_result="0.9.1"
+    _ret_result="0.1.1"
 }
 
 

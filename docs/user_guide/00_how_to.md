@@ -159,7 +159,7 @@ ms_header "${_MS_GREEN}" "$(gettext "Just Testing...")"
 
 ms_request_continue "root"
 
-ms_has_tested_version "0.9.1"
+ms_has_tested_version "0.9.2"
 
 source "${_PL_BASH_FUNCTIONS_DIR}/utilities.sh"
 
@@ -269,7 +269,7 @@ ms_request_continue "root"
 Test if the `pl_bash_functions version` is the one which your script was tested with.
 
 ```bash
-ms_has_tested_version "0.9.1"
+ms_has_tested_version "0.9.2"
 ```
 
 

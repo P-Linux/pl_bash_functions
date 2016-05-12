@@ -38,7 +38,7 @@ set +o noclobber
 #                                       MAY ONLY contain 1 (#) to postfix the URL with a VCS fragment.
 #               * Online FILES: A fully-qualified URL (supported are: ftp://, http://, https://)
 #               * Local FILES:  A local file path: file must reside in the same directory as the Pkgfile `_pkgfile_fullpath`
-#                               A local source file path MUST NOT contain any slash `/`. 
+#                               A local source file path MUST NOT contain any slash `/`.
 #                               e.g. (mylocal.patch)
 #               * VCS SOURCES:  A Version control source: URL to the VCS repository (supported are: git, svn, hg, bzr)
 #                               This must include the VCS type. If the protocol does not include the VCS name, it can be
@@ -255,10 +255,9 @@ so_prepare_src_matrix() {
         ut_get_prefix_shortest_all _protocol "${_protocol}" "+"
         [[ ${_protocol} == ${_tmp_uri} ]] && _protocol="local"
 
-        if [[ ! -v _supported_protocols[${_protocol}] ]]; then
-            ms_abort "${_fn}" "$(gettext "The protocol: '%s' is not supported. ENTRY: <%s>")" "${_protocol}" "${_entry}"
-        fi
-
+        [[ -v _supported_protocols[${_protocol}] ]] || ms_abort "${_fn}" \
+                                                        "$(gettext "The protocol: '%s' is not supported. ENTRY: <%s>")" \
+                                                        "${_protocol}" "${_entry}"
         ### DO NOEXTRACT/PREFIX
         _noextract=""
         _prefix=""
@@ -288,31 +287,26 @@ so_prepare_src_matrix() {
         fi
         case "${_protocol}" in
             local)
-                if [[ ${_entry} == *"/"* ]]; then
-                    ms_abort "${_fn}" "$(gettext "Local source MUST NOT contain any slash. ENTRY: <%s>")" "${_entry}"
-                fi
-                if [[ -n ${_noextract} ]]; then
-                    ms_abort "${_fn}" "$(gettext "Local source MUST NOT have a 'NOEXTRACT'. ENTRY: <%s>")" "${_entry}"
-                fi
-                if [[ -n ${_prefix} ]]; then
-                    ms_abort "${_fn}" "$(gettext "Local source MUST NOT have a prefix: '%s'. ENTRY: <%s>")" "${_prefix}" \
-                        "${_entry}"
-                fi
-                if [[ -n ${_fragment} ]]; then
-                    ms_abort "${_fn}" "$(gettext "Local source MUST NOT have a fragment: '%s'. ENTRY: <%s>")" "${_fragment}" \
-                        "${_entry}"
-                fi
+                [[ ${_entry} == *"/"* ]] && ms_abort "${_fn}" \
+                                                "$(gettext "Local source MUST NOT contain any slash. ENTRY: <%s>")" "${_entry}"
+                [[ -n ${_noextract} ]] && ms_abort "${_fn}" \
+                                            "$(gettext "Local source MUST NOT have a 'NOEXTRACT'. ENTRY: <%s>")" "${_entry}"
+                [[ -n ${_prefix} ]] && ms_abort "${_fn}" \
+                                        "$(gettext "Local source MUST NOT have a prefix: '%s'. ENTRY: <%s>")" "${_prefix}" \
+                                        "${_entry}"
+                [[ -n ${_fragment} ]] && ms_abort "${_fn}" \
+                                            "$(gettext "Local source MUST NOT have a fragment: '%s'. ENTRY: <%s>")" \
+                                            "${_fragment}" "${_entry}"
                 ;;
             ftp|http|https)
-                if [[ -n ${_fragment} ]]; then
-                    ms_abort "${_fn}" "$(gettext "ftp|http|https source MUST NOT have a fragment: '%s'. ENTRY: <%s>")" \
-                        "${_fragment}" "${_entry}"
-                fi
+                [[ -n ${_fragment} ]] && ms_abort "${_fn}" \
+                                            "$(gettext "ftp|http|https source MUST NOT have a fragment: '%s'. ENTRY: <%s>")" \
+                                            "${_fragment}" "${_entry}"
                 ;;
             git|svn|hg|bzr)
-                if [[ -n ${_noextract} ]]; then
-                    ms_abort "${_fn}" "$(gettext "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT. ENTRY: <%s>")" "${_entry}"
-                fi
+                [[ -n ${_noextract} ]] && ms_abort "${_fn}" \
+                                            "$(gettext "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT. ENTRY: <%s>")" \
+                                            "${_entry}"
                 if [[ ${_ret_matrix[${_next_idx}:CHKSUM]} != "SKIP" ]]; then
                     ms_abort "${_fn}" "$(gettext "'git|svn|hg|bzr source MUST NOT have a checksum: '%s'. ENTRY: <%s>")" \
                         "${_ret_matrix[${_next_idx}:CHKSUM]}" "${_entry}"
@@ -326,7 +320,7 @@ so_prepare_src_matrix() {
         else
             case "${_protocol}" in
                 ftp|http|https) ut_basename _destname "${_entry}" ;;
-                local)          _destname=${_entry} ;;                        # use the whole entry to allow for subfolders
+                local)          _destname=${_entry} ;;                     # use the whole entry to allow for subfolders
                 git|svn|hg|bzr)
                     ut_get_prefix_longest_all _destname "${_entry}" "#"    # strip any fragment
                     ut_strip_trailing_slahes _destname "${_destname}"

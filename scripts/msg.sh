@@ -262,9 +262,8 @@ ms_err2() {
 # ABORTING message: always enabled: ms_abort "from_where_name" "$(gettext "Message did not find path: '%s'")" "$PATH"
 #******************************************************************************************************************************
 ms_abort() {
-    if (( ${#} < 2 )); then
-        ms_abort "ms_abort" "$(gettext "FUNCTION 'ms_abort()': Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
-    fi
+    (( ${#} < 2 )) &&  ms_abort "ms_abort" "$(gettext "FUNCTION 'ms_abort()': Requires AT LEAST '2' arguments. Got '%s'")" \
+                        "${#}"
     local _from_name=${1}
     local _msg=${2}; shift
     local _abort_text=$(gettext "ABORTING....from:")
@@ -286,9 +285,8 @@ ms_abort() {
 #******************************************************************************************************************************
 ms_abort_remove_path() {
     local _fn="ms_abort_remove_path"
-    if (( ${#} < 4 )); then
-        ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires AT LEAST '4' arguments. Got '%s'")" "${_fn}" "${#}"
-    fi
+    (( ${#} < 4 )) && ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires AT LEAST '4' arguments. Got '%s'")" "${_fn}" \
+                        "${#}"
     if [[ $2 != "yes" && $2 != "no" ]]; then
         ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '2' MUST be 'yes' or 'no'. Got '%s'")" "${_fn}" "${2}"
     fi

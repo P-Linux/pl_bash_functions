@@ -235,7 +235,7 @@ used variabled as: local
 * some functions declare on purpose variables which are not set local: e.g.
     * some Pkgfile related function
     * some Port processing related function
-* some functions relay on official Pkgfile variables: in such case a Pkgfile must first have been sourced or the required 
+* some functions relay on official Pkgfile variables: in such case a Pkgfile must first have been sourced or the required
     variables set globally.
 
 
@@ -245,7 +245,7 @@ In general:
 
 * FIRST: Checks for valid function input arguments
 * SECOND: most function arguments are assigned to local variables before they are used.
-    * **Exception:** in small functions they are not re-assigned to local variables as arguments ar limited in bash: 
+    * **Exception:** in small functions they are not re-assigned to local variables as arguments ar limited in bash:
         *Error: Argument list too long*
 * THIRD: any other used variable are declared "local"
 * Fourth: comes the rest of the code

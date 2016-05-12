@@ -66,8 +66,6 @@ ex_extract_source() {
     local _build_srcdir=${2}
     local _remove_build_dir=${3:-"yes"}
     declare -i _n
-    local _entry _protocol _destpath
-
 
     if [[ ! -v _in_ex_scrmtx[NUM_IDX] ]]; then
         ms_abort "ex_extract_source" \
@@ -75,7 +73,6 @@ ex_extract_source() {
     fi
 
     for (( _n=1; _n <= ${_in_ex_scrmtx[NUM_IDX]}; _n++ )); do
-        _entry=${_in_ex_scrmtx[${_n}:ENTRY]}
         case "${_in_ex_scrmtx[${_n}:PROTOCOL]}" in
             ftp|http|https) ex_extract_file ${_n} _in_ex_scrmtx "${_build_srcdir}" "${_remove_build_dir}" ;;
             local) ex_extract_only_copy     ${_n} _in_ex_scrmtx "${_build_srcdir}" "${_remove_build_dir}" ;;
@@ -92,7 +89,7 @@ ex_extract_source() {
 # Handling the *copying* of `File` sources.
 #
 #   ARGUMENTS
-#       `_idx`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
+#       `$1 (_idx)`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
 #       `_in_ex_scrmtx_c`: a reference var:Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
 #       `_build_srcdir`: Path to a directory to copy/extract sources into.
 #
@@ -103,26 +100,22 @@ ex_extract_only_copy() {
     if [[ ! -n $1 ]]; then
         ms_abort "ex_extract_only_copy" "$(gettext "FUNCTION: 'ex_extract_only_copy()' Argument '1': MUST NOT be empty")"
     fi
-    declare -i _idx=${1}
+    # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_c=${2}
     local _build_srcdir=${3}
     local _remove_build_dir=${4:-"yes"}
-    local _destpath=${_in_ex_scrmtx_c[${_idx}:DESTPATH]}
-    local _finalpath="${_build_srcdir}/${_in_ex_scrmtx_c[${_idx}:DESTNAME]}"
+    local _destpath=${_in_ex_scrmtx_c[${1}:DESTPATH]}
+    local _finalpath="${_build_srcdir}/${_in_ex_scrmtx_c[${1}:DESTNAME]}"
 
-    if [[ ! -e ${_destpath} ]]; then
-        ms_abort_remove_path "ex_extract_only_copy" "${_remove_build_dir}" "${_build_srcdir}" \
-            "$(gettext "File copy source  not found: <%s>")" "${_destpath}"
-    fi
+    [[ -e ${_destpath} ]] || ms_abort_remove_path "ex_extract_only_copy" "${_remove_build_dir}" "${_build_srcdir}" \
+                                "$(gettext "File copy source  not found: <%s>")" "${_destpath}"
 
     ms_msg "$(gettext "Copying file: <%s>")" "${_destpath}"
     ms_more "$(gettext "To work-path: <%s>")" "${_finalpath}"
 
     cp -f "${_destpath}" "${_finalpath}"
-    if (( ${?} )); then
-        ms_abort_remove_path "ex_extract_only_copy" "${_remove_build_dir}" "${_build_srcdir}" \
-            "$(gettext "Failure while copying <%s> to <%s>")" "${_destpath}" "${_finalpath}"
-    fi
+    (( ${?} )) && ms_abort_remove_path "ex_extract_only_copy" "${_remove_build_dir}" "${_build_srcdir}" \
+                    "$(gettext "Failure while copying <%s> to <%s>")" "${_destpath}" "${_finalpath}"
 }
 
 
@@ -130,7 +123,7 @@ ex_extract_only_copy() {
 # Handling the *extract* of `File` sources.
 #
 #   ARGUMENTS
-#       `_idx`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
+#       `$1 (_idx)`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
 #       `_in_ex_scrmtx_f`: a reference var:Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
 #       `_build_srcdir`: Path to a directory to copy/extract sources into.
 #
@@ -138,16 +131,13 @@ ex_extract_only_copy() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_file() {
-    if ! [[ -n $1 ]]; then
-        ms_abort "ex_extract_file" "$(gettext "FUNCTION: 'ex_extract_file()' Argument '1': MUST NOT be empty")"
-    fi
-    declare -i _idx=${1}
+    [[ -n $1 ]] || ms_abort "ex_extract_file" "$(gettext "FUNCTION: 'ex_extract_file()' Argument '1': MUST NOT be empty")"
+    # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_f=${2}
     local _build_srcdir=${3}
     local _remove_build_dir=${4:-"yes"}
-    local _destpath=${_in_ex_scrmtx_f[${_idx}:DESTPATH]}
-    local _destname=${_in_ex_scrmtx_f[${_idx}:DESTNAME]}
-    local _noextract=${_in_ex_scrmtx_f[${_idx}:NOEXTRACT]}
+    local _destpath=${_in_ex_scrmtx_f[${1}:DESTPATH]}
+    local _destname=${_in_ex_scrmtx_f[${1}:DESTNAME]}
     local _destname_no_ext; ut_get_prefix_longest_all _destname_no_ext "${_destname}" "."
     local _extension; ut_get_postfix_shortest_empty _extension "${_destname}" "."
     local _cmd=""
@@ -159,9 +149,9 @@ ex_extract_file() {
             "$(gettext "File source  not found: <%s>")" "${_destpath}"
     fi
 
-    if [[ ${_noextract} == "NOEXTRACT" ]]; then
-        ms_more "$(gettext "ex_extract_file() only copy: noextract: '%s'")" "${_noextract}"
-        ex_extract_only_copy ${_idx}  _in_ex_scrmtx_f "${_build_srcdir}" "${_remove_build_dir}"
+    if [[ ${_in_ex_scrmtx_f[${1}:NOEXTRACT]} == "NOEXTRACT" ]]; then
+        ms_more "$(gettext "ex_extract_file() only copy: noextract: '%s'")" "${_in_ex_scrmtx_f[${1}:NOEXTRACT]}}"
+        ex_extract_only_copy ${1}  _in_ex_scrmtx_f "${_build_srcdir}" "${_remove_build_dir}"
         return 0
     fi
 
@@ -227,7 +217,7 @@ ex_extract_file() {
 # Handling the *extract* of `Git` sources.
 #
 #   ARGUMENTS
-#       `_idx`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
+#       `$1 (_idx)`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
 #       `_in_ex_scrmtx_g`: a reference var: Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
 #       `_build_srcdir`: Path to a directory to copy/extract sources into.
 #
@@ -235,27 +225,22 @@ ex_extract_file() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_git() {
-    local _fn="ex_extract_git"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
-    declare -i _idx=${1}
+    [[ -n $1 ]] || ms_abort "ex_extract_git" "$(gettext "FUNCTION: 'ex_extract_git()' Argument '1': MUST NOT be empty")"
+    # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_g=${2}
     local _build_srcdir=${3}
     local _remove_build_dir=${4:-"yes"}
-    local _fragment=${_in_ex_scrmtx_g[${_idx}:FRAGMENT]}
-    local _destname=${_in_ex_scrmtx_g[${_idx}:DESTNAME]}
-    local _destpath=${_in_ex_scrmtx_g[${_idx}:DESTPATH]}
-    local _uri_basename; ut_basename _uri_basename "${_in_ex_scrmtx_g[${_idx}:URI]}"
+    local _fragment=${_in_ex_scrmtx_g[${1}:FRAGMENT]}
+    local _destpath=${_in_ex_scrmtx_g[${1}:DESTPATH]}
+    local _uri_basename; ut_basename _uri_basename "${_in_ex_scrmtx_g[${1}:URI]}"
     local _repo; ut_get_prefix_longest_all _repo "${_uri_basename}" ".git"
-    local _finalpath="${_build_srcdir}/${_destname}"
+    local _finalpath="${_build_srcdir}/${_in_ex_scrmtx_g[${1}:DESTNAME]}"
     local _ref="origin/HEAD"
     declare -i _updating
     local _tmp_var
 
-
-    if [[ ! -e ${_destpath} ]]; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" "$(gettext "Git source  not found: <%s>")" \
-            "${_destpath}"
-    fi
+    [[ -e ${_destpath} ]] || ms_abort_remove_path "ex_extract_git" "${_remove_build_dir}" "${_build_srcdir}" \
+                                "$(gettext "Git source  not found: <%s>")" "${_destpath}"
 
     ms_msg "$(gettext "Creating working copy of git repo: '%s'")" "${_repo}"
     ms_more "$(gettext "Path: <%s>")" "${_finalpath}"
@@ -266,12 +251,10 @@ ex_extract_git() {
     if [[ -d ${_finalpath} ]]; then
         _updating=1
         ut_cd_safe_abort "${_finalpath}"
-        if ! git fetch; then
-            ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
-                "$(gettext "Failure while updating working copy of git repo: '%s'")" "${_repo}"
-        fi
+        git fetch || ms_abort_remove_path "ex_extract_git" "${_remove_build_dir}" "${_build_srcdir}" \
+                        "$(gettext "Failure while updating working copy of git repo: '%s'")" "${_repo}"
     elif ! git clone "${_destpath}" "${_finalpath}"; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_git" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Failure while creating working copy of git repo: '%s'")" "${_repo}"
     fi
 
@@ -285,14 +268,14 @@ ex_extract_git() {
                 ut_get_postfix_shortest_all _ref "${_fragment}" "="
                 _ref=origin/${_ref}
                 ;;
-            *) ms_abort "${_fn}" "$(gettext "Unrecognized fragment (reference): '%s'. ENTRY: '%s'")" "${_fragment}" \
+            *) ms_abort "ex_extract_git" "$(gettext "Unrecognized fragment (reference): '%s'. ENTRY: '%s'")" "${_fragment}" \
                 "${_entry}" ;;
         esac
     fi
 
     if [[ ${_ref} != "origin/HEAD" ]] || (( _updating )); then
         if ! git checkout --force --no-track -B "p-linux-work-branch" "${_ref}"; then
-            ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+            ms_abort_remove_path "ex_extract_git" "${_remove_build_dir}" "${_build_srcdir}" \
                 "$(gettext "Failure while creating working copy of git repo: '%s'")" "${_repo}"
         fi
     fi
@@ -305,7 +288,7 @@ ex_extract_git() {
 # Handling the *extract* of `Subversion` sources.
 #
 #   ARGUMENTS
-#       `_idx`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
+#       `$1 (_idx)`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
 #       `_in_ex_scrmtx_c`: a reference var:Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
 #       `_build_srcdir`: Path to a directory to copy/extract sources into.
 #
@@ -313,27 +296,24 @@ ex_extract_git() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_svn() {
-    local _fn="ex_extract_svn"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
-    declare -i _idx=${1}
+    [[ -n $1 ]] || ms_abort "ex_extract_svn" "$(gettext "FUNCTION: 'ex_extract_svn()' Argument '1': MUST NOT be empty")"
+    # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_s=${2}
     local _build_srcdir=${3}
     local _remove_build_dir=${4:-"yes"}
-    local _destname=${_in_ex_scrmtx_s[${_idx}:DESTNAME]}
-    local _destpath=${_in_ex_scrmtx_s[${_idx}:DESTPATH]}
-    local _repol; ut_basename _repo "${_in_ex_scrmtx_s[${_idx}:URI]}"
-    local _finalpath="${_build_srcdir}/${_destname}"
+    local _destpath=${_in_ex_scrmtx_s[${1}:DESTPATH]}
+    local _repo; ut_basename _repo "${_in_ex_scrmtx_s[${1}:URI]}"
 
     if [[ ! -e ${_destpath} ]]; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_svn" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Subversion source  not found: <%s>")" "${_destpath}"
     fi
 
     ms_msg "$(gettext "Creating working copy of svn repo: '%s'")" "${_repo}"
-    ms_more "$(gettext "Path: <%s>")" "${_finalpath}"
+    ms_more "$(gettext "Path: <%s>")" "${_build_srcdir}/${_in_ex_scrmtx_s[${1}:DESTNAME]}"
 
     if ! cp -au "${_destpath}" "${_build_srcdir}"; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_svn" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Failure while creating working copy of svn repo: '%s'")" "${_repo}"
     fi
 }
@@ -343,7 +323,7 @@ ex_extract_svn() {
 # Handling the *extract* of `Mercurial` sources.
 #
 #   ARGUMENTS
-#       `_idx`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
+#       `$1 (_idx)`: the 'NUM_IDX' number in the '_in_ex_scrmtx_c'
 #       `_in_ex_scrmtx_h`: a reference var: Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
 #       `_build_srcdir`: Path to a directory to copy/extract sources into.
 #
@@ -351,22 +331,18 @@ ex_extract_svn() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_hg() {
-    local _fn="ex_extract_svn"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
-    declare -i _idx=${1}
+    [[ -n $1 ]] || ms_abort "ex_extract_hg" "$(gettext "FUNCTION: 'ex_extract_hg()' Argument '1': MUST NOT be empty")"
+    # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_h=${2}
     local _build_srcdir=${3}
     local _remove_build_dir=${4:-"yes"}
-    local _destname=${_in_ex_scrmtx_h[${_idx}:DESTNAME]}
-    local _destpath=${_in_ex_scrmtx_h[${_idx}:DESTPATH]}
-    local _repo; ut_basename _repo "${_in_ex_scrmtx_h[${_idx}:URI]}"
-    local _finalpath="${_build_srcdir}/${_destname}"
+    local _destpath=${_in_ex_scrmtx_h[${1}:DESTPATH]}
+    local _repo; ut_basename _repo "${_in_ex_scrmtx_h[${1}:URI]}"
+    local _finalpath="${_build_srcdir}/${_in_ex_scrmtx_h[${1}:DESTNAME]}"
     local _ref="tip"
 
-    if [[ ! -e ${_destpath} ]]; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
-            "$(gettext "Mercurial source  not found: <%s>")" "${_destpath}"
-    fi
+    [[ -e ${_destpath} ]] || ms_abort_remove_path "ex_extract_hg" "${_remove_build_dir}" "${_build_srcdir}" \
+                                "$(gettext "Mercurial source  not found: <%s>")" "${_destpath}"
 
     ms_msg "$(gettext "Creating working copy of hg repo: '%s'")" "${_repo}"
     ms_more "$(gettext "Path: <%s>")" "${_finalpath}"
@@ -376,7 +352,7 @@ ex_extract_hg() {
     if [[ -n ${_fragment} ]]; then
         case "$(ut_get_prefix_shortest_all "${_fragment}" "=")" in
             branch|revision|tag) ut_get_postfix_shortest_all _ref "${_fragment}" "=" ;;
-            *) ms_abort "${_fn}" "$(gettext "Unrecognized fragment (reference): '%s'. ENTRY: '%s'")" "${_fragment}" \
+            *) ms_abort "ex_extract_hg" "$(gettext "Unrecognized fragment (reference): '%s'. ENTRY: '%s'")" "${_fragment}" \
                 "${_entry}" ;;
         esac
     fi
@@ -384,11 +360,11 @@ ex_extract_hg() {
     if [[ -d ${_finalpath} ]]; then
         ut_cd_safe_abort "${_finalpath}"
         if ! (hg pull && hg update -C -r "${_ref}"); then
-            ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+            ms_abort_remove_path "ex_extract_hg" "${_remove_build_dir}" "${_build_srcdir}" \
                 "$(gettext "Failure while updating working copy of hg repo: '%s'")" "${_repo}"
         fi
     elif ! hg clone -u "${_ref}" "${_destpath}" "${_finalpath}"; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_hg" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Failure while creating working copy of hg repo: '%s'")" "${_repo}"
     fi
 
@@ -408,22 +384,18 @@ ex_extract_hg() {
 #       `_remove_build_dir`: yes/no    if "yes" the '_build_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 ex_extract_bzr() {
-    local _fn="ex_extract_svn"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '1': MUST NOT be empty")" "${_fn}"
-    declare -i _idx=${1}
+    [[ -n $1 ]] || ms_abort "ex_extract_bzr" "$(gettext "FUNCTION: 'ex_extract_bzr()' Argument '1': MUST NOT be empty")"
+    # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_h=${2}
     local _build_srcdir=${3}
     local _remove_build_dir=${4:-"yes"}
-    local _destname=${_in_ex_scrmtx_h[${_idx}:DESTNAME]}
-    local _destpath=${_in_ex_scrmtx_h[${_idx}:DESTPATH]}
-    local _repo; ut_basename _repo "${_in_ex_scrmtx_h[${_idx}:URI]}"
-    local _finalpath="${_build_srcdir}/${_destname}"
+    local _destpath=${_in_ex_scrmtx_h[${1}:DESTPATH]}
+    local _repo; ut_basename _repo "${_in_ex_scrmtx_h[${1}:URI]}"
+    local _finalpath="${_build_srcdir}/${_in_ex_scrmtx_h[${1}:DESTNAME]}"
     local _ref="last:1"
 
-    if [[ ! -e ${_destpath} ]]; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" "$(gettext "Bazaar source  not found: <%s>")" \
-            "${_destpath}"
-    fi
+    [[ -e ${_destpath} ]] || ms_abort_remove_path "ex_extract_bzr"  "${_remove_build_dir}" "${_build_srcdir}" \
+                                "$(gettext "Bazaar source  not found: <%s>")" "${_destpath}"
 
     ms_msg "$(gettext "Creating working copy of bzr repo: '%s'")" "${_repo}"
     ms_more "$(gettext "Path: <%s>")" "${_finalpath}"
@@ -433,7 +405,7 @@ ex_extract_bzr() {
     if [[ -n ${_fragment} ]]; then
         case "$(ut_get_prefix_shortest_all "${_fragment}" "=")" in
             revision) ut_get_postfix_shortest_all _ref "${_fragment}" "=" ;;
-            *) ms_abort "${_fn}" "$(gettext "Unrecognized fragment (reference): '%s'. ENTRY: '%s'")" "${_fragment}" \
+            *) ms_abort "ex_extract_bzr" "$(gettext "Unrecognized fragment (reference): '%s'. ENTRY: '%s'")" "${_fragment}" \
                 "${_entry}" ;;
         esac
     fi
@@ -441,11 +413,11 @@ ex_extract_bzr() {
     if [[ -d ${_finalpath} ]]; then
         ut_cd_safe_abort "${_finalpath}"
         if ! (bzr pull "${_destpath}" -q --overwrite -r "${_ref}" && bzr clean-tree -q --detritus --force); then
-            ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+            ms_abort_remove_path "ex_extract_bzr" "${_remove_build_dir}" "${_build_srcdir}" \
                 "$(gettext "Failure while updating working copy of bzr repo: '%s'")" "${_repo}"
         fi
     elif ! bzr checkout "${_destpath}" -r "${_ref}"; then
-        ms_abort_remove_path "${_fn}" "${_remove_build_dir}" "${_build_srcdir}" \
+        ms_abort_remove_path "ex_extract_bzr" "${_remove_build_dir}" "${_build_srcdir}" \
             "$(gettext "Failure while creating working copy of bzr repo: '%s'")" "${_repo}"
     fi
 

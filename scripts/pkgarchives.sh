@@ -98,7 +98,7 @@ pka_remove_existing_pkgarchives() {
         ms_more "$(gettext "Removing any existing pkgarchive files for Port <%s>")" "${_in_port_path}"
 
         for _file in "${_in_port_path}/${_in_port_name}"*"${_in_system_arch}.${_in_ref_ext}"* \
-            "${_in_port_path}/${_in_port_name}"*"any.${_in_ref_ext}"*; do
+                        "${_in_port_path}/${_in_port_name}"*"any.${_in_ref_ext}"*; do
             [[ ${_file} == *"*" ]] || rm -f "${_file}"
         done
     else
@@ -108,7 +108,7 @@ pka_remove_existing_pkgarchives() {
         ut_dir_is_rwx_abort "${_in_pkgarchive_backup_dir}" "yes" "_in_pkgarchive_backup_dir"
 
         for _file in "${_in_port_path}/${_in_port_name}"*"${_in_system_arch}.${_in_ref_ext}"* \
-            "${_in_port_path}/${_in_port_name}"*"any.${_in_ref_ext}"*; do
+                        "${_in_port_path}/${_in_port_name}"*"any.${_in_ref_ext}"*; do
             [[ ${_file} == *"*" ]] || mv -f "${_file}" "${_in_pkgarchive_backup_dir}"
         done
     fi
@@ -149,10 +149,8 @@ pka_get_pkgarchive_name() {
     fi
 
     _ret_name_n=${_pkgarchive_basename:: -((${#_ending}+10))} # add 10 for UTC Build timestamp
-    if [[ ! -n ${_ret_name_n} ]]; then
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
-            "${_in_pkgarchive_path}"
-    fi
+    [[ -n ${_ret_name_n} ]] ||  ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
+                                    "${_in_pkgarchive_path}"
 }
 
 
@@ -170,14 +168,12 @@ pka_get_pkgarchive_name() {
 #       pka_get_pkgarchive_buildvers BUILDVERS "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
 #******************************************************************************************************************************
 pka_get_pkgarchive_buildvers() {
-    local _fn="pka_get_pkgarchive_buildvers"
     local -n _ret_buildvers_b=${1}
     local _in_pkgarchive_path=${2}
     local _in_system_arch=${3}
     local _in_ref_ext=${4}
     local _ext; pka_get_pkgarchive_ext _ext "${_in_pkgarchive_path}" "${_in_ref_ext}"
     local _ending
-    declare -i _ending_size
 
     if [[ ${_in_pkgarchive_path} == *"any${_ext}" ]]; then
         _ending="any${_ext}"
@@ -185,15 +181,15 @@ pka_get_pkgarchive_buildvers() {
         _ret_arch="${_in_system_arch}"
         _ending="${_in_system_arch}${_ext}"
     else
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part must be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch}" "${_in_pkgarchive_path}"
+        ms_abort "pka_get_pkgarchive_buildvers" \
+            "$(gettext "A pkgarchive 'architecture' part must be: '%s' or 'any'. Pkgarchive: <%s>")" "${_in_system_arch}" \
+            "${_in_pkgarchive_path}"
     fi
 
-    _ending_size=${#_ending}
-    _ret_buildvers_b=${_in_pkgarchive_path:: -${_ending_size}}
+    _ret_buildvers_b=${_in_pkgarchive_path:: -${#_ending}}
     _ret_buildvers_b=${_ret_buildvers_b: -10}
     if [[ ${_ret_buildvers_b} != +([[:digit:]]) ]]; then
-        ms_abort "${_fn}" \
+        ms_abort "pka_get_pkgarchive_buildvers" \
             "$(gettext "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s'. Pkgarchive: <%s>")" \
             "${_ret_buildvers_b//[[:digit:]]}" "${_in_pkgarchive_path}"
     fi
@@ -280,7 +276,6 @@ pka_get_pkgarchive_ext() {
 #       pka_get_pkgarchive_parts NAME BUILDVERS ARCH EXT "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
 #******************************************************************************************************************************
 pka_get_pkgarchive_parts() {
-    local _fn="pka_get_pkgarchive_parts"
     local -n _ret_name_parts=${1}
     local -n _ret_buildvers_parts=${2}
     local -n _ret_arch_parts=${3}
@@ -298,8 +293,9 @@ pka_get_pkgarchive_parts() {
     elif [[ ${_pkgarchive_basename} == *"${_in_ref_ext}" ]]; then
         _ret_ext_parts=".${_in_ref_ext}"
     else
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
-            "${_in_ref_ext}" "${_in_ref_ext}" "${_in_pkgarchive_path}"
+        ms_abort "pka_get_pkgarchive_parts" \
+            "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" "${_in_ref_ext}" \
+            "${_in_ref_ext}" "${_in_pkgarchive_path}"
     fi
 
     # ARCH
@@ -308,8 +304,9 @@ pka_get_pkgarchive_parts() {
     elif [[ ${_pkgarchive_basename} == *"${_in_system_arch}${_ret_ext_parts}" ]]; then
         _ret_arch_parts="${_in_system_arch}"
     else
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch}" "${_in_pkgarchive_path}"
+        ms_abort "pka_get_pkgarchive_parts" \
+            "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" "${_in_system_arch}" \
+            "${_in_pkgarchive_path}"
     fi
 
     ###
@@ -320,17 +317,16 @@ pka_get_pkgarchive_parts() {
     _ret_buildvers_parts=${_pkgarchive_basename:: -${_ending_size}}
     _ret_buildvers_parts=${_ret_buildvers_parts: -10}
     if [[ ${_ret_buildvers_parts} != +([[:digit:]]) ]]; then
-        ms_abort "${_fn}" \
+        ms_abort "pka_get_pkgarchive_parts" \
             "$(gettext "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s'. Pkgarchive: <%s>")" \
             "${_ret_buildvers_parts//[[:digit:]]}" "${_in_pkgarchive_path}"
     fi
 
     # NAME
     _ret_name_parts=${_pkgarchive_basename:: -((${_ending_size}+10))} # add 10 for UTC Build timestamp
-    if [[ ! -n ${_ret_name_parts} ]]; then
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
-            "${_in_pkgarchive_path}"
-    fi
+    [[ -n ${_ret_name_parts} ]] || ms_abort "pka_get_pkgarchive_parts" \
+                                    "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
+                                    "${_in_pkgarchive_path}"
 }
 
 
@@ -351,7 +347,6 @@ pka_get_pkgarchive_parts() {
 #       pka_get_pkgarchive_name_arch NAME ARCH "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
 #******************************************************************************************************************************
 pka_get_pkgarchive_name_arch() {
-    local _fn="pka_get_pkgarchive_name_arch"
     local -n _ret_name_na=${1}
     local -n _ret_arch_na=${2}
     local _in_pkgarchive_path=${3}
@@ -366,8 +361,9 @@ pka_get_pkgarchive_name_arch() {
     elif [[ ${_pkgarchive_basename} == *"${_in_ref_ext}" ]]; then
         _ret_ext_parts=".${_in_ref_ext}"
     else
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" \
-            "${_in_ref_ext}" "${_in_ref_ext}" "${_in_pkgarchive_path}"
+        ms_abort "pka_get_pkgarchive_name_arch" \
+            "$(gettext "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz'. Pkgarchive: <%s>")" "${_in_ref_ext}" \
+            "${_in_ref_ext}" "${_in_pkgarchive_path}"
     fi
 
     # ARCH
@@ -376,8 +372,9 @@ pka_get_pkgarchive_name_arch() {
     elif [[ ${_pkgarchive_basename} == *"${_in_system_arch}${_ret_ext_parts}" ]]; then
         _ret_arch_na="${_in_system_arch}"
     else
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" \
-            "${_in_system_arch}" "${_in_pkgarchive_path}"
+        ms_abort "pka_get_pkgarchive_name_arch" \
+            "$(gettext "A pkgarchive 'architecture' part MUST be: '%s' or 'any'. Pkgarchive: <%s>")" "${_in_system_arch}" \
+            "${_in_pkgarchive_path}"
     fi
 
     ###
@@ -385,10 +382,9 @@ pka_get_pkgarchive_name_arch() {
 
     # NAME
     _ret_name_na=${_pkgarchive_basename:: -((${#_ending}+10))} # add 10 for UTC Build timestamp
-    if [[ ! -n ${_ret_name_na} ]]; then
-        ms_abort "${_fn}" "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
-            "${_in_pkgarchive_path}"
-    fi
+    [[ -n ${_ret_name_na} ]] || ms_abort "pka_get_pkgarchive_name_arch" \
+                                    "$(gettext "A pkgarchive 'name' part MUST NOT be empty. Pkgarchive: <%s>")" \
+                                    "${_in_pkgarchive_path}"
 }
 
 
@@ -412,9 +408,8 @@ pka_is_pkgarchive_up_to_date() {
     _ret_result="no"
 	if [[ -f ${3} ]]; then
 		_ret_result="yes"
-        if [[ ! -f ${2} ]]; then
-            ms_abort "pka_is_pkgarchive_up_to_date" "$(gettext "Corresponding Pkgfile does not exist. Path: <%s>")" "${2}"
-        fi
+        [[ -f ${2} ]] || ms_abort "pka_is_pkgarchive_up_to_date" \
+                            "$(gettext "Corresponding Pkgfile does not exist. Path: <%s>")" "${2}"
 		[[ ${2} -nt ${3} ]] && _ret_result="no"
 	fi
 }

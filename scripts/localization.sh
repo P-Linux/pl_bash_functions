@@ -133,7 +133,8 @@ lo_generate_po_files() {
             "${_bugs_url}"
 
         for _locale in "${_in_utf8_languages[@]}"; do
-            [[ ${_locale} == *".UTF-8" ]] || ms_abort "${_fn}" "$(gettext "Only UTF-8 locale are supported: '%s'")" "${_locale}"
+            [[ ${_locale} == *".UTF-8" ]] || ms_abort "${_fn}" "$(gettext "Only UTF-8 locale are supported: '%s'")" \
+                "${_locale}"
 
             _locale_po_dir="${_outdir}/${_locale}/LC_MESSAGES"
             mkdir -p "${_locale_po_dir}"
@@ -152,9 +153,7 @@ lo_generate_po_files() {
                 msginit  --no-wrap --no-translator --locale="${_locale}" --input="${_pot_file}"  \
                     --output-file="${_empty_po_path}"
                 _ret=${?}
-                if (( ${_ret} )); then
-                    ms_abort "${_fn}" "$(gettext "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
-                fi
+                (( ${_ret} )) && ms_abort "${_fn}" "$(gettext "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
 
                 # update the po header: use the whole defined local: e.g. de_DE
                 ut_get_prefix_longest_all _only_locale "${_locale}" ".UTF-8"
