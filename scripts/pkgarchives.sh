@@ -406,12 +406,12 @@ pka_is_pkgarchive_up_to_date() {
     # skip assignment:  _in_pkgarchive_path=${3}
 
     _ret_result="no"
-	if [[ -f ${3} ]]; then
-		_ret_result="yes"
+    if [[ -f ${3} ]]; then
+        _ret_result="yes"
         [[ -f ${2} ]] || ms_abort "pka_is_pkgarchive_up_to_date" \
                             "$(gettext "Corresponding Pkgfile does not exist. Path: <%s>")" "${2}"
-		[[ ${2} -nt ${3} ]] && _ret_result="no"
-	fi
+        [[ ${2} -nt ${3} ]] && _ret_result="no"
+    fi
 }
 
 

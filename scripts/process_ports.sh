@@ -28,10 +28,10 @@ set +o noclobber
 #
 # sets Variables:
 #
-#       | Variable Name | Description                                   |
-#       |:--------------|:----------------------------------------------|
-#       | `pkgdir`      | build package directory: _pkg_build_dir/pkg   |
-#       | `srcdir`      | build sources directory: _pkg_build_dir/src   |
+#       | Variable Name | Description                                     |
+#       |:--------------|:------------------------------------------------|
+#       | `pkgdir`      | build package directory: _pkg_build_dir/pkg     |
+#       | `srcdir`      | build sources directory: _pkg_build_dir/src     |
 #
 #   ARGUMENTS
 #       `$1 (_pkg_build_dir)`: Path to the PKG_BUILD_DIR
@@ -286,27 +286,27 @@ pr_update_port_repo_file() {
 
         # Do the individual package archive files
         for _pkgarchive_path in "${_existing_pkg_archives[@]}"; do
-			ut_basename _pkgarchive_basename "${_pkgarchive_path}"
+            ut_basename _pkgarchive_basename "${_pkgarchive_path}"
             ut_get_file_md5sum_abort _md5sum "${_pkgarchive_path}"
             pka_get_pkgarchive_name_arch _pkgarchive_name _pkgarchive_arch "${_pkgarchive_path}" "${_in_system_arch}" \
                 "${_in_ref_ext}"
             _final_str+="${_md5sum}#${_pkgarchive_name}#${_pkgarchive_arch}\n"
-		done
+        done
 
         # Do all other files
         pushd "${_in_port_path}" &> /dev/null
-		for _f in *; do
-			if [[ -f ${_f} ]]; then
+        for _f in *; do
+            if [[ -f ${_f} ]]; then
                 ut_get_file_md5sum_abort _md5sum "${_f}"
                 if [[ ${_f} != ${_pkgfile_basename} ]]; then
                     if ! [[ ${_f} == *"${_in_system_arch}.${_in_ref_ext}"* || ${_f} == *"any.${_ref_ext_ge}"* ]]; then
                         _final_str+="${_md5sum}#${_f}\n"
                     fi
                 fi
-			fi
-		done
+            fi
+        done
         popd &> /dev/null
-	fi
+    fi
 
     ut_get_file_md5sum _md5sum "${_in_pkgfile_path}"
     _final_str+="${_md5sum}#${_pkgfile_basename}"
@@ -340,7 +340,7 @@ pr_update_collection_repo_file() {
 
     if [[ -f ${_repo_file_path} ]]; then
         read -r _first_line < "${_repo_file_path}"
-		if [[ ${_first_line:10:1} = "#" ]]; then
+        if [[ ${_first_line:10:1} = "#" ]]; then
             saveifs=${IFS}
             IFS="#" read _buildvers _ext _vers _rel _description _url _packager <<< "${_first_line}"
             IFS=${saveifs}
@@ -408,7 +408,7 @@ pr_strip_files() {
 #       Compress manpages
 #           pr_compress_man_info_pages "${_build_pkgdir}" "*/share/man*/*"
 #       Compress infopages
-#           pr_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*" 
+#           pr_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
 #******************************************************************************************************************************
 pr_compress_man_info_pages() {
     # skip assignment:  _in_dir_path=${1}
@@ -419,17 +419,17 @@ pr_compress_man_info_pages() {
     find . -type f -path "${2}" | while read -r _file ; do
         [[ ${_file} != *".gz" ]] && gzip -9 "${_file}"
     done
-    
-	find . -type l -path "${2}" | while read _file; do
-		_link_target=$(readlink -n "${_file}")
+
+    find . -type l -path "${2}" | while read _file; do
+        _link_target=$(readlink -n "${_file}")
         # TODO recheck if that could be improved
-		_link_target="${_link_target##*/}"
-		_link_target="${_link_target%%.gz}.gz"
-		rm -f "${_file}"
-		_file="${_file%%.gz}.gz"
+        _link_target="${_link_target##*/}"
+        _link_target="${_link_target%%.gz}.gz"
+        rm -f "${_file}"
+        _file="${_file%%.gz}.gz"
         ut_dirname _link_target_dir "${_file}"
-		[[ -e "${_link_target_dir}/${_link_target}" ]] && ln -sf "${_link_target}" "${_file}"
-	done
+        [[ -e "${_link_target_dir}/${_link_target}" ]] && ln -sf "${_link_target}" "${_file}"
+    done
     popd &> /dev/null
 }
 
@@ -446,7 +446,9 @@ pr_compress_man_info_pages() {
 #       `_in_system_arch`: architecture e.g.: "$(uname -m)"
 #       `_in_ref_ext`: The extention name of a package tar archive file withouth any compression specified.
 #       `_in_use_compression`: yes or no
-#       `_in_cmk_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile:
+#       `_in_compress_opts`: empty or options to be passed to the *xz* command to compress final produced pkgarchives.
+#       `_in_cmk_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile
+#       `_in_cmk_locales`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile
 #       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
 #       `_build_srcdir`: Path to a directory where the sources where extracted to.
 #       `_build_pkgdir`: Path to a directory where the build files are temporarly installed/copied to.
@@ -456,10 +458,87 @@ pr_compress_man_info_pages() {
 #       CMK_PORTNAME="hwinfo"
 #       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       pr_build_pkgarchives "${CMK_PKGFILE_PATH}" "${CMK_PORTNAME}" "${CMK_PORT_PATH}" "${CMK_BUILDVERS}" "${CMK_ARCH}" \
-#           "${CMK_PKG_EXT}" "${CMK_COMPRESS_PKG}" "${CMK_STRIP}" CMK_GROUPS "${srcdir}" "${pkgdir}"
+#           "${CMK_PKG_EXT}" "${CMK_COMPRESS_PKG}" "${CMK_STRIP}" CMK_GROUPS CMK_LOCALES "${srcdir}" "${pkgdir}"
 #******************************************************************************************************************************
 pr_build_pkgarchives() {
-    (( ${#} != 11 )) &&  ms_abort "pr_build_pkgarchives" "$(gettext "FUNCTION Requires EXACT '11' arguments. Got '%s'")" "${#}"
+
+    #**************************************************************************************************************************
+    #   ARGUMENTS
+    #       `__complete_name_part`: 'port-name'
+    #                               'port-name.group-name': (only if it is a group pkgarchive.)
+    #                               'port-name.locale-name': (only if it is a locale pkgarchive.)
+    #       `__arch`:  final used pkgarchive name architecture: any or system-architecture
+    #       `__is_main_archive`: yes (for main pkgarchive), no (for group or locale pkgarchive)
+    #**************************************************************************************************************************
+    _create_pkgarchive() {
+        [[ -n $1 ]] || ms_abort "pr_build_pkgarchives()_create_pkgarchive()" \
+                "$(gettext "FUNCTION Argument 1 (__complete_name_part) MUST NOT be empty.")"
+
+        local __complete_name_part=${1}
+        local __arch=${2}
+        local __is_main_archive=${3}
+        local __pkgarchive_path="${_in_port_path}/${__complete_name_part}${_in_buildvers}${__arch}.${_in_ref_ext}"
+        local __meta_str=""
+        local __size __path
+
+        if [[ ${__is_main_archive} == "yes" ]]; then
+            # remove any left locale
+            rm -rf "${_build_pkgdir}/usr/share/locale" "${_build_pkgdir}/opt/*/share/locale"
+            ut_dir_has_content_abort "${_build_pkgdir}"
+
+            ### Copy & rename meta file
+            __path="${_in_port_path}/${__complete_name_part}.README"
+            if [[ -f ${__path} ]]; then
+                cp -f "${__path}" "${_build_pkgdir}/.README"
+            fi
+            __path="${_in_port_path}/${__complete_name_part}.pre-install"
+            [[ -f ${__path} ]] && cp -f "${__path}" "${_build_pkgdir}/.PRE"
+            __path="${_in_port_path}/${__complete_name_part}.post-instal"
+            [[ -f ${__path} ]] && cp -f "${__path}" "${_build_pkgdir}/.POST"
+
+        else
+            echo "_create_pkgarchive(): TODO: GROUP, LOCALE NOT YET DONE"
+        fi
+
+        ### Create the Archive
+        ms_more_i "$(gettext "Taring pkgarchive...")"
+        LANG=C bsdtar -C "${_build_pkgdir}" -cf "${__pkgarchive_path}" *
+
+        ### Generate .META file
+        ms_more_i  "$(gettext "Adding meta data to pkgarchive: '%s'")" "${__complete_name_part}"
+        __meta_str+="N${__complete_name_part}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
+
+        __size=$(du -b "${__pkgarchive_path}")
+        # NOTE Can not use for this: ut_get_prefix_shortest_empty __size because the inpput is treated as a string
+        __size=${__size%%[[:blank:]]*}
+        [[ -n ${__size} ]] || ms_abort "pr_build_pkgarchives()_create_pkgarchive()" \
+                "$(gettext "Could not get the Size of the new pkgarchive: <%s>")" "${__pkgarchive_path}"
+
+        __meta_str+="S${__size}\nV${pkgvers}\nr${pkgrel}\nB${_in_buildvers}\na${__arch}"
+        # TODO: Add the runtime dependencies to the .META file
+
+        echo "_create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
+        echo -e "${__meta_str}" > .META || exit 1
+
+        ### Generate .MTREE file
+        bsdtar -tf "${__pkgarchive_path}" > .MTREE || exit 1
+
+        ### Add the .MTREE .META file
+        LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__pkgarchive_path}" ".META" ".MTREE" || exit 1
+
+        ### Compress if needed
+        if [[ ${_in_use_compression} == "yes" ]]; then
+            ms_more_i "$(gettext "Compressing pkgarchive with xz...")"
+            # NOTE _in_compress_opts should not be in double quotes
+            xz -z ${_in_compress_opts} "${__pkgarchive_path}"
+        elif [[ ${_in_use_compression} != "no" ]]; then
+            ms_abort "pr_build_pkgarchives()" \
+                "$(gettext "FUNCTION Argument 7 (_in_use_compression) MUST be 'yes' or 'no'. Got: '%s'")" \
+                "${_in_use_compression}"
+        fi
+    }
+
+    (( ${#} != 13 )) &&  ms_abort "pr_build_pkgarchives" "$(gettext "FUNCTION Requires EXACT '13' arguments. Got '%s'")" "${#}"
     local _in_pkgfile_path=${1}
     local _in_port_name=${2}
     local _in_port_path=${3}
@@ -467,20 +546,13 @@ pr_build_pkgarchives() {
     local _in_system_arch=${5}
     local _in_ref_ext=${6}
     local _in_use_compression=${7}
-    local _in_strip_files=${8}
-    local -n _in_cmk_groups=${9}    
-    local _build_srcdir=${10}
-    local _build_pkgdir=${11}
-    local _main_pkgarchive_path="${_in_port_path}${_in_buildvers}${_in_system_arch}.${_in_ref_ext}"
-    local _build_successful
-    local _group
-    
-    if [[ ${_in_use_compression} == "yes" ]]; then
-        _main_pkgarchive_path="${_main_pkgarchive_path}.xz"
-    elif [[ ${_in_use_compression} != "no" ]]; then
-        ms_abort "pr_build_pkgarchives" \
-            "$(gettext "FUNCTION Argument 7 (_in_use_compression) MUST be 'yes' or 'no'. Got: '%s'")" "${_in_use_compression}"
-    fi
+    local _in_compress_opts=${8}
+    local _in_strip_files=${9}
+    local -n _in_cmk_groups=${10}
+    local -n _in_cmk_locales=${11}
+    local _build_srcdir=${12}
+    local _build_pkgdir=${13}
+    local _group _pkgarchive_path
 
     ms_msg "$(gettext "Building pkgarchives for Port: <%s>")" "${_in_port_path}"
 
@@ -491,47 +563,44 @@ pr_build_pkgarchives() {
     ut_cd_safe_abort "${_build_srcdir}"
 
     ### RUN BUILD
-    _build_successful="no"
     (set -e -x; "build")
+    ut_dir_has_content_abort "${_build_pkgdir}"
 
     ut_cd_safe_abort "${_build_pkgdir}"
     if (( ${?} == 0 )); then
         if [[ "${_in_strip_files}" == "yes" ]]; then
             pr_strip_files "${_build_pkgdir}"
         fi
-        
+
         ## Compress manpages
         pr_compress_man_info_pages "${_build_pkgdir}" "*/share/man*/*"
         ## Compress infopages
         pr_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
-        
-        echo "TODO: REMOVE THIS LATER: CMK_GROUPS=()"
+
+        #echo "TODO: REMOVE THIS LATER: CMK_GROUPS=()"
         CMK_GROUPS=()
         ## Process any groups
-        for _group in "${CMK_GROUPS[@]}"; do
-            _build_successful="yes"
-            echo "NOT FINISHED: Processing group: <${_group}>"
-            if ut_got_function "${_group}"; then
-                (set -e -x; "${group}")
-				(( ${?} )) && ms_abort "pr_build_pkgarchives" "$(gettext "Building pkgarchives for Port: <%s>")" \
-                    "${_in_port_path}"
-            else
-                echo "TODO: PACK/REMOVE GROUPS"
-            fi
-        done
-        
-        ## Process any locale
-        echo "TODO: Process any locale"
-        
-        ## Create the main pkgarchive
-        ut_dir_has_content_abort "${_build_pkgdir}"
-        bsdtar -r -f "${_in_port_path}/${_in_port_name}${_in_buildvers}${_in_system_arch}.${_in_ref_ext}" *
-        
-        
+        #for _group in "${CMK_GROUPS[@]}"; do
+            #if ut_got_function "${_group}"; then
+                #(set -e -x; "${group}")
+                #(( ${?} )) && ms_abort "pr_build_pkgarchives" "$(gettext "Building pkgarchives for Port: <%s>")" \
+                    #"${_in_port_path}"
+            #else
+                #echo "TODO: PACK/REMOVE GROUPS"
+            #fi
+        #done
+
+        ### Process any locale
+        #echo "TODO: Process any locale"
+
+        ### Create the main pkgarchive
+        _create_pkgarchive "${_in_port_name}" "${_in_system_arch}" "yes"
+
     fi
-    
+
     echo "UNFINSIHED"
 }
+
 
 
 #******************************************************************************************************************************

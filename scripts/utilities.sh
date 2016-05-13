@@ -330,8 +330,6 @@ ut_strip_whitespace() {
 
 #******************************************************************************************************************************
 # Returns from beginning till the first found '_delimiter': else an empty string ""
-#
-#   USAGE: local _result; ut_strip_trailing_slahes2 _result "text::text::|text::text" "::"
 #******************************************************************************************************************************
 ut_get_prefix_shortest_empty() {
     local -n _ret_result=${1}
@@ -342,8 +340,6 @@ ut_get_prefix_shortest_empty() {
 
 #******************************************************************************************************************************
 # Returns from beginning till the last found '_delimiter': else an empty string ""
-#
-#   USAGE: local _result; ut_get_prefix_longest_empty _result "text::text::|text::text" "::"
 #******************************************************************************************************************************
 ut_get_prefix_longest_empty() {
     local -n _ret_result=${1}
