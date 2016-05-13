@@ -16,6 +16,7 @@ Such pkgarchives can be handled (installed/removed etc.) by the *P-Linux package
 
 * `port-name`
 * `.group-name`: (only if it is a group pkgarchive.)
+* `.locale-name`: (only if it is a locale pkgarchive.)
 * `buildversion`: 10 digits Unix-timestamp of the pkgarchive build time.
 * `architecture`: any or system-architecture: e.g. ("$(uname -m)"  x86_64)
 * `.extension`: the predefined pkgarchive reference extension without compression.
