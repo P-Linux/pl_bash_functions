@@ -24,23 +24,24 @@ In general the indentation are **4 Spaces** per level.
 
 ### Function Name Prefix
 
-In general Function Names are prefixed with the **First 2 letters of the shell filename followed by one underscore**.
+In general Function Names are prefixed with the **First letter of the shell filename followed by one underscore**.
 
-Example: if the 'pl_bash_functions' file is called: **msg.sh** - the prefix would be: **ms_**
+Example: if the 'pl_bash_functions' file is called: **msg.sh** - the prefix would be: **m_**
 
-* `Function Name`: **ms_abort**
+* `Function Name`: **m_abort**
 
 * Sometimes the **Function Name** is prefixed with an underscore: e.g. function within function
 
-* Exception: sometimes an additional letter is added to distinguish similar starting files." e.g. `pkgarchives.sh, pkgfile.sh`
+* Exception: sometimes an additional letter is added to distinguish files which start with the same letter.
+    * e.g. `testing.sh, trap_opt.sh`
 
 
-### Function Abort
+### Function Exit/Abort
 
 In general Function which abort on failure use following name syntax.
 
-* `Abort if XXX`: **ut_abort_sparse_array** -  Abort if it is a sparse array.
-* `If XXX fails Abort`: **ut_file_is_rw_abort** - If file is read/writeable fails, abort.
+* `Exit if XXX`: **u_exit_sparse_array** -  Exit/Abort if it is a sparse array.
+* `If XXX fails Exit`: **u_file_is_rw_exit** - If file is read/writeable fails, exit/abort.
 
 
 ### Variable Names
@@ -277,15 +278,15 @@ local _result; function_1 _result "argument1"
 
     Only for demonstartion: this does not work: traditional usage
 
-        _tmp_uri=$(ut_get_prefix_shortest_all "${_entry}" "#")
-        (( ${_num_prefix_sep} > 0 )) && _tmp_uri=$(ut_get_postfix_shortest_empty "${_tmp_uri}" "::")
-        _uri=$(ut_get_postfix_longest_all "${_tmp_uri}" "+")
+        _tmp_uri=$(u_prefix_shortest_all "${_entry}" "#")
+        (( ${_num_prefix_sep} > 0 )) && _tmp_uri=$(u_postfix_shortest_empty "${_tmp_uri}" "::")
+        _uri=$(u_postfix_longest_all "${_tmp_uri}" "+")
 
     Speed improved usage
 
-        ut_get_prefix_shortest_all _tmp_uri "${_entry}" "#"
-        (( ${_num_prefix_sep} > 0 )) && ut_get_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
-        ut_get_postfix_longest_all _uri "${_tmp_uri}" "+"
+        u_prefix_shortest_all _tmp_uri "${_entry}" "#"
+        (( ${_num_prefix_sep} > 0 )) && u_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+        u_postfix_longest_all _uri "${_tmp_uri}" "+"
 
 
 !!! warning

@@ -21,9 +21,9 @@ example_print_version() {
 }
 
 
-example_ret_result_version () {
-    local -n _ret_result=$1
-    _ret_result="0.1.1"
+example_retres_version () {
+    local -n _retres=${1}
+    _retres="0.1.1"
 }
 
 
@@ -40,9 +40,9 @@ usagefunc1() {
 
 
 usagefunc2() {
-    local _result; example_ret_result_version _result
+    local _result; example_retres_version _result
     if [[ ${_result} == ${_EX_VERSION} ]]; then
-        echo "usagefunc2: example_ret_result_version"
+        echo "usagefunc2: example_retres_version"
         true
     fi
 }
@@ -62,7 +62,7 @@ testfunc1() {
 
 
 testfunc2() {
-    local _result; example_ret_result_version _result
+    local _result; example_retres_version _result
     [[ ${_result} == ${_EX_VERSION} ]]
 
 }

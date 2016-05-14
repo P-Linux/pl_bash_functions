@@ -6,7 +6,9 @@
 
 ## v0.9.3 (xxxx-xx-xx)
 
-*
+* Complete refactoring to avoid: Error: Argument list too long
+    * Shorten bashfile/function/variable names, strings etc.
+    * gettext was aliased to `_g`
 
 
 ## v0.9.2 (2016-05-12)

@@ -14,68 +14,68 @@
 declare -r _THIS_SCRIPT_PATH_ALL=$(readlink -f "${BASH_SOURCE[0]}")
 declare -r _TEST_SCRIPT_DIR_ALL=$(dirname "${_THIS_SCRIPT_PATH_ALL}")
 declare -r _FUNCTIONS_DIR_ALL="${_TEST_SCRIPT_DIR_ALL}/../scripts"
+declare -r _TESTFILE_ALL="ALL"
 
-source "${_FUNCTIONS_DIR_ALL}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\"" "${_signal}"; done
-trap "tr_trap_exit_interrupted" INT
-#DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
+source "${_FUNCTIONS_DIR_ALL}/trap_opt.sh"
+for _signal in TERM HUP QUIT; do trap "t_trap_s \"${_signal}\"" "${_signal}"; done
+trap "t_trap_i" INT
+#DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "t_trap_u" ERR
 
 source "${_FUNCTIONS_DIR_ALL}/testing.sh"
 
-declare -i _COUNT_OK_ALL=0
-declare -i _COUNT_FAILED_ALL=0
+declare -i _COK_ALL=0
+declare -i _CFAIL_ALL=0
 
 
 #******************************************************************************************************************************
 
-# trap_exit.sh: No tests for this file
+# trap_opt.sh: No tests for this file
 
 source "${_TEST_SCRIPT_DIR_ALL}/tests_testing.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
 source "${_TEST_SCRIPT_DIR_ALL}/tests_msg.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
-source "${_TEST_SCRIPT_DIR_ALL}/tests_utilities.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+source "${_TEST_SCRIPT_DIR_ALL}/tests_util.sh"
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
-source "${_TEST_SCRIPT_DIR_ALL}/tests_source_matrix.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+source "${_TEST_SCRIPT_DIR_ALL}/tests_src_matrix.sh"
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
-source "${_TEST_SCRIPT_DIR_ALL}/tests_download_sources.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+source "${_TEST_SCRIPT_DIR_ALL}/tests_download.sh"
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
-source "${_TEST_SCRIPT_DIR_ALL}/tests_extract_sources.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+source "${_TEST_SCRIPT_DIR_ALL}/tests_extract.sh"
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
 source "${_TEST_SCRIPT_DIR_ALL}/tests_localization.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
 source "${_TEST_SCRIPT_DIR_ALL}/tests_pkgfile.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
-source "${_TEST_SCRIPT_DIR_ALL}/tests_pkgarchives.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+source "${_TEST_SCRIPT_DIR_ALL}/tests_archivefiles.sh"
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
 source "${_TEST_SCRIPT_DIR_ALL}/tests_process_ports.sh"
-((_COUNT_OK_ALL+=${_COUNT_OK}))
-((_COUNT_FAILED_ALL+=${_COUNT_FAILED}))
+((_COK_ALL+=${_COK}))
+((_CFAIL_ALL+=${_CFAIL}))
 
 
 
 #******************************************************************************************************************************
 
-te_print_final_result "${_COUNT_OK_ALL}" "${_COUNT_FAILED_ALL}" "ALL _COUNT_OK" "ALL _COUNT_FAILED"
-
+te_print_final_result "${_TESTFILE_ALL}" "${_COK_ALL}" "${_CFAIL_ALL}"
 
 #******************************************************************************************************************************
 # End of file

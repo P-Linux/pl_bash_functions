@@ -9,249 +9,250 @@
 _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
 _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="${_TEST_SCRIPT_DIR}/../scripts"
+_TESTFILE="msg.sh"
 
-source "${_FUNCTIONS_DIR}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\"" "${_signal}"; done
-trap "tr_trap_exit_interrupted" INT
-# DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "tr_trap_exit_unknown_error" ERR
+source "${_FUNCTIONS_DIR}/trap_opt.sh"
+for _signal in TERM HUP QUIT; do trap "t_trap_s \"${_signal}\"" "${_signal}"; done
+trap "t_trap_i" INT
+# DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "t_trap_u" ERR
 
 source "${_FUNCTIONS_DIR}/testing.sh"
-te_print_header "msg.sh"
+te_print_header "${_TESTFILE}"
 
 source "${_FUNCTIONS_DIR}/msg.sh"
-ms_format
+m_format
 
-declare -i _COUNT_OK=0
-declare -i _COUNT_FAILED=0
+declare -i _COK=0
+declare -i _CFAIL=0
 
 EXCHANGE_LOG=$(mktemp)
 
 
 #******************************************************************************************************************************
-# TEST: ms_get_pl_bash_functions_version()
+# TEST: m_get_pl_bash_functions_version()
 #******************************************************************************************************************************
-ts_ms___ms_get_pl_bash_functions_version() {
+tsm__m_get_pl_bash_functions_version() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ms_get_pl_bash_functions_version()"
-    local _version; ms_get_pl_bash_functions_version _version
+    te_print_function_msg "m_get_pl_bash_functions_version()"
+    local _vers; m_get_pl_bash_functions_version _vers
 
-    te_not_empty_val _COUNT_OK _COUNT_FAILED "${_version}" "Testing get pl_bash_functions package version."
+    te_not_empty_val _COK _CFAIL "${_vers}" "Testing get pl_bash_functions package version."
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_get_pl_bash_functions_version
+tsm__m_get_pl_bash_functions_version
 
 
 #******************************************************************************************************************************
-# TEST: ms_has_tested_version()
+# TEST: m_has_tested_version()
 #******************************************************************************************************************************
-ts_ms___ms_has_tested_version() {
+tsm__m_has_tested_version() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ms_has_tested_version()"
-    local _ms_all_off=$(tput sgr0)
-    local _ms_bold=$(tput bold)
-    local _ms_yellow="${_ms_bold}$(tput setaf 3)"
-    local _msg1="${_ms_yellow}====> WARNING:"
-    local _pl_bash_functions_version; ms_get_pl_bash_functions_version _pl_bash_functions_version
+    te_print_function_msg "m_has_tested_version()"
+    local _off=$(tput sgr0)
+    local _bold=$(tput bold)
+    local _yellow="${_bold}$(tput setaf 3)"
+    local _msg1="${_yellow}====> WARNING:"
+    local _pl_bash_functions_version; m_get_pl_bash_functions_version _pl_bash_functions_version
     local _output
 
-    _output=$((ms_has_tested_version "different_version") 2>&1)
-    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" \
-        "${_msg1}${_ms_all_off} This script was ${_ms_bold}TESTET${_ms_all_off} with <pl_bash_functions>: 'different_version'"
+    _output=$((m_has_tested_version "different_version") 2>&1)
+    te_find_info_msg _COK _CFAIL "${_output}" \
+        "${_msg1}${_off} This script was ${_bold}TESTET${_off} with <pl_bash_functions>: 'different_version'"
 
-    _output=$((ms_has_tested_version "${_pl_bash_functions_version}") 2>&1)
-    te_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing same pl_bash_functions version."
+    _output=$((m_has_tested_version "${_pl_bash_functions_version}") 2>&1)
+    te_empty_val _COK _CFAIL "${_output}" "Testing same pl_bash_functions version."
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_has_tested_version
+tsm__m_has_tested_version
 
 
 #******************************************************************************************************************************
-# TEST: ms_pl_bash_functions_installed_dir()
+# TEST: m_pl_bash_functions_dir()
 #******************************************************************************************************************************
-ts_ms___ms_pl_bash_functions_installed_dir() {
+tsm__m_pl_bash_functions_dir() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ms_pl_bash_functions_installed_dir() very limited test"
-    local _installed_dir; ms_pl_bash_functions_installed_dir _installed_dir
+    te_print_function_msg "m_pl_bash_functions_dir() very limited test"
+    local _installed_dir; m_pl_bash_functions_dir _installed_dir
     local _ref_script_dir=$(readlink -f "${_FUNCTIONS_DIR}")
 
-    te_same_val _COUNT_OK _COUNT_FAILED "${_installed_dir}" "${_ref_script_dir}"
+    te_same_val _COK _CFAIL "${_installed_dir}" "${_ref_script_dir}"
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_pl_bash_functions_installed_dir
+tsm__m_pl_bash_functions_dir
 
 
 #******************************************************************************************************************************
-# TEST: ms_more()
+# TEST: m_more()
 #******************************************************************************************************************************
-ts_ms___ms_more() {
+tsm__m_more() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ts_ms___ms_more()"
+    te_print_function_msg "tsm__m_more()"
     local _filename="/home/testfile.txt"
     local _output
 
-    _MS_VERBOSE_MORE="no"
-    _output=$(ms_more "$(gettext "Source file: <%s>")" "${_filename}")
-    te_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing _MS_VERBOSE_MORE=no skip output."
+    _M_VERBOSE_I="no"
+    _output=$(m_more "$(_g "Source file: <%s>")" "${_filename}")
+    te_empty_val _COK _CFAIL "${_output}" "Testing _M_VERBOSE_I=no skip output."
 
-    _MS_VERBOSE_MORE="yes"
-    _output=$(ms_more "$(gettext "Source file: <%s>")" "${_filename}")
-    te_not_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing _MS_VERBOSE_MORE=yes expect output."
+    _M_VERBOSE_I="yes"
+    _output=$(m_more "$(_g "Source file: <%s>")" "${_filename}")
+    te_not_empty_val _COK _CFAIL "${_output}" "Testing _M_VERBOSE_I=yes expect output."
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_more
+tsm__m_more
 
 
 #******************************************************************************************************************************
-# TEST: ms_bold()
+# TEST: m_bold()
 #******************************************************************************************************************************
-ts_ms___ms_bold() {
+tsm__bold() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ts_ms___ms_bold()"
+    te_print_function_msg "tsm__bold()"
     local _filename="/home/testfile.txt"
     local _output
 
-    _MS_VERBOSE="no"
-    _output=$(ms_bold "$(gettext "Source file: <%s>")" "${_filename}")
-    te_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing _MS_VERBOSE=no skip output."
+    _M_VERBOSE="no"
+    _output=$(m_bold "$(_g "Source file: <%s>")" "${_filename}")
+    te_empty_val _COK _CFAIL "${_output}" "Testing _M_VERBOSE=no skip output."
 
-    _MS_VERBOSE="yes"
-    _output=$(ms_bold "$(gettext "Source file: <%s>")" "${_filename}")
-    te_not_empty_val _COUNT_OK _COUNT_FAILED "${_output}" "Testing _MS_VERBOSE=yes expect output."
+    _M_VERBOSE="yes"
+    _output=$(m_bold "$(_g "Source file: <%s>")" "${_filename}")
+    te_not_empty_val _COK _CFAIL "${_output}" "Testing _M_VERBOSE=yes expect output."
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_bold
+tsm__bold
 
 
 #******************************************************************************************************************************
-# TEST: ms_abort()
+# TEST: m_exit()
 #******************************************************************************************************************************
-ts_ms___ms_abort() {
+tsm__m_exit() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ms_abort()"
-    local _fn="ts_ms___ms_abort"
+    te_print_function_msg "m_exit()"
+    local _fn="tsm__m_exit"
     local _filename="/home/testfile.txt"
     local _info="Find passed info message: Just some extra info."
     local _output
 
-    _output=$((ms_abort "${_fn}" "$(gettext "Did Not find file: <%s> _info: '%s'")" "${_filename}" "${_info}") 2>&1)
-    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Find passed info message: Just some extra info."
+    _output=$((m_exit "${_fn}" "$(_g "Did Not find file: <%s> _info: '%s'")" "${_filename}" "${_info}") 2>&1)
+    te_find_info_msg _COK _CFAIL "${_output}" "Find passed info message: Just some extra info."
 
-    (ms_abort "${_fn}" "$(gettext "Did Not find file: <%s> _info: '%s'")" "${_filename}" "${_info}") &> /dev/null
-    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Just normal abort."
+    (m_exit "${_fn}" "$(_g "Did Not find file: <%s> _info: '%s'")" "${_filename}" "${_info}") &> /dev/null
+    te_retval_1 _COK _CFAIL $? "Just normal abort."
 
-    _output=$((ms_abort "${_fn}") 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "FUNCTION 'ms_abort()': Requires AT LEAST '2' arguments. Got '1'"
+    _output=$((m_exit "${_fn}") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '2' arguments. Got '1'"
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_abort
+tsm__m_exit
 
 
 #******************************************************************************************************************************
-# TEST: ms_abort_remove_path()
+# TEST: m_exit_remove_path()
 #******************************************************************************************************************************
-ts_ms___ms_abort_remove_path() {
+tsm__m_exit_remove_path() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ms_abort_remove_path()"
-    local _fn="ts_ms___ms_abort_remove_path"
+    te_print_function_msg "m_exit_remove_path()"
+    local _fn="tsm__m_exit_remove_path"
     local _tmp_dir=$(mktemp -d)
     local _builds_dir="${_tmp_dir}/builds"
     local _output
 
-    _output=$((ms_abort_remove_path "${_fn}") 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Requires AT LEAST '4' arguments. Got '1'"
+    _output=$((m_exit_remove_path "${_fn}") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Requires AT LEAST '4' arguments. Got '1'"
 
-    _output=$((ms_abort_remove_path "${_fn}" "yes" "${_builds_dir}") 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Requires AT LEAST '4' arguments. Got '3'"
+    _output=$((m_exit_remove_path "${_fn}" "yes" "${_builds_dir}") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Requires AT LEAST '4' arguments. Got '3'"
 
-    _output=$((ms_abort_remove_path "${_fn}" "wrong" "${_builds_dir}" "$(gettext "this is a failure: <%s>")" "ERROR") 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Argument '2' MUST be 'yes' or 'no'. Got 'wrong'"
+    _output=$((m_exit_remove_path "${_fn}" "wrong" "${_builds_dir}" "$(_g "this is a failure: <%s>")" "ERROR") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Argument '2' MUST be 'yes' or 'no'. Got 'wrong'"
 
-    _output=$((ms_abort_remove_path "${_fn}" "no" "" "Path is: ${_tmp_dir}/none_existing") 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Path is: ${_tmp_dir}/none_existing" \
+    _output=$((m_exit_remove_path "${_fn}" "no" "" "Path is: ${_tmp_dir}/none_existing") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Path is: ${_tmp_dir}/none_existing" \
         "ARGUMENT 3 empty but ARGUMENT 2 is not."
 
-    _output=$((ms_abort_remove_path "${_fn}" "yes" "" "${_tmp_dir}/none_existing") 2>&1)
-    te_find_err_msg _COUNT_OK _COUNT_FAILED "${_output}" "Argument '3' MUST NOT be empty if argument 2 is 'yes'"
+    _output=$((m_exit_remove_path "${_fn}" "yes" "" "${_tmp_dir}/none_existing") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Argument '3' MUST NOT be empty if argument 2 is 'yes'"
 
     # create the dir
     mkdir -p "${_builds_dir}"
 
-    _output=$((ms_abort_remove_path "${_fn}" "no" "" "Keeping build_dir: <%s>" "${_builds_dir}") 2>&1)
+    _output=$((m_exit_remove_path "${_fn}" "no" "" "Keeping build_dir: <%s>" "${_builds_dir}") 2>&1)
     if [[ ! -d ${_builds_dir} ]]; then
         te_warn "${_fn}" "!! ERROR IN TEST-case: Keeping build_dir: <${_builds_dir}> should still exist."
         exit 1
     fi
-    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Keeping build_dir:"
+    te_find_info_msg _COK _CFAIL "${_output}" "Keeping build_dir:"
 
-    _output=$((ms_abort_remove_path "${_fn}" "yes" "${_builds_dir}" "Removing build_dir: <%s>" "${_builds_dir}") 2>&1)
+    _output=$((m_exit_remove_path "${_fn}" "yes" "${_builds_dir}" "Removing build_dir: <%s>" "${_builds_dir}") 2>&1)
     if [[ -d ${_builds_dir} ]]; then
         te_warn "${_fn}" "!! ERROR IN TEST-case: Keeping build_dir: <${_builds_dir}> should not exist."
         exit 1
     fi
-    te_find_info_msg _COUNT_OK _COUNT_FAILED "${_output}" "Removing build_dir:"
+    te_find_info_msg _COK _CFAIL "${_output}" "Removing build_dir:"
 
-    (ms_abort_remove_path "${_fn}" "yes" "${_builds_dir}" "Removing build_dir: <%s>" "${_builds_dir}") &> /dev/null
-    te_retval_1 _COUNT_OK _COUNT_FAILED $? "Remove Path is: 'yes' BUT none existing."
+    (m_exit_remove_path "${_fn}" "yes" "${_builds_dir}" "Removing build_dir: <%s>" "${_builds_dir}") &> /dev/null
+    te_retval_1 _COK _CFAIL $? "Remove Path is: 'yes' BUT none existing."
 
     # CLEAN UP
     rm -rf "${_tmp_dir}"
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_abort_remove_path
+tsm__m_exit_remove_path
 
 
 #******************************************************************************************************************************
-# TEST: ms_hrl()
+# TEST: m_hrl()
 #******************************************************************************************************************************
-ts_ms___ms_hrl() {
+tsm__m_hrl() {
     (source "${EXCHANGE_LOG}"
 
-    te_print_function_msg "ms_hrl()"
-    local _expected_output="${_MS_GREEN}#=========================#${_MS_ALL_OFF}"
-    local _output=$(ms_hrl "${_MS_GREEN}" "#" "=" 25 "#")
+    te_print_function_msg "m_hrl()"
+    local _expected_output="${_M_GREEN}#=========================#${_M_OFF}"
+    local _output=$(m_hrl "${_M_GREEN}" "#" "=" 25 "#")
 
-    te_same_val _COUNT_OK _COUNT_FAILED "${_output}" "${_expected_output}"
+    te_same_val _COK _CFAIL "${_output}" "${_expected_output}"
 
     ###
-    echo -e "_COUNT_OK=${_COUNT_OK}; _COUNT_FAILED=${_COUNT_FAILED}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
     )
 }
-ts_ms___ms_hrl
+tsm__m_hrl
 
 
 
 #******************************************************************************************************************************
 
 source "${EXCHANGE_LOG}"
-te_print_final_result "${_COUNT_OK}" "${_COUNT_FAILED}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
 rm -f "${EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

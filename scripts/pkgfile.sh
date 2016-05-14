@@ -12,9 +12,7 @@
 #
 #=============================================================================================================================#
 
-unset GREP_OPTIONS
-shopt -s extglob dotglob
-set +o noclobber
+t_general_opt
 
 
 
@@ -27,7 +25,7 @@ set +o noclobber
 #******************************************************************************************************************************
 # Unset official Pkgfile variables
 #******************************************************************************************************************************
-pkf_unset_official_pkgfile_variables() {
+pk_unset_official_pkgfile_var() {
     unset -v pkgpackager pkgdesc pkgurl pkgdeps pkgdepsrun pkgvers pkgrel pkgsources pkgmd5sums
 }
 
@@ -38,13 +36,13 @@ pkf_unset_official_pkgfile_variables() {
 #
 #   VALIDATES:
 #       - Collection Path: absolute path to an existing dir or link with rwx access
-#       - PORT: contains a Portfile (_reference_pkgfile_name) with rw access
+#       - PORT: contains a Portfile (_ref_pkgfile_name) with rw access
 #       - PORTNAME: validates length and chareracters
 #
 #   ARGUMENTS
-#       `_ret_collection_ports_lookup`: a reference var: an empty associative array which will be updated with the ports names
-#       `_reference_pkgfile_name`: A reference Pkgfile name which must exist in a valid port folder
-#       `_in_registered_collections_l` a reference var
+#       `_ret_col_ports_lookup`: a reference var: an empty associative array which will be updated with the ports names
+#       `_ref_pkgfile_name`: A reference Pkgfile name which must exist in a valid port folder
+#       `_in_reg_collections_l` a reference var
 #               A `REGISTERED_COLLECTIONS` array item must specify the full path to a collection of ports directories. e.g
 #               CMK_REGISTERED_COLLECTIONS=(
 #                   "/home/overlayer-collection"
@@ -59,7 +57,7 @@ pkf_unset_official_pkgfile_variables() {
 #               )
 #   USAGE:
 #       declare -A COLLECTION_LOOKUP=()
-#       pkf_prepare_collections_lookup COLLECTION_LOOKUP "${CMK_PKGFILE_NAME}" CMK_REGISTERED_COLLECTIONS
+#       pk_get_collections_lookup COLLECTION_LOOKUP "${CMK_PKGFILE_NAME}" CMK_REGISTERED_COLLECTIONS
 #
 #   EXAMPLE
 #       CMK_REGISTERED_COLLECTIONS=(
@@ -76,82 +74,78 @@ pkf_unset_official_pkgfile_variables() {
 #           "/usr/ports/base"
 #       )
 #       declare -A COLLECTION_LOOKUP=()
-#       pkf_prepare_collections_lookup COLLECTION_LOOKUP "Pkgfile" CMK_REGISTERED_COLLECTIONS
+#       pk_get_collections_lookup COLLECTION_LOOKUP "Pkgfile" CMK_REGISTERED_COLLECTIONS
 #       echo "<${#COLLECTION_LOOKUP[@]}>"
 #******************************************************************************************************************************
-pkf_prepare_collections_lookup() {
-    local _fn="pkf_prepare_collections_lookup"
-    local -n _ret_collection_ports_lookup=${1}
-    local _reference_pkgfile_name=${2}
-    local -n _in_registered_collections_l=${3}
-    local _collection_entry _collection_path _collection_port_path _collection_port_name _collection_pkgfile_path
-    declare -i _collection_port_name_size
+pk_get_collections_lookup() {
+    local _fn="pk_get_collections_lookup"
+    local -n _ret_col_ports_lookup=${1}
+    local _ref_pkgfile_name=${2}
+    local -n _in_reg_collections_l=${3}
+    local _col_ent _col_path _col_portpath _col_portname _col_pkgfile
+    declare -i _col_portname_size
 
-    if [[ ${_reference_pkgfile_name} == *"/" ]]; then
-        ms_abort "${_fn}" "$(gettext "Reference Pkgfile-Name '_reference_pkgfile_name': MUST NOT end with a slash: <%s>")" \
-            "${_reference_pkgfile_name}"
+    if [[ ${_ref_pkgfile_name} == *"/" ]]; then
+        m_exit "${_fn}" "$(_g "Reference Pkgfile-Name '_ref_pkgfile_name': MUST NOT end with a slash: <%s>")" \
+            "${_ref_pkgfile_name}"
     fi
 
-    ut_ref_associative_array_abort "_ret_collection_ports_lookup" "${_fn}"
+    u_ref_associative_array_exit "_ret_col_ports_lookup" "${_fn}"
 
-    # always reset the _ret_collection_ports_lookup
-    _ret_collection_ports_lookup=()
-    for _collection_entry in "${_in_registered_collections_l[@]}"; do
-        if [[ ${_collection_entry} != "/"* ]]; then
-            ms_abort "${_fn}" "$(gettext "COLLECTION_ENTRY: An absolute directory path MUST start with a slash: <%s>")" \
-                "${_collection_entry}"
+    # always reset the _ret_col_ports_lookup
+    _ret_col_ports_lookup=()
+    for _col_ent in "${_in_reg_collections_l[@]}"; do
+        if [[ ${_col_ent} != "/"* ]]; then
+            m_exit "${_fn}" "$(_g "COLLECTION_ENTRY: An absolute directory path MUST start with a slash: <%s>")" "${_col_ent}"
         fi
-        if [[ -L ${_collection_entry} ]];then
-            _collection_path=$(readlink -f "${_collection_entry}")
+        if [[ -L ${_col_ent} ]];then
+            _col_path=$(readlink -f "${_col_ent}")
         else
-            _collection_path=${_collection_entry}
+            _col_path=${_col_ent}
         fi
-        if [[ ! -d ${_collection_path} ]]; then
-            ms_abort "${_fn}" "$(gettext "FINAL COLLECTION directory does not exist: <%s> COLLECTION-ENTRY: <%s>")" \
-                "${_collection_path}" "${_collection_entry}"
-        elif [[ ! -r ${_collection_path} ]]; then
-            ms_abort "${_fn}" "$(gettext "FINAL COLLECTION directory is not readable: <%s> COLLECTION-ENTRY: <%s>")" \
-                "${_collection_path}" "${_collection_entry}"
-        elif [[ ! -w ${_collection_path} ]]; then
-            ms_abort "${_fn}" "$(gettext "FINAL COLLECTION directory is not writable:: <%s> COLLECTION-ENTRY: <%s>")" \
-                "${_collection_path}" "${_collection_entry}"
-        elif [[ ! -x ${_collection_path} ]]; then
-            ms_abort "${_fn}" "$(gettext "FINAL COLLECTION directory is not executable: <%s> COLLECTION-ENTRY: <%s>")" \
-                "${_collection_path}" "${_collection_entry}"
+
+        if [[ ! -d ${_col_path} ]]; then
+            m_exit "${_fn}" "$(_g "COLLECTION directory does not exist: <%s>: <%s>")" "${_col_path}" "${_col_ent}"
+        elif [[ ! -r ${_col_path} ]]; then
+            m_exit "${_fn}" "$(_g "COLLECTION directory is not readable: <%s>: <%s>")" "${_col_path}" "${_col_ent}"
+        elif [[ ! -w ${_col_path} ]]; then
+            m_exit "${_fn}" "$(_g "COLLECTION directory is not writable:: <%s>: <%s>")" "${_col_path}" "${_col_ent}"
+        elif [[ ! -x ${_col_path} ]]; then
+            m_exit "${_fn}" "$(_g "COLLECTION directory is not executable: <%s>: <%s>")" "${_col_path}" "${_col_ent}"
         fi
         # only get one level down
-        for _collection_port_path in "${_collection_path}"/*; do
-            if [[ -d ${_collection_port_path} ]]; then
+        for _col_portpath in "${_col_path}"/*; do
+            if [[ -d ${_col_portpath} ]]; then
                 # Just add the first found path
-                _collection_pkgfile_path="${_collection_port_path}/${_reference_pkgfile_name}"
+                _col_pkgfile="${_col_portpath}/${_ref_pkgfile_name}"
                 # Only dirs with Pkgfiles are considered
-                if [[ -f ${_collection_pkgfile_path} ]]; then
-                    if [[ ! -r ${_collection_path} ]]; then
-                        ms_abort "${_fn}" "$(gettext "COLLECTION Pkgfile is not readable: <%s> COLLECTION-ENTRY: <%s>")" \
-                            "${_collection_pkgfile_path}" "${_collection_entry}"
-                    elif [[ ! -w ${_collection_path} ]]; then
-                        ms_abort "${_fn}" "$(gettext "COLLECTION Pkgfile is not writable:: <%s> COLLECTION-ENTRY: <%s>")" \
-                            "${_collection_pkgfile_path}" "${_collection_entry}"
+                if [[ -f ${_col_pkgfile} ]]; then
+                    if [[ ! -r ${_col_path} ]]; then
+                        m_exit "${_fn}" "$(_g "COLLECTION Pkgfile is not readable: <%s>: <%s>")" \
+                            "${_col_pkgfile}" "${_col_ent}"
+                    elif [[ ! -w ${_col_path} ]]; then
+                        m_exit "${_fn}" "$(_g "COLLECTION Pkgfile is not writable:: <%s>: <%s>")" \
+                            "${_col_pkgfile}" "${_col_ent}"
                     fi
 
-                    ut_get_postfix_shortest_all _collection_port_name "${_collection_port_path}" "/"
-                    if [[ ! -v _ret_collection_ports_lookup[${_collection_port_name}] ]]; then
-                        _collection_port_name_size=${#_collection_port_name}
+                    u_postfix_shortest_all _col_portname "${_col_portpath}" "/"
+                    if [[ ! -v _ret_col_ports_lookup[${_col_portname}] ]]; then
+                        _col_portname_size=${#_col_portname}
                         # Validate: _portname
-                        if (( _collection_port_name_size < 2 || _collection_port_name_size > 50 )); then
-                            ms_abort "${_fn}" \
-                                "$(gettext "PORTNAME MUST have at least 2 and maximum 50 chars. Got: '%s' <%s>")" \
-                                "${_collection_port_name_size}" "${_collection_port_path}"
+                        if (( _col_portname_size < 2 || _col_portname_size > 50 )); then
+                            m_exit "${_fn}" \
+                                "$(_g "PORTNAME MUST have at least 2 and maximum 50 chars. Got: '%s' <%s>")" \
+                                "${_col_portname_size}" "${_col_portpath}"
                         fi
-                        if [[ ${_collection_port_name} == *[![:alnum:]-_+]* ]]; then
-                            ms_abort "${_fn}" "$(gettext "PORTNAME contains invalid characters: '%s' PATH: <%s>")" \
-                                "${_collection_port_name//[[:alnum:]-_+]}" "${_collection_port_path}"
+                        if [[ ${_col_portname} == *[![:alnum:]-_+]* ]]; then
+                            m_exit "${_fn}" "$(_g "PORTNAME contains invalid chars: '%s' PATH: <%s>")" \
+                                "${_col_portname//[[:alnum:]-_+]}" "${_col_portpath}"
                         fi
-                        if [[ ${_collection_port_name} == [![:alnum:]]* ]]; then
-                            ms_abort "${_fn}" "$(gettext "PORTNAME MUST start with an alphanumeric char. Got: '%s' <%s>")" \
-                                "${_collection_port_name:0:1}" "${_collection_port_path}"
+                        if [[ ${_col_portname} == [![:alnum:]]* ]]; then
+                            m_exit "${_fn}" "$(_g "PORTNAME MUST start with an alphanumeric char. Got: '%s' <%s>")" \
+                                "${_col_portname:0:1}" "${_col_portpath}"
                         fi
-                        _ret_collection_ports_lookup["${_collection_port_name}"]=${_collection_pkgfile_path}
+                        _ret_col_ports_lookup["${_col_portname}"]=${_col_pkgfile}
                     fi
                 fi
             fi
@@ -165,14 +159,14 @@ pkf_prepare_collections_lookup() {
 #
 #   ARGUMENTS
 #       `_ret_pkgfiles_to_process`: a reference var: an empty index array which will be updated with absolute Pkgfile path.
-#       `_reference_pkgfile_name`: A reference name for a pkgfile - used to search for valid ports
+#       `_ref_pkgfile_name`: A reference name for a pkgfile - used to search for valid ports
 #       `_in_portslist`: a reference var: a array of registered collection port names or absolute path to ports: e.g.
 #               CMK_PORTSLIST=(
 #                   bzip2
 #                   coreutils
 #                   /usr/ports/personal/wget
 #               )
-#       `_in_registered_collections`: a reference var:
+#       `_in_reg_collections`: a reference var:
 #               A `REGISTERED_COLLECTIONS` array item must specify the full path to a collection of ports directories. e.g
 #               CMK_REGISTERED_COLLECTIONS=(
 #                   "/home/overlayer-collection"
@@ -187,16 +181,16 @@ pkf_prepare_collections_lookup() {
 #               )
 #   USAGE:
 #       CMK_PKGFILES_TO_PROCESS=()
-#       pkf_prepare_pkgfiles_to_process PKGFILES_TO_PROCESS "${CMK_PKGFILE_NAME}" CMK_PORTSLIST CMK_REGISTERED_COLLECTIONS
+#       pk_get_pkgfiles_to_process PKGFILES_TO_PROCESS "${CMK_PKGFILE_NAME}" CMK_PORTSLIST CMK_REGISTERED_COLLECTIONS
 #******************************************************************************************************************************
-pkf_prepare_pkgfiles_to_process() {
-    local _fn="pkf_prepare_pkgfiles_to_process"
+pk_get_pkgfiles_to_process() {
+    local _fn="pk_get_pkgfiles_to_process"
     local -n _ret_pkgfiles_to_process=${1}
-    local _reference_pkgfile_name=${2}
+    local _ref_pkgfile_name=${2}
     local -n _in_portslist=${3}
-    local -n _in_registered_collections=${4}
-    declare -A _collection_lookup=()
-    local _port_entry _pkgfile_port_path _reg_collection
+    local -n _in_reg_collections=${4}
+    declare -A _col_lookup=()
+    local _port _pkgfile_portpath _reg_collection
 
     # always reset the _ret_pkgfiles_to_process
     _ret_pkgfiles_to_process=()
@@ -204,28 +198,26 @@ pkf_prepare_pkgfiles_to_process() {
     # Check if we have only one absolute path: most often:
     #           then there is no need to prepare the collections_lookup which takes time
     if (( ${#_in_portslist[@]} == 1 )) && [[ ${_in_portslist[0]} == "/"* ]] ; then
-        _pkgfile_port_path="${_in_portslist[0]}/${_reference_pkgfile_name}"
-        pkf_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
-        _ret_pkgfiles_to_process+=("${_pkgfile_port_path}")
+        _pkgfile_portpath="${_in_portslist[0]}/${_ref_pkgfile_name}"
+        pk_check_pkgfile_port_path_name "${_pkgfile_portpath}" "${_ref_pkgfile_name}"
+        _ret_pkgfiles_to_process+=("${_pkgfile_portpath}")
     else
-        pkf_prepare_collections_lookup _collection_lookup "${_reference_pkgfile_name}" _in_registered_collections
+        pk_get_collections_lookup _col_lookup "${_ref_pkgfile_name}" _in_reg_collections
 
-        for _port_entry in "${_in_portslist[@]}"; do
-            if [[ ${_port_entry} == "/"* ]]; then
-                _pkgfile_port_path="${_port_entry}/${_reference_pkgfile_name}"
-                pkf_validate_pkgfile_port_path_name "${_pkgfile_port_path}" "${_reference_pkgfile_name}"
-                _ret_pkgfiles_to_process+=("${_pkgfile_port_path}")
-            elif [[ -v _collection_lookup[${_port_entry}] ]]; then
-                _ret_pkgfiles_to_process+=("${_collection_lookup[${_port_entry}]}")
+        for _port in "${_in_portslist[@]}"; do
+            if [[ ${_port} == "/"* ]]; then
+                _pkgfile_portpath="${_port}/${_ref_pkgfile_name}"
+                pk_check_pkgfile_port_path_name "${_pkgfile_portpath}" "${_ref_pkgfile_name}"
+                _ret_pkgfiles_to_process+=("${_pkgfile_portpath}")
+            elif [[ -v _col_lookup[${_port}] ]]; then
+                _ret_pkgfiles_to_process+=("${_col_lookup[${_port}]}")
             else
                 # NOT FOUND
-                ms_more "$(gettext "======== All Registered Collections ========")"
-                for _reg_collection in "${_in_registered_collections[@]}"; do
-                    ms_more_i "$(gettext "* Collection Path: <%s>")" \
-                        "${_reg_collection}"
+                m_more "$(_g "======== All Registered Collections ========")"
+                for _reg_collection in "${_in_reg_collections[@]}"; do
+                    m_more_i "$(_g "* Collection Path: <%s>")" "${_reg_collection}"
                 done
-                 ms_abort "${_fn}" "$(gettext "Portslist entry: <%s> not found in the registered collections.")" \
-                    "${_port_entry}"
+                 m_exit "${_fn}" "$(_g "Portslist entry: <%s> not found in the registered collections.")" "${_port}"
             fi
         done
     fi
@@ -237,22 +229,22 @@ pkf_prepare_pkgfiles_to_process() {
 #
 #   ARGUMENTS
 #       `_pkgvers`: _pkgvers string
-#       `$2 (_pkgfile_path)`: absolute path to the pkgfile
+#       `_pkgfile`: absolute path to the pkgfile
 #
 #   USAGE:
-#       pkf_validate_pkgvers "1.3.5" "${CMK_PKGFILE_PATH}"
+#       pk_check_pkgvers "1.3.5" "${CMK_PKGFILE_PATH}"
 #******************************************************************************************************************************
-pkf_validate_pkgvers() {
+pk_check_pkgvers() {
     local _pkgvers=${1}
-    # skip assignment:  _pkgfile_path=${2}
+    local _pkgfile=${2}
 
     if [[ -n ${_pkgvers} ]]; then
         if [[ ${_pkgvers} == *[![:alnum:].]* ]]; then
-            ms_abort "pkf_validate_pkgvers" "$(gettext "'pkgvers' contains invalid characters: '%s' File: <%s>")" \
-                "${_pkgvers//[[:alnum:].]}" "${2}"
+            m_exit "pk_check_pkgvers" "$(_g "'pkgvers' contains invalid chars: '%s' File: <%s>")" \
+                "${_pkgvers//[[:alnum:].]}" "${_pkgfile}"
         fi
     else
-        ms_abort "pkf_validate_pkgvers" "$(gettext "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${2}"
+        m_exit "pk_check_pkgvers" "$(_g "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${_pkgfile}"
     fi
 }
 
@@ -261,25 +253,24 @@ pkf_validate_pkgvers() {
 # Return Pkgfile / Port Version: Checks only the version syntax
 #
 #   ARGUMENTS
-#       `$1 (_pkgfile_path)`: absolute path to the pkgfile
+#       `$1 (_pkgfile)`: absolute path to the pkgfile
 #
 #   USAGE:
-#       pkf_get_only_pkgvers_abort "${CMK_PKGFILE_PATH}"
+#       pk_get_only_pkgvers_exit "${CMK_PKGFILE_PATH}"
 #
 #   NOTE: Keept this as an subshell
 #******************************************************************************************************************************
-pkf_get_only_pkgvers_abort() {
+pk_get_only_pkgvers_exit() {
     (
-        [[ -n $1 ]] || ms_abort "pkf_get_only_pkgvers_abort" \
-                "$(gettext "FUNCTION 'pkf_get_only_pkgvers_abort()': Argument 1 MUST NOT be empty.")"
-        # skip assignment: _pkgfile_path=${1}
+        [[ -n $1 ]] || m_exit "pk_get_only_pkgvers_exit" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+        # skip assignment: _pkgfile=${1}
 
         # unset all official related variable
-        pkf_unset_official_pkgfile_variables
+        pk_unset_official_pkgfile_var
 
-        ut_source_safe_abort "${1}"
+        u_source_safe_exit "${1}"
 
-        pkf_validate_pkgvers "${pkgvers}" "${1}"
+        pk_check_pkgvers "${pkgvers}" "${1}"
         printf "%s\n" "${pkgvers}"
     )
 }
@@ -291,39 +282,37 @@ pkf_get_only_pkgvers_abort() {
 #
 #   ARGUMENTS
 #       `_ret_pkgmd5sums`: reference var: will be updated with the final corresponding entries
-#       `_in_pkgp_scrmtx`: reference var: Source Matrix: see function 'so_prepare_src_matrix()' in file: <source_matrix.sh>
+#       `_in_pkgp_scrmtx`: reference var: Source Matrix: see function 's_get_src_matrix()' in file: <src_matrix.sh>
 #
 #
 #   USAGE
 #       local NEW_PKGMD5SUMS=()
-#       pkf_generate_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
+#       pk_make_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
 #******************************************************************************************************************************
-pkf_generate_pkgmd5sums() {
+pk_make_pkgmd5sums() {
     local -n _ret_pkgmd5sums=${1}
     local -n _in_pkgp_scrmtx=${2}
     declare -i _n
-    local _md5sum _entry _protocol _destpath
+    local _md5sum _ent _destpath
 
     if [[ ! -v _in_pkgp_scrmtx[NUM_IDX] ]]; then
-        ms_abort "pkf_generate_pkgmd5sums" \
-            "$(gettext "Could not get the 'NUM_IDX' from the matrix - did you run 'so_prepare_src_matrix()'")"
+        m_exit "pk_make_pkgmd5sums" \
+            "$(_g "Could not get the 'NUM_IDX' from the matrix - did you run 's_get_src_matrix()'")"
     fi
 
     for (( _n=1; _n <= ${_in_pkgp_scrmtx[NUM_IDX]}; _n++ )); do
-        _entry=${_in_pkgp_scrmtx[${_n}:ENTRY]}
+        _ent=${_in_pkgp_scrmtx[${_n}:ENTRY]}
         _destpath=${_in_pkgp_scrmtx[${_n}:DESTPATH]}
-        _protocol=${_in_pkgp_scrmtx[${_n}:PROTOCOL]}
-        case "${_protocol}" in
+        case "${_in_pkgp_scrmtx[${_n}:PROTOCOL]}" in
             ftp|http|https|local)
                 if [[ -f ${_destpath} && -r ${_destpath} ]]; then
                     _md5sum=$(md5sum "${_destpath}")
                     _md5sum=${_md5sum:0:32}
-                    [[ -n ${_md5sum} ]] || ms_abort "pkf_generate_pkgmd5sums" \
-                                            "$(gettext "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")"  \
-                                            "${_destpath}" "${_entry}"
+                    [[ -n ${_md5sum} ]] || m_exit "pk_make_pkgmd5sums" \
+                                            "$(_g "Could not generate a md5sum for _destpath: <%s> Entry: <%s>")"  \
+                                            "${_destpath}" "${_ent}"
                 else
-                    ms_abort "pkf_generate_pkgmd5sums" "$(gettext "Not a readable file path: <%s> Entry: <%s>")" \
-                        "${_destpath}" "${_entry}"
+                    m_exit "pk_make_pkgmd5sums" "$(_g "Not a readable file path: <%s> Entry: <%s>")" "${_destpath}" "${_ent}"
                 fi
                 _ret_pkgmd5sums+=("${_md5sum}")
                 ;;
@@ -364,53 +353,53 @@ pkf_generate_pkgmd5sums() {
 #       | YES      | `pkgmd5sum`   | A list of corresponding md5checksums (for file sources).                | ARRAY  |
 #
 #   ARGUMENTS
-#       `_pkgfile_path`: absolute path to the pkgfile: must exist
-#       `_reference_pkgfile_name`: A reference name against the _pkgfile_path basename is checked
+#       `_pkgfile`: absolute path to the pkgfile: must exist
+#       `_ref_pkgfile_name`: A reference name against the _pkgfile basename is checked
 #
 #   USAGE:
-#       pkf_validate_pkgfile_port_path_name "${CMK_PKGFILE_PATH}" "${CMK_PKGFILE_NAME}"
+#       pk_check_pkgfile_port_path_name "${CMK_PKGFILE_PATH}" "${CMK_PKGFILE_NAME}"
 #******************************************************************************************************************************
-pkf_validate_pkgfile_port_path_name() {
-    local _fn="pkf_validate_pkgfile_port_path_name"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
-    [[ -n $2 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 2 MUST NOT be empty.")" "${_fn}"
-    local _pkgfile_path=${1}
-    local _reference_pkgfile_name=${2}
-    local _port_path; ut_dirname _port_path "${_pkgfile_path}"
-    local _portname; ut_basename _portname "${_port_path}"
-    local _pkgfile_basename; ut_basename _pkgfile_basename "${_pkgfile_path}"
+pk_check_pkgfile_port_path_name() {
+    local _fn="pk_check_pkgfile_port_path_name"
+    [[ -n $1 ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    [[ -n $2 ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
+    local _pkgfile=${1}
+    local _ref_pkgfile_name=${2}
+    local _portpath; u_dirname _portpath "${_pkgfile}"
+    local _portname; u_basename _portname "${_portpath}"
+    local _pkgfile_name; u_basename _pkgfile_name "${_pkgfile}"
     declare -i _portname_size=${#_portname}
 
-    # Validate: _port_path
-    ut_dir_is_rwx_abort "${_port_path}" "yes" "PORT_PATH"
+    # Validate: _portpath
+    u_dir_is_rwx_exit "${_portpath}" "yes" "PORT_PATH"
     # Validate: _portname
     if (( ${_portname_size} < 2 || ${_portname_size} > 50 )); then
-        ms_abort "${_fn}" "$(gettext "PORTNAME MUST have at least 2 and maximum 50 characters. Got: '%s' PATH: <%s>")" \
-            "${_portname_size}" "${_pkgfile_path}"
+        m_exit "${_fn}" "$(_g "PORTNAME MUST have at least 2 and maximum 50 chars. Got: '%s' PATH: <%s>")" \
+            "${_portname_size}" "${_pkgfile}"
     fi
-    [[ ${_portname} == *[![:alnum:]-_+]* ]] && ms_abort "${_fn}" \
-                                                "$(gettext "PORTNAME contains invalid characters: '%s' PATH: <%s>")" \
-                                                "${_portname//[[:alnum:]-_+]}" "${_pkgfile_path}"
+    [[ ${_portname} == *[![:alnum:]-_+]* ]] && m_exit "${_fn}" \
+                                                "$(_g "PORTNAME contains invalid chars: '%s' PATH: <%s>")" \
+                                                "${_portname//[[:alnum:]-_+]}" "${_pkgfile}"
     if [[ ${_portname} == [![:alnum:]]* ]]; then
-        ms_abort "${_fn}" "$(gettext "PORTNAME MUST start with an alphanumeric character. Got: '%s' PATH: <%s>")" \
-            "${_portname:0:1}" "${_pkgfile_path}"
+        m_exit "${_fn}" "$(_g "PORTNAME MUST start with an alphanumeric character. Got: '%s' PATH: <%s>")" \
+            "${_portname:0:1}" "${_pkgfile}"
     fi
 
-    # Validate: _pkgfile_path no need to check again for absolute path this is done with the port check above.
-    ut_file_is_rw_abort "${_pkgfile_path}" "yes" "PKGFILE_PATH"
-    [[ -f ${_pkgfile_path} ]] || ms_abort "${_fn}" "$(gettext "PKGFILE_PATH does not exist: <%s>")" "${_pkgfile_path}"
-    [[ -r ${_pkgfile_path} ]] || ms_abort "${_fn}" "$(gettext "PKGFILE_PATH is not readable: <%s>")" "${_pkgfile_path}"
+    # Validate: _pkgfile no need to check again for absolute path this is done with the port check above.
+    u_file_is_rw_exit "${_pkgfile}" "yes" "PKGFILE_PATH"
+    [[ -f ${_pkgfile} ]] || m_exit "${_fn}" "$(_g "PKGFILE_PATH does not exist: <%s>")" "${_pkgfile}"
+    [[ -r ${_pkgfile} ]] || m_exit "${_fn}" "$(_g "PKGFILE_PATH is not readable: <%s>")" "${_pkgfile}"
 
-    if [[ ${_pkgfile_basename} != ${_reference_pkgfile_name} ]]; then
-        ms_abort "${_fn}" "$(gettext "PKGFILE-Basename: '%s' is not the same as the defined Reference-Pkgfile-Name: '%s'")" \
-                "${_pkgfile_basename}" "${_reference_pkgfile_name}"
+    if [[ ${_pkgfile_name} != ${_ref_pkgfile_name} ]]; then
+        m_exit "${_fn}" "$(_g "PKGFILE-Basename: '%s' is not the same as the defined Reference-Pkgfile-Name: '%s'")" \
+                "${_pkgfile_name}" "${_ref_pkgfile_name}"
     fi
 }
 
 
 #******************************************************************************************************************************
 # Sources a Pkgfile: Aborts if a basic validate does not pass
-#                          IMPORTANT: the pkgsources is more thoroughly validated in the function: so_prepare_src_matrix().
+#                          IMPORTANT: the pkgsources is more thoroughly validated in the function: s_get_src_matrix().
 #
 # Pkgfile-Header:
 #
@@ -432,7 +421,7 @@ pkf_validate_pkgfile_port_path_name() {
 #       | YES      | `pkgmd5sum`   | A list of corresponding md5checksums (for file sources).                | ARRAY  |
 #
 #   ARGUMENTS
-#       `_pkgfile_path`: absolute path to the pkgfile: for test purpose it is not required that the path exists
+#       `_pkgfile`: absolute path to the pkgfile: for test purpose it is not required that the path exists
 #       `_in_cmk_required_function_names`: a reference var: An index array with the required `Pkgfile` function names
 #       `_in__cmk_groups_default_function_names`: a reference var: An associative array with the default `CMK_GROUP` function
 #           names as keys.
@@ -443,12 +432,12 @@ pkf_validate_pkgfile_port_path_name() {
 #                         will be validated
 #
 #   USAGE:
-#       pkf_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CMK_GROUPS
+#       pk_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CMK_GROUPS
 #******************************************************************************************************************************
-pkf_source_validate_pkgfile() {
-    local _fn="pkf_source_validate_pkgfile"
-    [[ -n $1 ]] || ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Argument 1 MUST NOT be empty.")" "${_fn}"
-    local _pkgfile_path=${1}
+pk_source_validate_pkgfile() {
+    local _fn="pk_source_validate_pkgfile"
+    [[ -n $1 ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    local _pkgfile=${1}
     local -n _in_cmk_required_function_names=${2}
     local -n _in__cmk_groups_default_function_names=${3}
     if [[ -n $4 ]]; then
@@ -461,64 +450,62 @@ pkf_source_validate_pkgfile() {
     local _func
 
     # unset all official related variable
-    pkf_unset_official_pkgfile_variables
-    ut_unset_functions _in_cmk_required_function_names
-    ut_unset_functions2 _in__cmk_groups_default_function_names  # NEED ut_unset_functions2 for associative array
+    pk_unset_official_pkgfile_var
+    u_unset_functions _in_cmk_required_function_names
+    u_unset_functions2 _in__cmk_groups_default_function_names  # NEED u_unset_functions2 for associative array
 
-    ut_source_safe_abort "${_pkgfile_path}"
+    u_source_safe_exit "${_pkgfile}"
 
     ##### Pkgfile-Header
     # pkgpackager
-    [[ -n ${pkgpackager} ]] || ms_abort "${_fn}" \
-                                "$(gettext "Variable 'pkgpackager' MUST NOT be empty: <%s>")" "${_pkgfile_path}"
+    [[ -n ${pkgpackager} ]] || m_exit "${_fn}" "$(_g "Variable 'pkgpackager' MUST NOT be empty: <%s>")" "${_pkgfile}"
     # pkgdesc
     _pkgdesc_size=${#pkgdesc}
     if (( ${_pkgdesc_size} < 10 || ${_pkgdesc_size} > 110 )); then
-        ms_abort "${_fn}" \
-            "$(gettext "'pkgdesc' MUST have at least 10 and a maximum of 110 characters. Got: '%s' File: <%s>")" \
-            "${_pkgdesc_size}" "${_pkgfile_path}"
+        m_exit "${_fn}" \
+            "$(_g "'pkgdesc' MUST have at least 10 and a maximum of 110 chars. Got: '%s' File: <%s>")" "${_pkgdesc_size}" \
+            "${_pkgfile}"
     fi
 
     # pkgurl: can also be empty
-    ut_is_str_var_abort "pkgurl" "${_fn}" "${_pkgfile_path}"
+    u_is_str_var_abort "pkgurl" "${_fn}" "${_pkgfile}"
 
     # pkgdeps
-    ut_is_idx_array_abort "pkgdeps" "${_fn}" "${_pkgfile_path}"
+    u_is_idx_array_exit "pkgdeps" "${_fn}" "${_pkgfile}"
 
     # pkgdepsrun: Optional
-    ut_is_idx_array_var "pkgdepsrun" || pkgdepsrun=()
+    u_is_idx_array_var "pkgdepsrun" || pkgdepsrun=()
 
     #### Pkgfile-Variables
     #pkgvers
-    pkf_validate_pkgvers "${pkgvers}" "${_pkgfile_path}"
+    pk_check_pkgvers "${pkgvers}" "${_pkgfile}"
 
     # pkgrel
     if [[ ${pkgrel} != +([[:digit:]]) ]]; then
-        ms_abort "${_fn}" "$(gettext "'pkgrel' MUST NOT be empty and only contain digits and not: '%s' File: <%s>")" \
-            "${pkgrel//[[:digit:]]}" "${_pkgfile_path}"
+        m_exit "${_fn}" "$(_g "'pkgrel' MUST NOT be empty and only contain digits and not: '%s' File: <%s>")" \
+            "${pkgrel//[[:digit:]]}" "${_pkgfile}"
     fi
     if (( ${pkgrel} < 1 || ${pkgrel} > 99999999 )); then
-        ms_abort "${_fn}" "$(gettext "'pkgrel' MUST be greater than 0 and less than 100000000. File: <%s>")" \
-            "${_pkgfile_path}"
+        m_exit "${_fn}" "$(_g "'pkgrel' MUST be greater than 0 and less than 100000000. File: <%s>")" "${_pkgfile}"
     fi
 
     # pkgsources
-    ut_is_idx_array_abort "pkgsources" "${_fn}" "${_pkgfile_path}"
+    u_is_idx_array_exit "pkgsources" "${_fn}" "${_pkgfile}"
 
     # pkgmd5sums
-    ut_is_idx_array_abort "pkgmd5sums" "${_fn}" "${_pkgfile_path}"
+    u_is_idx_array_exit "pkgmd5sums" "${_fn}" "${_pkgfile}"
 
     #### Check CMK_GROUPS function exist
     for _func in "${_in_cmk_groups[@]}"; do
-        if ! ut_got_function "${_func}" && [[ ! -v _in__cmk_groups_default_function_names[${_func}] ]]; then
-            ms_abort "${_fn}" "$(gettext "CMK_GROUPS Function '%s' not specified in File: <%s>")" "${_func}" "${_pkgfile_path}"
+        if ! u_got_function "${_func}" && [[ ! -v _in__cmk_groups_default_function_names[${_func}] ]]; then
+            m_exit "${_fn}" "$(_g "CMK_GROUPS Function '%s' not specified in File: <%s>")" "${_func}" "${_pkgfile}"
         fi
     done
 
     ### Check required Pkgfile functions exist
     for _func in "${_in_cmk_required_function_names[@]}"; do
-        ut_got_function "${_func}" || ms_abort "${_fn}" "$(gettext "Required Function '%s' not specified in File: <%s>")" \
-                                        "${_func}" "${_pkgfile_path}"
+        u_got_function "${_func}" || m_exit "${_fn}" "$(_g "Required Function '%s' not specified in File: <%s>")" "${_func}" \
+                                        "${_pkgfile}"
     done
 }
 

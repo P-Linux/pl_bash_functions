@@ -114,6 +114,7 @@ portable scripts, this feature will be removed in a future release of grep, and 
 
 `shopt -s extglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
 `shopt -s dotglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
+`shopt -u expand_aliases` is required to avoid unknown commands to interfer
 
 
 ### BASH Options
@@ -132,41 +133,38 @@ In your bash script: source the `pl_bash_functions files` you want to use.
 
 ### Common Example
 
-Usually one wants to source first `msg.sh` and after that anything else.
+Usually one wants to source first `trap_opt.sh` set the traps, source `msg.sh` and after that anything else.
 
 ```bash
 customary_cleanup_function() {
    echo "Missing code for the customary_cleanup_function"
 }
 
-unset GREP_OPTIONS
-shopt -s extglob dotglob
-
 declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 
-source "${_PL_BASH_FUNCTIONS_DIR}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\" \"customary_cleanup_function\"" "${_signal}"; done
-trap "tr_trap_exit_interrupted \"customary_cleanup_function\"" INT
-trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
+source "${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh"
+for _signal in TERM HUP QUIT; do trap "t_trap_s \"${_signal}\" \"customary_cleanup_function\"" "${_signal}"; done
+trap "t_trap_i \"customary_cleanup_function\"" INT
+trap "t_trap_u \"customary_cleanup_function\"" ERR
 
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
-ms_format
+m_format
 
-#_MS_VERBOSE="yes"          NOTE: This defaults to: yes
-#_MS_VERBOSE_MORE="yes"     NOTE: This defaults to: yes
+#_M_VERBOSE="yes"          NOTE: This defaults to: yes
+#_M_VERBOSE_I="yes"     NOTE: This defaults to: yes
 
-ms_header "${_MS_GREEN}" "$(gettext "Just Testing...")"
+m_header "${_M_GREEN}" "$(_g "Just Testing...")"
 
-ms_request_continue "root"
+m_ask_continue "root"
 
-ms_has_tested_version "0.9.2"
+m_has_tested_version "0.9.2"
 
-source "${_PL_BASH_FUNCTIONS_DIR}/utilities.sh"
+source "${_PL_BASH_FUNCTIONS_DIR}/util.sh"
 
-ut_source_safe_abort "anything_else......"
+u_source_safe_exit "anything_else......"
 
-do_got_download_programs_abort      # if the related files where sourced
-do_got_extract_programs_abort       # if the related files where sourced
+d_got_download_prog_exit      # if the related files where sourced
+e_got_extract_prog_exit       # if the related files where sourced
 ```
 
 #### 01. Optional Cleanup Function
@@ -179,13 +177,8 @@ customary_cleanup_function() {
 }
 ```
 
-#### 02. Set/Unset Required Options
 
-unset GREP_OPTIONS
-shopt -s extglob dotglob
-
-
-#### 03. Get PL_BASH_FUNCTIONS_DIR
+#### 02. Get PL_BASH_FUNCTIONS_DIR
 
 Specify where the *pl_bash_functions package is installed*: need the *scripts ddirectory.
 
@@ -194,116 +187,129 @@ declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
 ```
 
 
-#### 04. Set Trap
+#### 03. Set Trap
 
 Generally it is a good thing to set `traps`.
 
 ```bash
-source "${_PL_BASH_FUNCTIONS_DIR}/trap_exit.sh"
-for _signal in TERM HUP QUIT; do trap "tr_trap_exit \"${_signal}\" \"customary_cleanup_function\"" "${_signal}"; done
-trap "tr_trap_exit_interrupted \"customary_cleanup_function\"" INT
-trap "tr_trap_exit_unknown_error \"customary_cleanup_function\"" ERR
+source "${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh"
+for _signal in TERM HUP QUIT; do trap "t_trap_s \"${_signal}\" \"customary_cleanup_function\"" "${_signal}"; done
+trap "t_trap_i \"customary_cleanup_function\"" INT
+trap "t_trap_u \"customary_cleanup_function\"" ERR
 ```
 
+SOURCING `trap_opt.sh"`: Sets also the required bash options. 
 
-#### 05. Source 'msg.sh'
+```
+unset GREP_OPTIONS
+shopt -s extglob dotglob expand_aliases
+set +o noclobber
+```
 
-This is usually done first because other *pl_bash_functions package* files may use them. Run function: `ms_format` which
+* It also checks for some required commands: e.g. gettext, tput
+* And sets aliases: e.g. _g an alias for gettext
+
+For mor info see function: t_general_opt()
+
+
+#### 04. Source 'msg.sh'
+
+This is usually done first because other *pl_bash_functions package* files may use them. Run function: `m_format` which
 sets important global variables for  the *pl_bash_functions package* message system.
 
 ```bash
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
-ms_format
+m_format
 ```
 
-#### 06. Optional Set Message Verbosity
+#### 05. Optional Set Message Verbosity
 
 **GENERAL LEVEL**
 
-The Variable `_MS_VERBOSE="yes" ` is set in the function `ms_format()`.
-Optionally one can set it to `_MS_VERBOSE="no" ` to skip some general messages.
+The Variable `_M_VERBOSE="yes" ` is set in the function `m_format()`.
+Optionally one can set it to `_M_VERBOSE="no" ` to skip some general messages.
 
-* `_MS_VERBOSE="yes" `: all general messages are printed
-* `_MS_VERBOSE="no" `: general are silenced
+* `_M_VERBOSE="yes" `: all general messages are printed
+* `_M_VERBOSE="no" `: general are silenced
 
 **ADDITIONAL INFO LEVEL**
 
-The Variable `_MS_VERBOSE_MORE="yes" ` is set in the function `ms_format()`.
-Optionally one can set it to `_MS_VERBOSE_MORE="no" ` to skip such  additional messages.
+The Variable `_M_VERBOSE_I="yes" ` is set in the function `m_format()`.
+Optionally one can set it to `_M_VERBOSE_I="no" ` to skip such  additional messages.
 
-* `_MS_VERBOSE_MORE="yes" `: enables such additional messages
-* `_MS_VERBOSE_MORE="no" `: silences such additional messages
+* `_M_VERBOSE_I="yes" `: enables such additional messages
+* `_M_VERBOSE_I="no" `: silences such additional messages
 
 !!! note
 
     The Verbosity Levels work independently to silence both one needs to set BOTH levles to `false`
 
 
-#### 07. Optional Print A Main Header
+#### 06. Optional Print A Main Header
 
 ```bash
-ms_header "${_MS_GREEN}" "$(gettext "Just Testing...")"
+m_header "${_M_GREEN}" "$(_g "Just Testing...")"
 ```
 
 
-#### 08. Optional Request User Confirmation
+#### 07. Optional Request User Confirmation
 
 It is recommendet that in end-user scripts a request for user action is set.
 
-The function `ms_request_continue` can be used for that: there is an optional user/account argument under which the script must
+The function `m_ask_continue` can be used for that: there is an optional user/account argument under which the script must
 run.
 
 ```bash
-ms_request_continue
+m_ask_continue
 ```
 
 Abort if the script is not executed under user/account *root*.
 
 ```bash
-ms_request_continue "root"
+m_ask_continue "root"
 ```
 
 
-#### 09. Optional Test 'pl_bash_functions' Version
+#### 08. Optional Test 'pl_bash_functions' Version
 
 Test if the `pl_bash_functions version` is the one which your script was tested with.
 
 ```bash
-ms_has_tested_version "0.9.2"
+m_has_tested_version "0.9.2"
 ```
 
 
-#### 10. Source 'utilities.sh'
+#### 09. Source 'util.sh'
 
 ```bash
-source ""${_PL_BASH_FUNCTIONS_DIR}/utilities.sh"
+source ""${_PL_BASH_FUNCTIONS_DIR}/util.sh"
 ```
 
 !!! hint
 
-    Afterwards use function: `ut_source_safe_abort` to source any other files.
+    Afterwards use function: `u_source_safe_exit` to source any other files.
 
 
-#### 11. Source Other Files
+#### 10. Source Other Files
 
 After that source any needed other files.
 
 ```bash
-ut_source_safe_abort "anything_else......"
+u_source_safe_exit "anything_else......"
 ```
 
-#### 12. Optional Check Needed Programs
+#### 11. Optional Check Needed Programs
 
 This does only check for the main programs.
 
 ```bash
-do_got_download_programs_abort
-do_got_extract_programs_abort
+d_got_download_prog_exit
+e_got_extract_prog_exit
 ```
 
 With setting the file download program to curl: (default is 'wget').
 
 ```bash
-do_got_download_programs_abort "curl"
-do_got_extract_programs_abort
+d_got_download_prog_exit "curl"
+e_got_extract_prog_exit
 ```

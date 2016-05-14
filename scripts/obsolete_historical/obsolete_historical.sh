@@ -12,19 +12,17 @@
 #
 #=============================================================================================================================#
 
-unset GREP_OPTIONS
-shopt -s extglob
-set +o noclobber
+t_general_opt
 
 
 
 #******************************************************************************************************************************
-# Checks if AT LEAST the required number of arguments were supplied       USAGE: ut_min_number_args_abort "_example_func" 2 $#
+# Checks if AT LEAST the required number of arguments were supplied       USAGE: u_min_number_args_exit "_example_func" 2 $#
 #******************************************************************************************************************************
-ut_min_number_args_abort() {
-    local _fn="ut_min_number_args_abort"
+u_min_number_args_exit() {
+    local _fn="u_min_number_args_exit"
     if (( ${3} < ${2} )); then
-        ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires AT LEAST '%s' argument/s. Got '%s'")" "${1}" "${2}" "${3}"
+        m_exit "${_fn}" "$(_g "FUNCTION '%s()': Requires AT LEAST '%s' argument/s. Got '%s'")" "${1}" "${2}" "${3}"
     fi
 }
 
@@ -33,51 +31,51 @@ ut_min_number_args_abort() {
 # Checks if AT LEAST the required number of arguments were supplied: and are NOT empty
 #
 #   USAGE:
-#       ut_min_number_args_not_empty_abort "_example_func" 3 "${@}"
+#       u_min_number_args_not_empty_abort "_example_func" 3 "${@}"
 #******************************************************************************************************************************
-ut_min_number_args_not_empty_abort() {
-    local _fn="ut_min_number_args_not_empty_abort"
+u_min_number_args_not_empty_abort() {
+    local _fn="u_min_number_args_not_empty_abort"
     local _caller_name=${1}
     declare -i _required_args=${2}
     local _function_args=("${@:3}")
     declare -i _n
 
-    ut_min_number_args_abort "${_caller_name}" ${_required_args} $(( ${#}- 2 ))
+    u_min_number_args_exit "${_caller_name}" ${_required_args} $(( ${#}- 2 ))
 
     for (( _n=0; _n < ${_required_args}; _n++ )); do
         if [[ -z ${_function_args[${_n}]} ]]; then
-            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '%s': MUST NOT be empty")" "${_caller_name}" $((_n + 1))
+            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Argument '%s': MUST NOT be empty")" "${_caller_name}" $((_n + 1))
         fi
     done
 }
 
 
 #******************************************************************************************************************************
-# Checks if the EXACT number of arguments were supplied                USAGE: ut_exact_number_args_abort "_example_func" 3 $#
+# Checks if the EXACT number of arguments were supplied                USAGE: u_exact_number_args_exit "_example_func" 3 $#
 #******************************************************************************************************************************
-ut_exact_number_args_abort() {
-    local _fn="ut_exact_number_args_abort"
+u_exact_number_args_exit() {
+    local _fn="u_exact_number_args_exit"
     if (( ${2} != ${3} )); then
-        ms_abort "${_fn}" "$(gettext "FUNCTION '%s()': Requires EXACT '%s' argument/s. Got '%s'")" "${1}" "${2}" "${3}"
+        m_exit "${_fn}" "$(_g "FUNCTION '%s()': Requires EXACT '%s' argument/s. Got '%s'")" "${1}" "${2}" "${3}"
     fi
 }
 
 
 #******************************************************************************************************************************
-# Checks if the EXACT number of arguments were supplied    USAGE: ut_exact_number_args_not_empty_abort "_example_func" 3 "${@}"
+# Checks if the EXACT number of arguments were supplied    USAGE: u_exact_number_args_not_empty_exit "_example_func" 3 "${@}"
 #******************************************************************************************************************************
-ut_exact_number_args_not_empty_abort() {
-    local _fn="ut_min_number_args_not_empty_abort"
+u_exact_number_args_not_empty_exit() {
+    local _fn="u_min_number_args_not_empty_abort"
     local _caller_name=${1}
     declare -i _required_args=${2}
     local _function_args=( "${@:3}" )
     declare -i _n
 
-    ut_exact_number_args_abort "${_caller_name}" ${_required_args}  $(( ${#}- 2 ))
+    u_exact_number_args_exit "${_caller_name}" ${_required_args}  $(( ${#}- 2 ))
 
     for (( _n=0; _n < ${_required_args}; _n++ )); do
         if [[ -z ${_function_args[${_n}]} ]]; then
-            ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Argument '%s': MUST NOT be empty")" "${_caller_name}" $((_n + 1))
+            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Argument '%s': MUST NOT be empty")" "${_caller_name}" $((_n + 1))
         fi
     done
 }
@@ -93,21 +91,21 @@ ut_exact_number_args_not_empty_abort() {
 #    NOTE: this does not mean it was set. Could have elements or 0 size.
 #
 #   USAGE:
-#       ut_abort_sparse_array SOURCE_ARRAY "SOURCE_ARRAY"
+#       u_exit_sparse_array SOURCE_ARRAY "SOURCE_ARRAY"
 #******************************************************************************************************************************
-ut_abort_sparse_array() {
-    local _fn="ut_abort_sparse_array"
-    (( ${#}!= 2 )) &&  ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Requires EXACT '2' arguments. Got '%s'")" "${_fn}" "${#}"
+u_exit_sparse_array() {
+    local _fn="u_exit_sparse_array"
+    (( ${#}!= 2 )) &&  m_exit "${_fn}" "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
     local -n _in_check_sparse=${1}
     local _caller_name=${2}
     declare -i _idxs=("${!_in_check_sparse[@]}")
 
     if ! [[ $(declare -p | grep -E "declare -a[lrtux]{0,4} ${1}='\(") ]]; then
-        ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Not an index array: '%s'")" "${_caller_name}" "${_in_check_sparse}"
+        m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not an index array: '%s'")" "${_caller_name}" "${_in_check_sparse}"
     fi
 
     if (( ${#_in_check_sparse[*]} > 0 && (${_idxs[@]: -1} + 1) != ${#_in_check_sparse[*]} )); then
-        ms_abort "${_fn}" "$(gettext "FUNCTION: '%s()' Found a sparse array which is not allowd. Array-Name: '%s'")" \
+        m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Found a sparse array which is not allowd. Array-Name: '%s'")" \
             "${_caller_name}" "${_in_check_sparse}"
     fi
 }
