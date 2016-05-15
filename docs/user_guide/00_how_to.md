@@ -162,7 +162,7 @@ m_header "${_M_GREEN}" "$(_g "Just Testing...")"
 
 m_ask_continue "root"
 
-m_has_tested_version "0.9.2"
+m_has_tested_version "0.1.1"
 
 source "${_PL_BASH_FUNCTIONS_DIR}/util.sh"
 
@@ -280,7 +280,7 @@ m_ask_continue "root"
 Test if the users system has the same `pl_bash_functions version` which your script was tested with.
 
 ```bash
-m_has_tested_version "0.9.2"
+m_has_tested_version "0.1.1"
 ```
 
 

@@ -4,7 +4,12 @@
 ---
 
 
-## v0.9.3 (xxxx-xx-xx)
+## v0.9.4 (xxxx-xx-xx)
+
+* 
+
+
+## v0.9.3 (2016-05-15)
 
 * Complete refactoring to avoid: Error: Argument list too long
     * Shorten bashfile/function/variable names, strings etc.
