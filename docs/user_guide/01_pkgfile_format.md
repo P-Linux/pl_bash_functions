@@ -31,7 +31,7 @@ pkgpackager="peter1000 <https://github.com/peter1000>"
 pkgdesc="Bash functions used by other P-Linux packages."
 pkgurl="https://github.com/P-Linux/pl_bash_functions"
 pkgdeps=(bash)
-pkgdepsrun=(libarchive gzip bzip2 xz git subversion mercurial bzr)
+pkgdepsrun=(gettext ncurses coreutils findutils grep wget curl libarchive gzip bzip2 xz inetutils git subversion mercurial bzr)
 ```
 
 
@@ -61,6 +61,7 @@ Avoid introducing new variables, other names could be in conflict with internal 
 !!! hint
 
     If other functions or variables are absolutely needed: prefix them with 2 underscores: e.g. `__pkgtag`
+    But be aware that *pl_bash_functions package* also uses a some variables with double underscore prefix.
 
 
 ## Pkgfile Information
@@ -114,7 +115,7 @@ Recommended date format: yyyymmdd: e.g. 20160329
 ### pkgsources
 
 INDEX ARRAY - A list of sources required to build the package.
-Local source files must reside in the same directory or a sub-directory of the Pkgfile location.
+Local source files must reside in the same directory as the Pkgfile.
 All other source entries must be fully-qualified URLs which can be used to download the sources.
 
 
@@ -138,10 +139,10 @@ Example Pkgfile-Functions:
 
 ```bash
 build() {
-    cd ${CMK_NAME}-${pkgvers}
+    cd ${CMK_PORTNAME}-${pkgvers}
     ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info
     make
-    make DESTDIR=${PKG} install
+    make DESTDIR=${pkgdir} install
 }
 ```
 
@@ -156,7 +157,8 @@ Supported default group functions are: lib() devel() doc() man() service()
 
 ## Pkgfile directory Name
 
-The directory where the Pkgfile resides is used as the package name. It has a maximum length of 50 characters.
+The directory where the Pkgfile resides is used as the package name. It MUST have at least 2 and maximum 50 characters.
 
-Valid characters for a Pkgfile directory are alphanumeric, and any of the following characters: hyphen-minus and underlines.
+alid characters for a Pkgfile directory are alphanumeric, and any of the following characters: plus sign, hyphen-minus
+and underlines.
 Additionally, the directory MUST start with an alphanumeric character.

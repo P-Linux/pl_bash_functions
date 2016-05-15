@@ -26,6 +26,14 @@ Following software should be installed, **earlier or later versions** of the lis
 ### Bash 4.3.39
 
 
+### Gnu Gettext 0.19.7
+
+
+### Ncurses 6.0.20150808
+
+* tput
+
+
 ### Coreutils 8.24
 
 
@@ -33,9 +41,6 @@ Following software should be installed, **earlier or later versions** of the lis
 
 
 ### Grep 2.23
-
-
-### Ncurses 6.0.20150808
 
 
 ### Wget 1.17.1
@@ -85,14 +90,13 @@ Required for source-entries which fetch there sources from bazaar repos.
 
 The package contains only docs, examples, tests, *bash functions* and related Makefiles to install them.
 
-## Installation
-
-Run in the top level dir `make` to see the *help*.
+To see the *help*, run in the top-level-directory: `make`
 
 
-## General Settings Requirement
+## General Settings Requirements
 
-These are general required settings.
+These are general required settings and they are set in each file of the `pl_bash_functions package`. 
+See function `t_general_opt()`.
 
 !!! warning
 
@@ -112,9 +116,9 @@ portable scripts, this feature will be removed in a future release of grep, and 
 
 ### BASH shopt Options
 
-`shopt -s extglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
-`shopt -s dotglob` is required by some functions: this is done in each file of the `pl_bash_functions package`.
-`shopt -u expand_aliases` is required to avoid unknown commands to interfer
+* `shopt -s extglob`
+* `shopt -s dotglob`
+* `shopt -s expand_aliases`: e.g. used for the gettext alias.
 
 
 ### BASH Options
@@ -133,7 +137,8 @@ In your bash script: source the `pl_bash_functions files` you want to use.
 
 ### Common Example
 
-Usually one wants to source first `trap_opt.sh` set the traps, source `msg.sh` and after that anything else.
+Usually one wants to source first `trap_opt.sh` set the traps, source `msg.sh` and call function *m_format*, source `util.sh`
+and after that anything else.
 
 ```bash
 customary_cleanup_function() {
@@ -150,7 +155,7 @@ trap "t_trap_u \"customary_cleanup_function\"" ERR
 source "${_PL_BASH_FUNCTIONS_DIR}/msg.sh"
 m_format
 
-#_M_VERBOSE="yes"          NOTE: This defaults to: yes
+#_M_VERBOSE="yes"       NOTE: This defaults to: yes
 #_M_VERBOSE_I="yes"     NOTE: This defaults to: yes
 
 m_header "${_M_GREEN}" "$(_g "Just Testing...")"
@@ -180,7 +185,7 @@ customary_cleanup_function() {
 
 #### 02. Get PL_BASH_FUNCTIONS_DIR
 
-Specify where the *pl_bash_functions package is installed*: need the *scripts ddirectory.
+Specify where the *pl_bash_functions package is installed*: needs the *scripts directory*.
 
 ```bash
 declare -r _PL_BASH_FUNCTIONS_DIR="/usr/lib/pl_bash_functions/scripts"
@@ -209,7 +214,7 @@ set +o noclobber
 * It also checks for some required commands: e.g. gettext, tput
 * And sets aliases: e.g. _g an alias for gettext
 
-For mor info see function: t_general_opt()
+For mor info see function: *t_general_opt*
 
 
 #### 04. Source 'msg.sh'
@@ -226,7 +231,7 @@ m_format
 
 **GENERAL LEVEL**
 
-The Variable `_M_VERBOSE="yes" ` is set in the function `m_format()`.
+The Variable `_M_VERBOSE="yes" ` is set in the function: *m_format*
 Optionally one can set it to `_M_VERBOSE="no" ` to skip some general messages.
 
 * `_M_VERBOSE="yes" `: all general messages are printed
@@ -242,7 +247,7 @@ Optionally one can set it to `_M_VERBOSE_I="no" ` to skip such  additional messa
 
 !!! note
 
-    The Verbosity Levels work independently to silence both one needs to set BOTH levles to `false`
+    The Verbosity Levels work independently to silence both one needs to set BOTH levles to `no`
 
 
 #### 06. Optional Print A Main Header
@@ -272,7 +277,7 @@ m_ask_continue "root"
 
 #### 08. Optional Test 'pl_bash_functions' Version
 
-Test if the `pl_bash_functions version` is the one which your script was tested with.
+Test if the users system has the same `pl_bash_functions version` which your script was tested with.
 
 ```bash
 m_has_tested_version "0.9.2"
@@ -292,15 +297,15 @@ source ""${_PL_BASH_FUNCTIONS_DIR}/util.sh"
 
 #### 10. Source Other Files
 
-After that source any needed other files.
+After that source (*u_source_safe_exit*) any needed other files.
 
-```bash
+```text
 u_source_safe_exit "anything_else......"
 ```
 
 #### 11. Optional Check Needed Programs
 
-This does only check for the main programs.
+This only checks for the main programs.
 
 ```bash
 d_got_download_prog_exit
