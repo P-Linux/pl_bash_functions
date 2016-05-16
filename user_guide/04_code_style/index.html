@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="peter1000">
+        <link rel="canonical" href="https://p-linux.github.io/pl_bash_functions/user_guide/04_code_style/">
+        <link rel="shortcut icon" href="../../images/p_linux_favicon.ico">
+        
+
+	<title>Code Style - pl_bash_functions</title>
+
+        <link href="../../css/bootstrap-3.0.3.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link href="../../css/extra.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">pl_bash_functions</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="../..">Home</a>
+                </li>
+            
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="../00_how_to/">How To</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../01_pkgfile_format/">Pkgfile Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../02_pkgarchive_format/">Pkgarchive Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../03_repo_file_format/">Repo-File Format</a>
+                        </li>
+                    
+                        <li class="active">
+                            <a href="./">Code Style</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="../../about/readme/">Readme</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../../about/license/">License</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../../about/release-notes/">Release Notes</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li >
+                    <a rel="next" href="../03_repo_file_format/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../../about/readme/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://github.com/P-Linux/pl_bash_functions/">
+                        
+                            <i class="fa fa-github"></i>
+                        
+                        GitHub
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#code-style">Code Style</a></li>
+        
+            <li><a href="#line-length">Line length</a></li>
+        
+            <li><a href="#indentation">Indentation</a></li>
+        
+            <li><a href="#naming-convention">Naming Convention</a></li>
+        
+            <li><a href="#backticks-parenthesis">Backticks - Parenthesis</a></li>
+        
+            <li><a href="#square-brackets">Square Brackets</a></li>
+        
+            <li><a href="#shell-parameter-expansion">Shell Parameter Expansion</a></li>
+        
+            <li><a href="#quotation-marks">Quotation Marks</a></li>
+        
+            <li><a href="#appendingadding">Appending/Adding</a></li>
+        
+            <li><a href="#return-values">Return Values</a></li>
+        
+            <li><a href="#functions">Functions</a></li>
+        
+            <li><a href="#speed">Speed</a></li>
+        
+            <li><a href="#diverse">Diverse</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link"></a></h1>
+<p align="center">Some 'general' information on code style used in the 'pl_bash_functions' package.</p>
+
+<hr />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There might be some exceptions as I see fit.</p>
+</div>
+<h2 id="line-length">Line length<a class="headerlink" href="#line-length" title="Permanent link"></a></h2>
+<p>In general the line length used is maximum <strong>127 chars</strong> per line.</p>
+<h2 id="indentation">Indentation<a class="headerlink" href="#indentation" title="Permanent link"></a></h2>
+<p>In general the indentation are <strong>4 Spaces</strong> per level.</p>
+<h2 id="naming-convention">Naming Convention<a class="headerlink" href="#naming-convention" title="Permanent link"></a></h2>
+<h3 id="function-name-prefix">Function Name Prefix<a class="headerlink" href="#function-name-prefix" title="Permanent link"></a></h3>
+<p>In general Function Names are prefixed with the <strong>First letter of the shell filename followed by one underscore</strong>.</p>
+<p>Example: if the 'pl_bash_functions' file is called: <strong>msg.sh</strong> - the prefix would be: <strong>m_</strong></p>
+<ul>
+<li>
+<p><code>Function Name</code>: <strong>m_abort</strong></p>
+</li>
+<li>
+<p>Sometimes the <strong>Function Name</strong> is prefixed with an underscore: e.g. function within function</p>
+</li>
+<li>
+<p>Exception: sometimes an additional letter is added to distinguish files which start with the same letter.</p>
+<ul>
+<li>e.g. <code>testing.sh, trap_opt.sh</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="function-exitabort">Function Exit/Abort<a class="headerlink" href="#function-exitabort" title="Permanent link"></a></h3>
+<p>In general Function which abort on failure use following name syntax.</p>
+<ul>
+<li><code>Exit if XXX</code>: <strong>u_exit_sparse_array</strong> -  Exit/Abort if it is a sparse array.</li>
+<li><code>If XXX fails Exit</code>: <strong>u_file_is_rw_exit</strong> - If file is read/writeable fails, exit/abort.</li>
+</ul>
+<h3 id="variable-names">Variable Names<a class="headerlink" href="#variable-names" title="Permanent link"></a></h3>
+<p>Own Variable Names are prefixed with <strong>one underscore</strong>.</p>
+<ul>
+<li>
+<p><code>Own Variable Name</code>: <strong>_path</strong></p>
+<ul>
+<li>Sometimes the <strong>Variable Name</strong> is prefixed with mutliple underscores: e.g. function within function local variables.</li>
+</ul>
+</li>
+<li>
+<p>local variable names are usually in lowercase letters</p>
+</li>
+<li>global variable names are usually in uppercase letters</li>
+</ul>
+<h2 id="backticks-parenthesis">Backticks - Parenthesis<a class="headerlink" href="#backticks-parenthesis" title="Permanent link"></a></h2>
+<p><strong>Parenthesis</strong> are prefered over <em>Backticks</em>.</p>
+<pre><code class="bash"># YES
+_dir=$(dirname &quot;/home/me/test/myscript.sh&quot;)
+
+# NO
+_dir=`dirname &quot;/home/me/test/myscript.sh&quot;`
+</code></pre>
+
+<h2 id="square-brackets">Square Brackets<a class="headerlink" href="#square-brackets" title="Permanent link"></a></h2>
+<p><strong>Double square brackets</strong> are prefered over <em>Single square brackets</em>.</p>
+<pre><code class="bash">_a=&quot;yes exit&quot;
+
+# YES
+if [[ ${_a} == &quot;yes exit&quot; ]]; then exit 1; fi
+
+# NO
+if [ &quot;${_a}&quot; == &quot;yes exit&quot; ]; then exit 1; fi
+
+# ERROR: too many arguments
+if [ ${_a} == &quot;yes exit&quot; ]; then exit 1; fi
+</code></pre>
+
+<h2 id="shell-parameter-expansion">Shell Parameter Expansion<a class="headerlink" href="#shell-parameter-expansion" title="Permanent link"></a></h2>
+<p>In general braces are used for parameter expansion. To be consistent braces are also used if a variable stands alone.</p>
+<pre><code class="bash">_a=&quot;test&quot;
+
+# YES
+if [[ ${_a} == &quot;yes exit&quot; ]]; then exit 1; fi
+
+# NO
+if [[ $_a == &quot;yes exit&quot; ]]; then exit 1; fi
+</code></pre>
+
+<h2 id="quotation-marks">Quotation Marks<a class="headerlink" href="#quotation-marks" title="Permanent link"></a></h2>
+<p><strong>Double quotations marks</strong> are prefered over <em>Single quotations marks</em>.</p>
+<pre><code class="bash"># YES
+_a=&quot;A long text&quot;
+
+# NO
+_a='A long text'
+
+# EXCEPTION: literal text
+echo '_lfs_target=$(uname -m)-lfs-linux-gnu' &gt; .example.txt
+</code></pre>
+
+<h3 id="variables-unquoted-within-double-square-brackets">Variables Unquoted Within Double Square Brackets<a class="headerlink" href="#variables-unquoted-within-double-square-brackets" title="Permanent link"></a></h3>
+<p>In general simple variables within double square brackets are left unquoted.</p>
+<pre><code class="bash">_a=&quot;yes exit&quot;
+_b=${_a}
+
+# YES
+if [[ ${_a} == &quot;yes exit&quot; ]]; then exit 1; fi
+
+if [[ ${_a} == ${_b} ]]; then exit 1; fi
+
+# NO
+if [[ &quot;${_a}&quot; == &quot;yes exit&quot; ]]; then exit 1; fi
+
+if [[ &quot;${_a}&quot; == &quot;${_b}&quot; ]]; then exit 1; fi
+
+</code></pre>
+
+<h3 id="variables-unquoted-in-right-hand-assignment">Variables Unquoted In Right Hand Assignment<a class="headerlink" href="#variables-unquoted-in-right-hand-assignment" title="Permanent link"></a></h3>
+<p>In general variables in right hand assignment are left unquoted.</p>
+<pre><code class="bash"># YES
+_a=$1
+
+_dir=$(dirname &quot;/home/me/test/myscript.sh&quot;)
+
+# NO
+_a=&quot;$1&quot;
+
+_dir=&quot;$(dirname &quot;/home/me/test/myscript.sh&quot;)&quot;
+</code></pre>
+
+<h2 id="appendingadding">Appending/Adding<a class="headerlink" href="#appendingadding" title="Permanent link"></a></h2>
+<p>In general this syntax is used.</p>
+<h3 id="append-to-a-string">Append To A String<a class="headerlink" href="#append-to-a-string" title="Permanent link"></a></h3>
+<pre><code class="bash">_a=&quot;STRING:&quot;
+_a+=&quot; appended&quot;
+</code></pre>
+
+<h3 id="appendadd-to-an-integer">Append/Add To An Integer<a class="headerlink" href="#appendadd-to-an-integer" title="Permanent link"></a></h3>
+<pre><code class="bash">_b=8
+((_b+=7))
+</code></pre>
+
+<h3 id="append-to-an-index-array">Append To An Index Array<a class="headerlink" href="#append-to-an-index-array" title="Permanent link"></a></h3>
+<pre><code class="bash">_c=(&quot;ARRAY:&quot;)
+_c+=(&quot;appended&quot;)
+</code></pre>
+
+<h2 id="return-values">Return Values<a class="headerlink" href="#return-values" title="Permanent link"></a></h2>
+<p>In general return statements will add always a return value: success (0), failure (1-255)</p>
+<pre><code class="bash">_V=&quot;yes&quot;
+if [[ ${_V} == &quot;yes&quot; ]]; then
+    return 0
+else
+    do_something_else
+fi
+</code></pre>
+
+<h3 id="testing-return-values">Testing Return Values<a class="headerlink" href="#testing-return-values" title="Permanent link"></a></h3>
+<p>In general this syntax is used: TEST if FAILED: <code>(( $? ))</code></p>
+<pre><code class="bash">[[ &quot;a&quot; == &quot;b&quot; ]]
+_ret=${?}
+(( ${_ret} )) &amp;&amp; printf &quot;%s\n&quot; &quot;COMMAND FAILED&quot;
+
+# multiple statements (be careful with the `front/end spaces` and end `;`).
+_ret=${?}
+(( ${_ret} )) &amp;&amp; { printf &quot;%s\n&quot; &quot;COMMAND FAILED&quot;; exit 1; }
+</code></pre>
+
+<pre><code class="bash">_check_failed=${?}
+
+# Return on success
+(( ${_ret} )) || return 0
+
+# OR Simple
+(( ${?} )) || return 0
+</code></pre>
+
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link"></a></h2>
+<p>In general functions in the <em>pl_bash_functions package</em> are self-contained: they do not use global variables and declare all
+used variabled as: local</p>
+<p><strong>Exceptions:</strong></p>
+<ul>
+<li>functions within function may use the outer function variables.</li>
+<li>functions will also use the msg variables declared by: <code>ms_format()</code>.</li>
+<li>some functions declare on purpose variables which are not set local: e.g.<ul>
+<li>some Pkgfile related function</li>
+<li>some Port processing related function</li>
+</ul>
+</li>
+<li>some functions relay on official Pkgfile variables: in such case a Pkgfile must first have been sourced or the required
+    variables set globally.</li>
+</ul>
+<h3 id="function-argumentsvariables">Function Arguments/Variables<a class="headerlink" href="#function-argumentsvariables" title="Permanent link"></a></h3>
+<p>In general:</p>
+<ul>
+<li>FIRST: Checks for valid function input arguments</li>
+<li>SECOND: most function arguments are assigned to local variables before they are used.<ul>
+<li><strong>Exception:</strong> in small functions they are not re-assigned to local variables as arguments ar limited in bash:
+    <em>Error: Argument list too long</em></li>
+</ul>
+</li>
+<li>THIRD: any other used variable are declared "local"</li>
+<li>Fourth: comes the rest of the code</li>
+</ul>
+<h2 id="speed">Speed<a class="headerlink" href="#speed" title="Permanent link"></a></h2>
+<p>In some cases consideration for faster execution was given - could be in the future improved.</p>
+<p>To avoid the creation of many subshell calls like:</p>
+<pre><code class="bash">local _result=$(function_1 &quot;argument1&quot;)
+</code></pre>
+
+<p>The <em>pl_bash_functions package</em> uses for some function which return results <strong>: a reference variables</strong>.</p>
+<p>Typically the first passed argument will hold the updated result. e.g.</p>
+<pre><code class="bash">local _result; function_1 _result &quot;argument1&quot;
+</code></pre>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This has also some costs - especially the usage is not always as easily to spot
+because natuarly one considers the first arg only as an other argument and not
+as the return variable.</p>
+<p>Only for demonstartion: this does not work: traditional usage</p>
+<pre><code>_tmp_uri=$(u_prefix_shortest_all "${_entry}" "#")
+(( ${_num_prefix_sep} &gt; 0 )) &amp;&amp; _tmp_uri=$(u_postfix_shortest_empty "${_tmp_uri}" "::")
+_uri=$(u_postfix_longest_all "${_tmp_uri}" "+")
+</code></pre>
+<p>Speed improved usage</p>
+<pre><code>u_prefix_shortest_all _tmp_uri "${_entry}" "#"
+(( ${_num_prefix_sep} &gt; 0 )) &amp;&amp; u_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+u_postfix_longest_all _uri "${_tmp_uri}" "+"
+</code></pre>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The variable which is pass MUST NOT have the same name as used in the function,
+otherwise one might get (warning: circular name reference) and all breaks.</p>
+<p>It is also important that these variables are passed to the function only by name.</p>
+</div>
+<p>For examples see: <code>tests/example_usage__function_return_values.sh</code></p>
+<h2 id="diverse">Diverse<a class="headerlink" href="#diverse" title="Permanent link"></a></h2></div>
+        </div>
+
+	<footer class="col-md-12">
+		<hr>
+		
+		<p>Copyright (c) 2016, <a href="https://github.com/peter1000"><strong>peter1000</strong></a></p>
+		
+		<p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+	</footer>
+
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+        <script src="../../js/base.js"></script>
+    </body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="peter1000">
+        <link rel="canonical" href="https://p-linux.github.io/pl_bash_functions/user_guide/01_pkgfile_format/">
+        <link rel="shortcut icon" href="../../images/p_linux_favicon.ico">
+        
+
+	<title>Pkgfile Format - pl_bash_functions</title>
+
+        <link href="../../css/bootstrap-3.0.3.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link href="../../css/extra.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">pl_bash_functions</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="../..">Home</a>
+                </li>
+            
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="../00_how_to/">How To</a>
+                        </li>
+                    
+                        <li class="active">
+                            <a href="./">Pkgfile Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../02_pkgarchive_format/">Pkgarchive Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../03_repo_file_format/">Repo-File Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../04_code_style/">Code Style</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="../../about/readme/">Readme</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../../about/license/">License</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../../about/release-notes/">Release Notes</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li >
+                    <a rel="next" href="../00_how_to/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../02_pkgarchive_format/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://github.com/P-Linux/pl_bash_functions/">
+                        
+                            <i class="fa fa-github"></i>
+                        
+                        GitHub
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#p-linux-pkgfile-format">P-Linux Pkgfile Format</a></li>
+        
+            <li><a href="#pkgfile-header">Pkgfile-Header</a></li>
+        
+            <li><a href="#pkgfile-variables">Pkgfile-Variables</a></li>
+        
+            <li><a href="#pkgfile-information">Pkgfile Information</a></li>
+        
+            <li><a href="#pkgfile-functions">Pkgfile-Functions</a></li>
+        
+            <li><a href="#pkgfile-directory-name">Pkgfile directory Name</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="p-linux-pkgfile-format">P-Linux Pkgfile Format<a class="headerlink" href="#p-linux-pkgfile-format" title="Permanent link"></a></h1>
+<p align="center">Some 'general' information about the 'Pkgfile Format'.</p>
+
+<hr />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Official Pkgfile variables start with a prefixed <code>pkg</code></p>
+</div>
+<h2 id="pkgfile-header">Pkgfile-Header<a class="headerlink" href="#pkgfile-header" title="Permanent link"></a></h2>
+<p>A <em>Pkgfile</em> MUST have a <em>Pkgfile-Header</em> in the following format:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Required</th>
+<th align="left">Variable Name</th>
+<th align="left">Description</th>
+<th align="center">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgpackager</code></td>
+<td align="left">Name, pseudonym, e-mail address or web-link</td>
+<td align="center">STRING</td>
+</tr>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgdesc</code></td>
+<td align="left">A short description of the package</td>
+<td align="center">STRING</td>
+</tr>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgurl</code></td>
+<td align="left">An URL that is associated with the software package or empty.</td>
+<td align="center">STRING</td>
+</tr>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgdeps</code></td>
+<td align="left">A list of dependencies needed to build or run the package or empty.</td>
+<td align="center">ARRAY</td>
+</tr>
+<tr>
+<td align="center">NO</td>
+<td align="left"><code>pkgdepsrun</code></td>
+<td align="left">A list of runtime dependencies or empty. If omitted it will be set to an empty array</td>
+<td align="center">ARRAY</td>
+</tr>
+</tbody>
+</table>
+<p>Example Pkgfile-Header:</p>
+<pre><code class="bash">pkgpackager=&quot;peter1000 &lt;https://github.com/peter1000&gt;&quot;
+pkgdesc=&quot;Bash functions used by other P-Linux packages.&quot;
+pkgurl=&quot;https://github.com/P-Linux/pl_bash_functions&quot;
+pkgdeps=(bash)
+pkgdepsrun=(gettext ncurses coreutils findutils grep wget curl libarchive gzip bzip2 xz inetutils git subversion mercurial bzr)
+</code></pre>
+
+<h2 id="pkgfile-variables">Pkgfile-Variables<a class="headerlink" href="#pkgfile-variables" title="Permanent link"></a></h2>
+<p>Additionally to the <em>Pkgfile-Header</em>, following variables are REQUIRED:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Required</th>
+<th align="left">Variable Name</th>
+<th align="left">Description</th>
+<th align="center">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgvers</code></td>
+<td align="left">The version of the package (typically the same as the upstream version.</td>
+<td align="center">STRING</td>
+</tr>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgrel</code></td>
+<td align="left">This is typically re-set to 1 for each new upstream release.</td>
+<td align="center">STRING</td>
+</tr>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgsources</code></td>
+<td align="left">A list of source files required to build the package.</td>
+<td align="center">ARRAY</td>
+</tr>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>pkgmd5sum</code></td>
+<td align="left">A list of corresponding md5checksums (for file sources).</td>
+<td align="center">ARRAY</td>
+</tr>
+</tbody>
+</table>
+<p>Example Pkgfile-Variables:</p>
+<pre><code class="bash">pkgvers=0.1.0.r1.2f12e1a
+pkgrel=1
+pkgsources=($url/files/${CM_PORTNAME}-${pkgvers}.tar.xz)
+pkgmd5sum=(&quot;SKIP&quot;)
+</code></pre>
+
+<p>Avoid introducing new variables, other names could be in conflict with internal variables.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>If other functions or variables are absolutely needed: prefix them with 2 underscores: e.g. <code>__pkgtag</code>
+But be aware that <em>pl_bash_functions package</em> also uses a some variables with double underscore prefix.</p>
+</div>
+<h2 id="pkgfile-information">Pkgfile Information<a class="headerlink" href="#pkgfile-information" title="Permanent link"></a></h2>
+<h3 id="pkgpackager">pkgpackager<a class="headerlink" href="#pkgpackager" title="Permanent link"></a></h3>
+<p>STRING - Name, pseudonym, e-mail address or web-link.</p>
+<h3 id="pkgdesc">pkgdesc<a class="headerlink" href="#pkgdesc" title="Permanent link"></a></h3>
+<p>STRING - A short description of the package. It MUST have at least 10 and a maximum of 110 characters.</p>
+<h3 id="pkgurl">pkgurl<a class="headerlink" href="#pkgurl" title="Permanent link"></a></h3>
+<p>STRING - An URL that is associated with the software package or empty.</p>
+<h3 id="pkgdeps">pkgdeps<a class="headerlink" href="#pkgdeps" title="Permanent link"></a></h3>
+<p>INDEX ARRAY - A list of dependencies needed to build the package or empty. It can also contain other optional dependencies or
+runtime dependencies: but see also <code>pkgdepsrun</code> for an optional separate runtime dependency array.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Dependencies which are listed in the <code>base collection</code> are not required to be included in the <em>pkgdeps</em> array.</p>
+</div>
+<h3 id="pkgdepsrun">pkgdepsrun<a class="headerlink" href="#pkgdepsrun" title="Permanent link"></a></h3>
+<p>INDEX ARRAY - A list of runtime dependencies, can also be empty or omitted.</p>
+<h3 id="pkgvers">pkgvers<a class="headerlink" href="#pkgvers" title="Permanent link"></a></h3>
+<p>STRING - The version of the package (typically the same as the upstream source version). It MUST NOT be empty.
+Valid characters for a pkgvers are alphanumeric and full stop.</p>
+<h3 id="pkgrel">pkgrel<a class="headerlink" href="#pkgrel" title="Permanent link"></a></h3>
+<p>STRING - This is a release number specific to the P-Linux release. This is typically set to 1 for each new upstream software
+release and incremented for intermediate <em>Pkgfile</em> updates or set to the actual date of the  <em>Pkgfile</em> update.</p>
+<p>Valid characters for a pkgrel are digits and must be greater than 0 and less than 100000000.</p>
+<p>Recommended date format: yyyymmdd: e.g. 20160329</p>
+<h3 id="pkgsources">pkgsources<a class="headerlink" href="#pkgsources" title="Permanent link"></a></h3>
+<p>INDEX ARRAY - A list of sources required to build the package.
+Local source files must reside in the same directory as the Pkgfile.
+All other source entries must be fully-qualified URLs which can be used to download the sources.</p>
+<h3 id="pkgmd5sums">pkgmd5sums<a class="headerlink" href="#pkgmd5sums" title="Permanent link"></a></h3>
+<p>INDEX ARRAY - A list of corresponding md5checksums used for source file validation.</p>
+<h2 id="pkgfile-functions">Pkgfile-Functions<a class="headerlink" href="#pkgfile-functions" title="Permanent link"></a></h2>
+<p>There are a number of <em>Pkgfile functions</em> which are automatically executed by the build process.</p>
+<table>
+<thead>
+<tr>
+<th align="center">Required</th>
+<th align="left">Function Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">YES</td>
+<td align="left"><code>build()</code></td>
+<td align="left">The main function to build he package.</td>
+</tr>
+<tr>
+<td align="center">NO</td>
+<td align="left"><code>setpkgvers()</code></td>
+<td align="left">Must return a package version: mostly useful for VCS</td>
+</tr>
+<tr>
+<td align="center">NO</td>
+<td align="left"><code>CM_GROUPS array defined functions</code></td>
+<td align="left">for more info see (CM_GROUPS array functions)</td>
+</tr>
+</tbody>
+</table>
+<p>Example Pkgfile-Functions:</p>
+<pre><code class="bash">build() {
+    cd ${CM_PORTNAME}-${pkgvers}
+    ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info
+    make
+    make DESTDIR=${pkgdir} install
+}
+</code></pre>
+
+<h3 id="cm_groups-array-functions">CM_GROUPS array functions<a class="headerlink" href="#cm_groups-array-functions" title="Permanent link"></a></h3>
+<p>If the configuration variable <code>CM_GROUPS</code> is set in the 'cmk.conf' file or in an individual Pkgfile, <em>cmk</em> will try to
+split the produced package into additional groups defined in this array.
+A default function is executed if a function with the same name is not found in the Pkgfile.
+Supported default group functions are: lib() devel() doc() man() service()</p>
+<h2 id="pkgfile-directory-name">Pkgfile directory Name<a class="headerlink" href="#pkgfile-directory-name" title="Permanent link"></a></h2>
+<p>The directory where the Pkgfile resides is used as the package name. It MUST have at least 2 and maximum 50 characters.</p>
+<p>alid characters for a Pkgfile directory are alphanumeric, and any of the following characters: plus sign, hyphen-minus
+and underlines.
+Additionally, the directory MUST start with an alphanumeric character.</p></div>
+        </div>
+
+	<footer class="col-md-12">
+		<hr>
+		
+		<p>Copyright (c) 2016, <a href="https://github.com/peter1000"><strong>peter1000</strong></a></p>
+		
+		<p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+	</footer>
+
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+        <script src="../../js/base.js"></script>
+    </body>
+</html>

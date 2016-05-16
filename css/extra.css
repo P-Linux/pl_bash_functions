@@ -1,0 +1,83 @@
+div.col-md-9 h1:first-of-type {
+    font-size: 60px;
+    font-weight: 300;
+}
+
+div.col-md-9 h1:first-of-type .headerlink {
+    display: none;
+}
+
+code.no-highlight {
+    color: black;
+}
+
+.headerlink {
+    font-family: FontAwesome;
+    font-size: 14px;
+    display: none;
+    padding-left: .5em;
+}
+
+h1:hover .headerlink, h2:hover .headerlink, h3:hover .headerlink {
+    display:inline-block;
+}
+
+h4:hover .headerlink, h5:hover .headerlink, h6:hover .headerlink {
+    display:inline-block;
+}
+
+div.col-md-9 p.admonition-title:first-of-type {
+    text-align: left;
+}
+
+div.col-md-9 img {
+    max-width: 100%;
+    display: inline;
+    padding: 4px;
+    line-height: 1.428571429;
+# background-color: #fff;
+# border: 1px solid #ddd;
+# border-radius: 4px;
+    margin: 20px auto 30px auto;
+}
+
+div.col-md-9 {
+    padding-bottom: 50px;
+}
+
+.admonition {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.admonition-title {
+    font-weight: bold;
+    text-align: left;
+}
+
+.admonition.note {
+    color: hsl(199, 50%, 40%);
+    background-color: hsl(199, 50%, 95%);
+    border-color: hsl(199, 50%, 80%);
+}
+
+.admonition.warning {
+    color: hsl(0, 100%, 50%);
+    background-color: hsl(0, 100%, 95%);
+    border-color: hsl(0, 100%, 80%);
+}
+
+.admonition.danger {
+    color: hsl(300, 100%, 40%);
+    background-color: hsl(300, 100%, 95%);
+    border-color: hsl(300, 100%, 80%);
+}
+
+.admonition.hint {
+    color: hsl(73, 84%, 40%);
+    background-color: hsl(73, 84%, 95%);
+    border-color: hsl(73, 84%, 80%);
+}

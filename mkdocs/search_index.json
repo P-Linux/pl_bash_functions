@@ -1,0 +1,574 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "pl_bash_functions\n\uf0c1\n\n\nBash functions used by other P-Linux packages.\n\n\n\n\n\nWeb Presence\n\uf0c1\n\n\n\n\npl_bash_functions \nweb site - documentation\n\n\npl_bash_functions \ngithub repository\n\n\n\n\nWhat is P-Linux?\n\uf0c1\n\n\nP-Linux\n is a NuTyX-Linux derived Linux system for 64-bit (x86_64) architecture based on:\n\n\n\n\nNuTyX-Linux\n\n\nthe online documentation \nLinux From Scratch (LFS)\n\n\nthe online documentation \nBeyond Linux From Scratch", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#pl_bash_functions", 
+            "text": "Bash functions used by other P-Linux packages.", 
+            "title": "pl_bash_functions"
+        }, 
+        {
+            "location": "/#web-presence", 
+            "text": "pl_bash_functions  web site - documentation  pl_bash_functions  github repository", 
+            "title": "Web Presence"
+        }, 
+        {
+            "location": "/#what-is-p-linux", 
+            "text": "P-Linux  is a NuTyX-Linux derived Linux system for 64-bit (x86_64) architecture based on:   NuTyX-Linux  the online documentation  Linux From Scratch (LFS)  the online documentation  Beyond Linux From Scratch", 
+            "title": "What is P-Linux?"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/", 
+            "text": "How To\n\uf0c1\n\n\nHow to install \n&\n use the 'pl_bash_functions' package.\n\n\n\n\n\nSystem Requirements\n\uf0c1\n\n\n\n\nHint\n\n\nThere are related helper scripts to list intalled versions:\n\npl_helper_scripts\n\n\nThey might require additional software.\n\n\n\n\nFollowing software should be installed, \nearlier or later versions\n of the listed software packages may also work.\n\n\n\n\nNote\n\n\nIf you use only some selected functions you may not need all the software installed.\n\n\n\n\nBash 4.3.39\n\uf0c1\n\n\nGnu Gettext 0.19.7\n\uf0c1\n\n\nNcurses 6.0.20150808\n\uf0c1\n\n\n\n\ntput\n\n\n\n\nCoreutils 8.24\n\uf0c1\n\n\nGnu Findutils 4.4.2\n\uf0c1\n\n\nGrep 2.23\n\uf0c1\n\n\nWget 1.17.1\n\uf0c1\n\n\nCurl 7.47.1   (Optional)\n\uf0c1\n\n\nRequired to pass some tests\n\n\nGit 2.7.1\n\uf0c1\n\n\nSubversion 1.9.3 (r1718519)\n\uf0c1\n\n\nRequired for source-entries which fetch there sources from subversion repos.\n\n\nMercurial 3.7.1\n\uf0c1\n\n\nRequired for source-entries which fetch there sources from mercurial repos.\n\n\nBazaar 2.6.0\n\uf0c1\n\n\nRequired for source-entries which fetch there sources from bazaar repos.\n\n\nInetutils 1.9.4\n\uf0c1\n\n\n\n\nping\n\n\n\n\nGzip 1.6\n\uf0c1\n\n\nBzip2 1.0.6\n\uf0c1\n\n\nXz 5.2.2\n\uf0c1\n\n\nbsdtar 3.1.2 - libarchive 3.1.2\n\uf0c1\n\n\nInstallation\n\uf0c1\n\n\nThe package contains only docs, examples, tests, \nbash functions\n and related Makefiles to install them.\n\n\nTo see the \nhelp\n, run in the top-level-directory: \nmake\n\n\nGeneral Settings Requirements\n\uf0c1\n\n\nThese are general required settings and \nthey are set in each file\n of the \npl_bash_functions package\n. \nSee function \nt_general_opt()\n for a complete list of general settings.\n\n\n\n\nWarning\n\n\nIndividual function might not need all of them but some\nfunction might silently misbehave or fail without them.\n\n\n\n\nVariable GREP_OPTIONS\n\uf0c1\n\n\nThe variable \nGREP_OPTIONS\n MUST be \nunset\n: \nunset GREP_OPTIONS\n\n\nThis is done in each file of the \npl_bash_functions package\n.\n\n\nThis variable specifies default options to be placed in front of any explicit options. As this causes problems when writing\nportable scripts, this feature will be removed in a future release of grep, and grep warns if it is used.\n\n\nBASH Options\n\uf0c1\n\n\nset +o noclobber\n is required by some functions: this is done in each file of the \npl_bash_functions package\n.\n\n\nBASH shopt Options\n\uf0c1\n\n\n\n\nshopt -s extglob\n\n\nshopt -s dotglob\n\n\nshopt -s nullglob\n\n\nshopt -s expand_aliases\n: e.g. used for the gettext alias.\n\n\n\n\nUsage\n\uf0c1\n\n\nIn your bash script: source the \npl_bash_functions files\n you want to use.\n\n\n\n\nNote\n\n\nSome functions require functions from other files in this package, there is some dependency order\n\n\n\n\nCommon Example\n\uf0c1\n\n\nUsually one wants to source first \ntrap_opt.sh\n set the traps, source \nmsg.sh\n and call function \nm_format\n, source \nutil.sh\n\nand after that anything else.\n\n\ncustomary_cleanup_function() {\n   echo \nMissing code for the customary_cleanup_function\n\n}\n\ndeclare -r _PL_BASH_FUNCTIONS_DIR=\n/usr/lib/pl_bash_functions/scripts\n\n\nsource \n${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh\n\nfor _signal in TERM HUP QUIT; do trap \nt_trap_s \\\n${_signal}\\\n \\\ncustomary_cleanup_function\\\n \n${_signal}\n; done\ntrap \nt_trap_i \\\ncustomary_cleanup_function\\\n INT\ntrap \nt_trap_u \\\ncustomary_cleanup_function\\\n ERR\n\nsource \n${_PL_BASH_FUNCTIONS_DIR}/msg.sh\n\nm_format\n\n#_M_VERBOSE=\nyes\n       NOTE: This defaults to: yes\n#_M_VERBOSE_I=\nyes\n     NOTE: This defaults to: yes\n\nm_header \n${_M_GREEN}\n \n$(_g \nJust Testing...\n)\n\n\nm_ask_continue \nroot\n\n\nm_has_tested_version \n0.1.1\n\n\nsource \n${_PL_BASH_FUNCTIONS_DIR}/util.sh\n\n\nu_source_safe_exit \nanything_else......\n\n\nd_got_download_prog_exit      # if the related files where sourced\ne_got_extract_prog_exit       # if the related files where sourced\n\n\n\n\n01. Optional Cleanup Function\n\uf0c1\n\n\nIf needed add a cleanup function to be passed to the traps.\n\n\ncustomary_cleanup_function() {\n   echo \nMissing code for the customary_cleanup_function\n\n}\n\n\n\n\n02. Get PL_BASH_FUNCTIONS_DIR\n\uf0c1\n\n\nSpecify where the \npl_bash_functions package is installed\n: needs the \nscripts directory\n.\n\n\ndeclare -r _PL_BASH_FUNCTIONS_DIR=\n/usr/lib/pl_bash_functions/scripts\n\n\n\n\n\n03. Set Trap\n\uf0c1\n\n\nGenerally it is a good thing to set \ntraps\n.\n\n\nsource \n${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh\n\nfor _signal in TERM HUP QUIT; do trap \nt_trap_s \\\n${_signal}\\\n \\\ncustomary_cleanup_function\\\n \n${_signal}\n; done\ntrap \nt_trap_i \\\ncustomary_cleanup_function\\\n INT\ntrap \nt_trap_u \\\ncustomary_cleanup_function\\\n ERR\n\n\n\n\nSOURCING \ntrap_opt.sh\"\n: Sets also the required bash options. \n\n\nunset GREP_OPTIONS\nshopt -s extglob dotglob expand_aliases\nset +o noclobber\n\n\n\n\n\n\nIt also checks for some required commands: e.g. gettext, tput\n\n\nAnd sets aliases: e.g. _g an alias for gettext\n\n\n\n\nFor mor info see function: \nt_general_opt\n\n\n04. Source 'msg.sh'\n\uf0c1\n\n\nThis is usually done first because other \npl_bash_functions package\n files may use them. Run function: \nm_format\n which\nsets important global variables for  the \npl_bash_functions package\n message system.\n\n\nsource \n${_PL_BASH_FUNCTIONS_DIR}/msg.sh\n\nm_format\n\n\n\n\n05. Optional Set Message Verbosity\n\uf0c1\n\n\nGENERAL LEVEL\n\n\nThe Variable \n_M_VERBOSE=\"yes\"\n is set in the function: \nm_format\n\nOptionally one can set it to \n_M_VERBOSE=\"no\"\n to skip some general messages.\n\n\n\n\n_M_VERBOSE=\"yes\"\n: all general messages are printed\n\n\n_M_VERBOSE=\"no\"\n: general are silenced\n\n\n\n\nADDITIONAL INFO LEVEL\n\n\nThe Variable \n_M_VERBOSE_I=\"yes\"\n is set in the function \nm_format()\n.\nOptionally one can set it to \n_M_VERBOSE_I=\"no\"\n to skip such  additional messages.\n\n\n\n\n_M_VERBOSE_I=\"yes\"\n: enables such additional messages\n\n\n_M_VERBOSE_I=\"no\"\n: silences such additional messages\n\n\n\n\n\n\nNote\n\n\nThe Verbosity Levels work independently to silence both one needs to set BOTH levles to \nno\n\n\n\n\n06. Optional Print A Main Header\n\uf0c1\n\n\nm_header \n${_M_GREEN}\n \n$(_g \nJust Testing...\n)\n\n\n\n\n\n07. Optional Request User Confirmation\n\uf0c1\n\n\nIt is recommendet that in end-user scripts a request for user action is set.\n\n\nThe function \nm_ask_continue\n can be used for that: there is an optional user/account argument under which the script must\nrun.\n\n\nm_ask_continue\n\n\n\n\nAbort if the script is not executed under user/account \nroot\n.\n\n\nm_ask_continue \nroot\n\n\n\n\n\n08. Optional Test 'pl_bash_functions' Version\n\uf0c1\n\n\nTest if the users system has the same \npl_bash_functions version\n which your script was tested with.\n\n\nm_has_tested_version \n0.1.1\n\n\n\n\n\n09. Source 'util.sh'\n\uf0c1\n\n\nsource \n${_PL_BASH_FUNCTIONS_DIR}/util.sh\n\n\n\n\n\n\n\nHint\n\n\nAfterwards use function: \nu_source_safe_exit\n to source any other files.\n\n\n\n\n10. Source Other Files\n\uf0c1\n\n\nAfter that source (\nu_source_safe_exit\n) any needed other files.\n\n\nu_source_safe_exit \nanything_else......\n\n\n\n\n\n11. Optional Check Needed Programs\n\uf0c1\n\n\nThis only checks for the main programs.\n\n\nd_got_download_prog_exit\ne_got_extract_prog_exit\n\n\n\n\nWith setting the file download program to curl: (default is 'wget').\n\n\nd_got_download_prog_exit \ncurl\n\ne_got_extract_prog_exit", 
+            "title": "How To"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#how-to", 
+            "text": "How to install  &  use the 'pl_bash_functions' package.", 
+            "title": "How To"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#system-requirements", 
+            "text": "Hint  There are related helper scripts to list intalled versions: pl_helper_scripts  They might require additional software.   Following software should be installed,  earlier or later versions  of the listed software packages may also work.   Note  If you use only some selected functions you may not need all the software installed.", 
+            "title": "System Requirements"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#bash-4339", 
+            "text": "", 
+            "title": "Bash 4.3.39"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#gnu-gettext-0197", 
+            "text": "", 
+            "title": "Gnu Gettext 0.19.7"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#ncurses-6020150808", 
+            "text": "tput", 
+            "title": "Ncurses 6.0.20150808"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#coreutils-824", 
+            "text": "", 
+            "title": "Coreutils 8.24"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#gnu-findutils-442", 
+            "text": "", 
+            "title": "Gnu Findutils 4.4.2"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#grep-223", 
+            "text": "", 
+            "title": "Grep 2.23"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#wget-1171", 
+            "text": "", 
+            "title": "Wget 1.17.1"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#curl-7471-optional", 
+            "text": "Required to pass some tests", 
+            "title": "Curl 7.47.1   (Optional)"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#git-271", 
+            "text": "", 
+            "title": "Git 2.7.1"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#subversion-193-r1718519", 
+            "text": "Required for source-entries which fetch there sources from subversion repos.", 
+            "title": "Subversion 1.9.3 (r1718519)"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#mercurial-371", 
+            "text": "Required for source-entries which fetch there sources from mercurial repos.", 
+            "title": "Mercurial 3.7.1"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#bazaar-260", 
+            "text": "Required for source-entries which fetch there sources from bazaar repos.", 
+            "title": "Bazaar 2.6.0"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#inetutils-194", 
+            "text": "ping", 
+            "title": "Inetutils 1.9.4"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#gzip-16", 
+            "text": "", 
+            "title": "Gzip 1.6"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#bzip2-106", 
+            "text": "", 
+            "title": "Bzip2 1.0.6"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#xz-522", 
+            "text": "", 
+            "title": "Xz 5.2.2"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#bsdtar-312-libarchive-312", 
+            "text": "", 
+            "title": "bsdtar 3.1.2 - libarchive 3.1.2"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#installation", 
+            "text": "The package contains only docs, examples, tests,  bash functions  and related Makefiles to install them.  To see the  help , run in the top-level-directory:  make", 
+            "title": "Installation"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#general-settings-requirements", 
+            "text": "These are general required settings and  they are set in each file  of the  pl_bash_functions package . \nSee function  t_general_opt()  for a complete list of general settings.   Warning  Individual function might not need all of them but some\nfunction might silently misbehave or fail without them.", 
+            "title": "General Settings Requirements"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#variable-grep_options", 
+            "text": "The variable  GREP_OPTIONS  MUST be  unset :  unset GREP_OPTIONS  This is done in each file of the  pl_bash_functions package .  This variable specifies default options to be placed in front of any explicit options. As this causes problems when writing\nportable scripts, this feature will be removed in a future release of grep, and grep warns if it is used.", 
+            "title": "Variable GREP_OPTIONS"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#bash-options", 
+            "text": "set +o noclobber  is required by some functions: this is done in each file of the  pl_bash_functions package .", 
+            "title": "BASH Options"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#bash-shopt-options", 
+            "text": "shopt -s extglob  shopt -s dotglob  shopt -s nullglob  shopt -s expand_aliases : e.g. used for the gettext alias.", 
+            "title": "BASH shopt Options"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#usage", 
+            "text": "In your bash script: source the  pl_bash_functions files  you want to use.   Note  Some functions require functions from other files in this package, there is some dependency order", 
+            "title": "Usage"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#common-example", 
+            "text": "Usually one wants to source first  trap_opt.sh  set the traps, source  msg.sh  and call function  m_format , source  util.sh \nand after that anything else.  customary_cleanup_function() {\n   echo  Missing code for the customary_cleanup_function \n}\n\ndeclare -r _PL_BASH_FUNCTIONS_DIR= /usr/lib/pl_bash_functions/scripts \n\nsource  ${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh \nfor _signal in TERM HUP QUIT; do trap  t_trap_s \\ ${_signal}\\  \\ customary_cleanup_function\\   ${_signal} ; done\ntrap  t_trap_i \\ customary_cleanup_function\\  INT\ntrap  t_trap_u \\ customary_cleanup_function\\  ERR\n\nsource  ${_PL_BASH_FUNCTIONS_DIR}/msg.sh \nm_format\n\n#_M_VERBOSE= yes        NOTE: This defaults to: yes\n#_M_VERBOSE_I= yes      NOTE: This defaults to: yes\n\nm_header  ${_M_GREEN}   $(_g  Just Testing... ) \n\nm_ask_continue  root \n\nm_has_tested_version  0.1.1 \n\nsource  ${_PL_BASH_FUNCTIONS_DIR}/util.sh \n\nu_source_safe_exit  anything_else...... \n\nd_got_download_prog_exit      # if the related files where sourced\ne_got_extract_prog_exit       # if the related files where sourced", 
+            "title": "Common Example"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#01-optional-cleanup-function", 
+            "text": "If needed add a cleanup function to be passed to the traps.  customary_cleanup_function() {\n   echo  Missing code for the customary_cleanup_function \n}", 
+            "title": "01. Optional Cleanup Function"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#02-get-pl_bash_functions_dir", 
+            "text": "Specify where the  pl_bash_functions package is installed : needs the  scripts directory .  declare -r _PL_BASH_FUNCTIONS_DIR= /usr/lib/pl_bash_functions/scripts", 
+            "title": "02. Get PL_BASH_FUNCTIONS_DIR"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#03-set-trap", 
+            "text": "Generally it is a good thing to set  traps .  source  ${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh \nfor _signal in TERM HUP QUIT; do trap  t_trap_s \\ ${_signal}\\  \\ customary_cleanup_function\\   ${_signal} ; done\ntrap  t_trap_i \\ customary_cleanup_function\\  INT\ntrap  t_trap_u \\ customary_cleanup_function\\  ERR  SOURCING  trap_opt.sh\" : Sets also the required bash options.   unset GREP_OPTIONS\nshopt -s extglob dotglob expand_aliases\nset +o noclobber   It also checks for some required commands: e.g. gettext, tput  And sets aliases: e.g. _g an alias for gettext   For mor info see function:  t_general_opt", 
+            "title": "03. Set Trap"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#04-source-msgsh", 
+            "text": "This is usually done first because other  pl_bash_functions package  files may use them. Run function:  m_format  which\nsets important global variables for  the  pl_bash_functions package  message system.  source  ${_PL_BASH_FUNCTIONS_DIR}/msg.sh \nm_format", 
+            "title": "04. Source 'msg.sh'"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#05-optional-set-message-verbosity", 
+            "text": "GENERAL LEVEL  The Variable  _M_VERBOSE=\"yes\"  is set in the function:  m_format \nOptionally one can set it to  _M_VERBOSE=\"no\"  to skip some general messages.   _M_VERBOSE=\"yes\" : all general messages are printed  _M_VERBOSE=\"no\" : general are silenced   ADDITIONAL INFO LEVEL  The Variable  _M_VERBOSE_I=\"yes\"  is set in the function  m_format() .\nOptionally one can set it to  _M_VERBOSE_I=\"no\"  to skip such  additional messages.   _M_VERBOSE_I=\"yes\" : enables such additional messages  _M_VERBOSE_I=\"no\" : silences such additional messages    Note  The Verbosity Levels work independently to silence both one needs to set BOTH levles to  no", 
+            "title": "05. Optional Set Message Verbosity"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#06-optional-print-a-main-header", 
+            "text": "m_header  ${_M_GREEN}   $(_g  Just Testing... )", 
+            "title": "06. Optional Print A Main Header"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#07-optional-request-user-confirmation", 
+            "text": "It is recommendet that in end-user scripts a request for user action is set.  The function  m_ask_continue  can be used for that: there is an optional user/account argument under which the script must\nrun.  m_ask_continue  Abort if the script is not executed under user/account  root .  m_ask_continue  root", 
+            "title": "07. Optional Request User Confirmation"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#08-optional-test-pl_bash_functions-version", 
+            "text": "Test if the users system has the same  pl_bash_functions version  which your script was tested with.  m_has_tested_version  0.1.1", 
+            "title": "08. Optional Test 'pl_bash_functions' Version"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#09-source-utilsh", 
+            "text": "source  ${_PL_BASH_FUNCTIONS_DIR}/util.sh    Hint  Afterwards use function:  u_source_safe_exit  to source any other files.", 
+            "title": "09. Source 'util.sh'"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#10-source-other-files", 
+            "text": "After that source ( u_source_safe_exit ) any needed other files.  u_source_safe_exit  anything_else......", 
+            "title": "10. Source Other Files"
+        }, 
+        {
+            "location": "/user_guide/00_how_to/#11-optional-check-needed-programs", 
+            "text": "This only checks for the main programs.  d_got_download_prog_exit\ne_got_extract_prog_exit  With setting the file download program to curl: (default is 'wget').  d_got_download_prog_exit  curl \ne_got_extract_prog_exit", 
+            "title": "11. Optional Check Needed Programs"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/", 
+            "text": "P-Linux Pkgfile Format\n\uf0c1\n\n\nSome 'general' information about the 'Pkgfile Format'.\n\n\n\n\n\n\n\nNote\n\n\nOfficial Pkgfile variables start with a prefixed \npkg\n\n\n\n\nPkgfile-Header\n\uf0c1\n\n\nA \nPkgfile\n MUST have a \nPkgfile-Header\n in the following format:\n\n\n\n\n\n\n\n\nRequired\n\n\nVariable Name\n\n\nDescription\n\n\nType\n\n\n\n\n\n\n\n\n\n\nYES\n\n\npkgpackager\n\n\nName, pseudonym, e-mail address or web-link\n\n\nSTRING\n\n\n\n\n\n\nYES\n\n\npkgdesc\n\n\nA short description of the package\n\n\nSTRING\n\n\n\n\n\n\nYES\n\n\npkgurl\n\n\nAn URL that is associated with the software package or empty.\n\n\nSTRING\n\n\n\n\n\n\nYES\n\n\npkgdeps\n\n\nA list of dependencies needed to build or run the package or empty.\n\n\nARRAY\n\n\n\n\n\n\nNO\n\n\npkgdepsrun\n\n\nA list of runtime dependencies or empty. If omitted it will be set to an empty array\n\n\nARRAY\n\n\n\n\n\n\n\n\nExample Pkgfile-Header:\n\n\npkgpackager=\npeter1000 \nhttps://github.com/peter1000\n\npkgdesc=\nBash functions used by other P-Linux packages.\n\npkgurl=\nhttps://github.com/P-Linux/pl_bash_functions\n\npkgdeps=(bash)\npkgdepsrun=(gettext ncurses coreutils findutils grep wget curl libarchive gzip bzip2 xz inetutils git subversion mercurial bzr)\n\n\n\n\nPkgfile-Variables\n\uf0c1\n\n\nAdditionally to the \nPkgfile-Header\n, following variables are REQUIRED:\n\n\n\n\n\n\n\n\nRequired\n\n\nVariable Name\n\n\nDescription\n\n\nType\n\n\n\n\n\n\n\n\n\n\nYES\n\n\npkgvers\n\n\nThe version of the package (typically the same as the upstream version.\n\n\nSTRING\n\n\n\n\n\n\nYES\n\n\npkgrel\n\n\nThis is typically re-set to 1 for each new upstream release.\n\n\nSTRING\n\n\n\n\n\n\nYES\n\n\npkgsources\n\n\nA list of source files required to build the package.\n\n\nARRAY\n\n\n\n\n\n\nYES\n\n\npkgmd5sum\n\n\nA list of corresponding md5checksums (for file sources).\n\n\nARRAY\n\n\n\n\n\n\n\n\nExample Pkgfile-Variables:\n\n\npkgvers=0.1.0.r1.2f12e1a\npkgrel=1\npkgsources=($url/files/${CM_PORTNAME}-${pkgvers}.tar.xz)\npkgmd5sum=(\nSKIP\n)\n\n\n\n\nAvoid introducing new variables, other names could be in conflict with internal variables.\n\n\n\n\nHint\n\n\nIf other functions or variables are absolutely needed: prefix them with 2 underscores: e.g. \n__pkgtag\n\nBut be aware that \npl_bash_functions package\n also uses a some variables with double underscore prefix.\n\n\n\n\nPkgfile Information\n\uf0c1\n\n\npkgpackager\n\uf0c1\n\n\nSTRING - Name, pseudonym, e-mail address or web-link.\n\n\npkgdesc\n\uf0c1\n\n\nSTRING - A short description of the package. It MUST have at least 10 and a maximum of 110 characters.\n\n\npkgurl\n\uf0c1\n\n\nSTRING - An URL that is associated with the software package or empty.\n\n\npkgdeps\n\uf0c1\n\n\nINDEX ARRAY - A list of dependencies needed to build the package or empty. It can also contain other optional dependencies or\nruntime dependencies: but see also \npkgdepsrun\n for an optional separate runtime dependency array.\n\n\n\n\nNote\n\n\nDependencies which are listed in the \nbase collection\n are not required to be included in the \npkgdeps\n array.\n\n\n\n\npkgdepsrun\n\uf0c1\n\n\nINDEX ARRAY - A list of runtime dependencies, can also be empty or omitted.\n\n\npkgvers\n\uf0c1\n\n\nSTRING - The version of the package (typically the same as the upstream source version). It MUST NOT be empty.\nValid characters for a pkgvers are alphanumeric and full stop.\n\n\npkgrel\n\uf0c1\n\n\nSTRING - This is a release number specific to the P-Linux release. This is typically set to 1 for each new upstream software\nrelease and incremented for intermediate \nPkgfile\n updates or set to the actual date of the  \nPkgfile\n update.\n\n\nValid characters for a pkgrel are digits and must be greater than 0 and less than 100000000.\n\n\nRecommended date format: yyyymmdd: e.g. 20160329\n\n\npkgsources\n\uf0c1\n\n\nINDEX ARRAY - A list of sources required to build the package.\nLocal source files must reside in the same directory as the Pkgfile.\nAll other source entries must be fully-qualified URLs which can be used to download the sources.\n\n\npkgmd5sums\n\uf0c1\n\n\nINDEX ARRAY - A list of corresponding md5checksums used for source file validation.\n\n\nPkgfile-Functions\n\uf0c1\n\n\nThere are a number of \nPkgfile functions\n which are automatically executed by the build process.\n\n\n\n\n\n\n\n\nRequired\n\n\nFunction Name\n\n\nDescription\n\n\n\n\n\n\n\n\n\n\nYES\n\n\nbuild()\n\n\nThe main function to build he package.\n\n\n\n\n\n\nNO\n\n\nsetpkgvers()\n\n\nMust return a package version: mostly useful for VCS\n\n\n\n\n\n\nNO\n\n\nCM_GROUPS array defined functions\n\n\nfor more info see (CM_GROUPS array functions)\n\n\n\n\n\n\n\n\nExample Pkgfile-Functions:\n\n\nbuild() {\n    cd ${CM_PORTNAME}-${pkgvers}\n    ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info\n    make\n    make DESTDIR=${pkgdir} install\n}\n\n\n\n\nCM_GROUPS array functions\n\uf0c1\n\n\nIf the configuration variable \nCM_GROUPS\n is set in the 'cmk.conf' file or in an individual Pkgfile, \ncmk\n will try to\nsplit the produced package into additional groups defined in this array.\nA default function is executed if a function with the same name is not found in the Pkgfile.\nSupported default group functions are: lib() devel() doc() man() service()\n\n\nPkgfile directory Name\n\uf0c1\n\n\nThe directory where the Pkgfile resides is used as the package name. It MUST have at least 2 and maximum 50 characters.\n\n\nalid characters for a Pkgfile directory are alphanumeric, and any of the following characters: plus sign, hyphen-minus\nand underlines.\nAdditionally, the directory MUST start with an alphanumeric character.", 
+            "title": "Pkgfile Format"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#p-linux-pkgfile-format", 
+            "text": "Some 'general' information about the 'Pkgfile Format'.    Note  Official Pkgfile variables start with a prefixed  pkg", 
+            "title": "P-Linux Pkgfile Format"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgfile-header", 
+            "text": "A  Pkgfile  MUST have a  Pkgfile-Header  in the following format:     Required  Variable Name  Description  Type      YES  pkgpackager  Name, pseudonym, e-mail address or web-link  STRING    YES  pkgdesc  A short description of the package  STRING    YES  pkgurl  An URL that is associated with the software package or empty.  STRING    YES  pkgdeps  A list of dependencies needed to build or run the package or empty.  ARRAY    NO  pkgdepsrun  A list of runtime dependencies or empty. If omitted it will be set to an empty array  ARRAY     Example Pkgfile-Header:  pkgpackager= peter1000  https://github.com/peter1000 \npkgdesc= Bash functions used by other P-Linux packages. \npkgurl= https://github.com/P-Linux/pl_bash_functions \npkgdeps=(bash)\npkgdepsrun=(gettext ncurses coreutils findutils grep wget curl libarchive gzip bzip2 xz inetutils git subversion mercurial bzr)", 
+            "title": "Pkgfile-Header"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgfile-variables", 
+            "text": "Additionally to the  Pkgfile-Header , following variables are REQUIRED:     Required  Variable Name  Description  Type      YES  pkgvers  The version of the package (typically the same as the upstream version.  STRING    YES  pkgrel  This is typically re-set to 1 for each new upstream release.  STRING    YES  pkgsources  A list of source files required to build the package.  ARRAY    YES  pkgmd5sum  A list of corresponding md5checksums (for file sources).  ARRAY     Example Pkgfile-Variables:  pkgvers=0.1.0.r1.2f12e1a\npkgrel=1\npkgsources=($url/files/${CM_PORTNAME}-${pkgvers}.tar.xz)\npkgmd5sum=( SKIP )  Avoid introducing new variables, other names could be in conflict with internal variables.   Hint  If other functions or variables are absolutely needed: prefix them with 2 underscores: e.g.  __pkgtag \nBut be aware that  pl_bash_functions package  also uses a some variables with double underscore prefix.", 
+            "title": "Pkgfile-Variables"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgfile-information", 
+            "text": "", 
+            "title": "Pkgfile Information"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgpackager", 
+            "text": "STRING - Name, pseudonym, e-mail address or web-link.", 
+            "title": "pkgpackager"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgdesc", 
+            "text": "STRING - A short description of the package. It MUST have at least 10 and a maximum of 110 characters.", 
+            "title": "pkgdesc"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgurl", 
+            "text": "STRING - An URL that is associated with the software package or empty.", 
+            "title": "pkgurl"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgdeps", 
+            "text": "INDEX ARRAY - A list of dependencies needed to build the package or empty. It can also contain other optional dependencies or\nruntime dependencies: but see also  pkgdepsrun  for an optional separate runtime dependency array.   Note  Dependencies which are listed in the  base collection  are not required to be included in the  pkgdeps  array.", 
+            "title": "pkgdeps"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgdepsrun", 
+            "text": "INDEX ARRAY - A list of runtime dependencies, can also be empty or omitted.", 
+            "title": "pkgdepsrun"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgvers", 
+            "text": "STRING - The version of the package (typically the same as the upstream source version). It MUST NOT be empty.\nValid characters for a pkgvers are alphanumeric and full stop.", 
+            "title": "pkgvers"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgrel", 
+            "text": "STRING - This is a release number specific to the P-Linux release. This is typically set to 1 for each new upstream software\nrelease and incremented for intermediate  Pkgfile  updates or set to the actual date of the   Pkgfile  update.  Valid characters for a pkgrel are digits and must be greater than 0 and less than 100000000.  Recommended date format: yyyymmdd: e.g. 20160329", 
+            "title": "pkgrel"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgsources", 
+            "text": "INDEX ARRAY - A list of sources required to build the package.\nLocal source files must reside in the same directory as the Pkgfile.\nAll other source entries must be fully-qualified URLs which can be used to download the sources.", 
+            "title": "pkgsources"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgmd5sums", 
+            "text": "INDEX ARRAY - A list of corresponding md5checksums used for source file validation.", 
+            "title": "pkgmd5sums"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgfile-functions", 
+            "text": "There are a number of  Pkgfile functions  which are automatically executed by the build process.     Required  Function Name  Description      YES  build()  The main function to build he package.    NO  setpkgvers()  Must return a package version: mostly useful for VCS    NO  CM_GROUPS array defined functions  for more info see (CM_GROUPS array functions)     Example Pkgfile-Functions:  build() {\n    cd ${CM_PORTNAME}-${pkgvers}\n    ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info\n    make\n    make DESTDIR=${pkgdir} install\n}", 
+            "title": "Pkgfile-Functions"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#cm_groups-array-functions", 
+            "text": "If the configuration variable  CM_GROUPS  is set in the 'cmk.conf' file or in an individual Pkgfile,  cmk  will try to\nsplit the produced package into additional groups defined in this array.\nA default function is executed if a function with the same name is not found in the Pkgfile.\nSupported default group functions are: lib() devel() doc() man() service()", 
+            "title": "CM_GROUPS array functions"
+        }, 
+        {
+            "location": "/user_guide/01_pkgfile_format/#pkgfile-directory-name", 
+            "text": "The directory where the Pkgfile resides is used as the package name. It MUST have at least 2 and maximum 50 characters.  alid characters for a Pkgfile directory are alphanumeric, and any of the following characters: plus sign, hyphen-minus\nand underlines.\nAdditionally, the directory MUST start with an alphanumeric character.", 
+            "title": "Pkgfile directory Name"
+        }, 
+        {
+            "location": "/user_guide/02_pkgarchive_format/", 
+            "text": "P-Linux Pkgarchive Format\n\uf0c1\n\n\nSome 'general' information about the 'Pkgarchive Format'.\n\n\n\n\n\nA pkgarchive is an archive containing a set of files of various types (e.g. libraries, command line applications, graphical\nuser interfaces, commands, configuration information, etc.) and is the result of building a port.\n\n\nSuch pkgarchives can be handled (installed/removed etc.) by the \nP-Linux package manager\n.\n\n\nPkgarchive Name Syntax\n\uf0c1\n\n\n\n\nport-name\n\n\n.group-name\n: (only if it is a group pkgarchive.)\n\n\n.locale-name\n: (only if it is a locale pkgarchive.)\n\n\nbuildversion\n: 10 digits Unix-timestamp of the pkgarchive build time.\n\n\narchitecture\n: any or system-architecture: e.g. (\"$(uname -m)\"  x86_64)\n\n\n.extension\n: the predefined pkgarchive reference extension without compression.\n\n\n.xz\n: only if it is a compressed pkgarchive.\n\n\n\n\nEXAMPLE: Pkgarchive Names Without Compression\n\uf0c1\n\n\n\n\n\n\n\n\nPkgarchive Name\n\n\nDescription\n\n\n\n\n\n\n\n\n\n\ncards1462695664x86_64.cards.tar\n\n\nname: cards, no group, buildvers: 1462695664, arch: x86_64, ext: cards.tar\n\n\n\n\n\n\ncards.devel1462695664x86_64.cards.tar\n\n\nname: cards, group: devel, buildvers: 1462695664, arch: x86_64, ext: cards.tar\n\n\n\n\n\n\ncards.man1462695664any.cards.tar\n\n\nname: cards, group: man, buildvers: 1462695664, arch: any, ext: cards.tar\n\n\n\n\n\n\n\n\nEXAMPLE: Pkgarchive Names With Compression\n\uf0c1\n\n\n\n\n\n\n\n\nPkgarchive Name\n\n\nDescription\n\n\n\n\n\n\n\n\n\n\nacl.fr1462707691any.cards.tar.xz\n\n\nname: acl, group: fr, buildvers: 1462707691, arch: any, ext: cards.tar, compressed\n\n\n\n\n\n\nacl1462707691x86_64.cards.tar.xz\n\n\nname: acl, no group, buildvers: 1462707691, arch: x86_64, ext: cards.tar, compressed", 
+            "title": "Pkgarchive Format"
+        }, 
+        {
+            "location": "/user_guide/02_pkgarchive_format/#p-linux-pkgarchive-format", 
+            "text": "Some 'general' information about the 'Pkgarchive Format'.   A pkgarchive is an archive containing a set of files of various types (e.g. libraries, command line applications, graphical\nuser interfaces, commands, configuration information, etc.) and is the result of building a port.  Such pkgarchives can be handled (installed/removed etc.) by the  P-Linux package manager .", 
+            "title": "P-Linux Pkgarchive Format"
+        }, 
+        {
+            "location": "/user_guide/02_pkgarchive_format/#pkgarchive-name-syntax", 
+            "text": "port-name  .group-name : (only if it is a group pkgarchive.)  .locale-name : (only if it is a locale pkgarchive.)  buildversion : 10 digits Unix-timestamp of the pkgarchive build time.  architecture : any or system-architecture: e.g. (\"$(uname -m)\"  x86_64)  .extension : the predefined pkgarchive reference extension without compression.  .xz : only if it is a compressed pkgarchive.", 
+            "title": "Pkgarchive Name Syntax"
+        }, 
+        {
+            "location": "/user_guide/02_pkgarchive_format/#example-pkgarchive-names-without-compression", 
+            "text": "Pkgarchive Name  Description      cards1462695664x86_64.cards.tar  name: cards, no group, buildvers: 1462695664, arch: x86_64, ext: cards.tar    cards.devel1462695664x86_64.cards.tar  name: cards, group: devel, buildvers: 1462695664, arch: x86_64, ext: cards.tar    cards.man1462695664any.cards.tar  name: cards, group: man, buildvers: 1462695664, arch: any, ext: cards.tar", 
+            "title": "EXAMPLE: Pkgarchive Names Without Compression"
+        }, 
+        {
+            "location": "/user_guide/02_pkgarchive_format/#example-pkgarchive-names-with-compression", 
+            "text": "Pkgarchive Name  Description      acl.fr1462707691any.cards.tar.xz  name: acl, group: fr, buildvers: 1462707691, arch: any, ext: cards.tar, compressed    acl1462707691x86_64.cards.tar.xz  name: acl, no group, buildvers: 1462707691, arch: x86_64, ext: cards.tar, compressed", 
+            "title": "EXAMPLE: Pkgarchive Names With Compression"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/", 
+            "text": "P-Linux Repo-File Format\n\uf0c1\n\n\nSome 'general' information about the 'Repo-File Format'.\n\n\n\n\n\nA \nRepo-File\n is a plain text file with selected information.\n\n\nPort-Repo-File\n\uf0c1\n\n\nA \nPort-Repo-File\n has this structure:\n\n\nEXAMPLE WITH COMPRESSION\n\n\n1462707691#.cards.tar.xz#2.2.52#1#Some Info#http://savannah.nongnu.org/projects/acl#peter1000\nff097cb276710374b3ef4ef551dc29ab#acl#x86_64\n9140e3d8065533d61fa077e731602172#acl.fr#any\n0029f3a21d21534b2031a539f0e04065#acl.man#any\n239870fb9cd383e270e0b08ac773db1a#acl.sv#any\n866cff7556c9dc9ea81224459d8c00db#acl.README\n80eba83e7de06d46752f4158979ea3c2#dummy.patch\nd03ad0a50693b85015f2d420e2ed7d6a#otherfile.txt\n66b57281f54815208b199afabddfd05e#Pkgfile\n\n\n\n\n\nEXAMPLE WITHOUT COMPRESSION\n\n\n1462707691#.cards.tar#2.2.52#1#Some Info#http://savannah.nongnu.org/projects/acl#peter1000\nff097cb276710374b3ef4ef551dc29ab#acl#x86_64\n9140e3d8065533d61fa077e731602172#acl.fr#any\n0029f3a21d21534b2031a539f0e04065#acl.man#any\n239870fb9cd383e270e0b08ac773db1a#acl.sv#any\n866cff7556c9dc9ea81224459d8c00db#acl.README\n80eba83e7de06d46752f4158979ea3c2#dummy.patch\nd03ad0a50693b85015f2d420e2ed7d6a#otherfile.txt\n66b57281f54815208b199afabddfd05e#Pkgfile\n\n\n\n\n\nEXAMPLE WITH COMPRESSION BUT NO EXISTING PKGARCHIVE FILEs\n\n\n66b57281f54815208b199afabddfd05e#Pkgfile\n\n\n\n\n\nFirst Line Syntax\n\uf0c1\n\n\nOnly included if any pkgarchive file exist. \n\n\nbuildversion#.extension and any .compression#pkgversion#pkgrelease#pkgdescription#pkgurl#pkgpackager\n\n\n\n\nPkgarchive Line Syntax\n\uf0c1\n\n\nOnly included if any pkgarchive file exist. \nSee also \npkgarchive-name-syntax\n.\n\n\nmd5sum#port-name and any .group#architecture\n\n\n\n\nOther File Line Syntax\n\uf0c1\n\n\nOnly included if any pkgarchive file exist.\n\n\nAll other files of the port are included here: The Pkgfile is always the last: see below \nLast Line Syntax\n.\n\n\nmd5sum#other-file-basename\n\n\n\n\n\n\nNote\n\n\nSubdirectories or files in subdirectories are never included in the \nPort-Repo-File\n.\n\n\n\n\nLast Line Syntax\n\uf0c1\n\n\nIn a \nPort-Repo-File\n the Pkgfile line is always present.\n\n\nmd5sum#pkgfile-basename\n\n\n\n\nCollection-Repo-File\n\uf0c1\n\n\nWill be only updated if a Port-Repo-File exists and contains archive file entries: information is extracted from the first \nline of the Port-Repo-File.\n\n\nEXAMPLE\n\n\n733f214a972cba5c70921a1181a392ef#1462741466#cpio#2.11#3#A tool.#http://www.gnu.org/software/cpio/#peter1000#.cards.tar.xz\n\n\n\n\nLine Syntax\n\uf0c1\n\n\nPort-Repo-File md5sum#buildversion#portname#pkgversion#pkgrelease#pkgdescription#pkgurl#pkgpackager#.extension any .compression", 
+            "title": "Repo-File Format"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#p-linux-repo-file-format", 
+            "text": "Some 'general' information about the 'Repo-File Format'.   A  Repo-File  is a plain text file with selected information.", 
+            "title": "P-Linux Repo-File Format"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#port-repo-file", 
+            "text": "A  Port-Repo-File  has this structure:  EXAMPLE WITH COMPRESSION  1462707691#.cards.tar.xz#2.2.52#1#Some Info#http://savannah.nongnu.org/projects/acl#peter1000\nff097cb276710374b3ef4ef551dc29ab#acl#x86_64\n9140e3d8065533d61fa077e731602172#acl.fr#any\n0029f3a21d21534b2031a539f0e04065#acl.man#any\n239870fb9cd383e270e0b08ac773db1a#acl.sv#any\n866cff7556c9dc9ea81224459d8c00db#acl.README\n80eba83e7de06d46752f4158979ea3c2#dummy.patch\nd03ad0a50693b85015f2d420e2ed7d6a#otherfile.txt\n66b57281f54815208b199afabddfd05e#Pkgfile  EXAMPLE WITHOUT COMPRESSION  1462707691#.cards.tar#2.2.52#1#Some Info#http://savannah.nongnu.org/projects/acl#peter1000\nff097cb276710374b3ef4ef551dc29ab#acl#x86_64\n9140e3d8065533d61fa077e731602172#acl.fr#any\n0029f3a21d21534b2031a539f0e04065#acl.man#any\n239870fb9cd383e270e0b08ac773db1a#acl.sv#any\n866cff7556c9dc9ea81224459d8c00db#acl.README\n80eba83e7de06d46752f4158979ea3c2#dummy.patch\nd03ad0a50693b85015f2d420e2ed7d6a#otherfile.txt\n66b57281f54815208b199afabddfd05e#Pkgfile  EXAMPLE WITH COMPRESSION BUT NO EXISTING PKGARCHIVE FILEs  66b57281f54815208b199afabddfd05e#Pkgfile", 
+            "title": "Port-Repo-File"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#first-line-syntax", 
+            "text": "Only included if any pkgarchive file exist.   buildversion#.extension and any .compression#pkgversion#pkgrelease#pkgdescription#pkgurl#pkgpackager", 
+            "title": "First Line Syntax"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#pkgarchive-line-syntax", 
+            "text": "Only included if any pkgarchive file exist. \nSee also  pkgarchive-name-syntax .  md5sum#port-name and any .group#architecture", 
+            "title": "Pkgarchive Line Syntax"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#other-file-line-syntax", 
+            "text": "Only included if any pkgarchive file exist.  All other files of the port are included here: The Pkgfile is always the last: see below  Last Line Syntax .  md5sum#other-file-basename   Note  Subdirectories or files in subdirectories are never included in the  Port-Repo-File .", 
+            "title": "Other File Line Syntax"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#last-line-syntax", 
+            "text": "In a  Port-Repo-File  the Pkgfile line is always present.  md5sum#pkgfile-basename", 
+            "title": "Last Line Syntax"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#collection-repo-file", 
+            "text": "Will be only updated if a Port-Repo-File exists and contains archive file entries: information is extracted from the first \nline of the Port-Repo-File.  EXAMPLE  733f214a972cba5c70921a1181a392ef#1462741466#cpio#2.11#3#A tool.#http://www.gnu.org/software/cpio/#peter1000#.cards.tar.xz", 
+            "title": "Collection-Repo-File"
+        }, 
+        {
+            "location": "/user_guide/03_repo_file_format/#line-syntax", 
+            "text": "Port-Repo-File md5sum#buildversion#portname#pkgversion#pkgrelease#pkgdescription#pkgurl#pkgpackager#.extension any .compression", 
+            "title": "Line Syntax"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/", 
+            "text": "Code Style\n\uf0c1\n\n\nSome 'general' information on code style used in the 'pl_bash_functions' package.\n\n\n\n\n\n\n\nNote\n\n\nThere might be some exceptions as I see fit.\n\n\n\n\nLine length\n\uf0c1\n\n\nIn general the line length used is maximum \n127 chars\n per line.\n\n\nIndentation\n\uf0c1\n\n\nIn general the indentation are \n4 Spaces\n per level.\n\n\nNaming Convention\n\uf0c1\n\n\nFunction Name Prefix\n\uf0c1\n\n\nIn general Function Names are prefixed with the \nFirst letter of the shell filename followed by one underscore\n.\n\n\nExample: if the 'pl_bash_functions' file is called: \nmsg.sh\n - the prefix would be: \nm_\n\n\n\n\n\n\nFunction Name\n: \nm_abort\n\n\n\n\n\n\nSometimes the \nFunction Name\n is prefixed with an underscore: e.g. function within function\n\n\n\n\n\n\nException: sometimes an additional letter is added to distinguish files which start with the same letter.\n\n\n\n\ne.g. \ntesting.sh, trap_opt.sh\n\n\n\n\n\n\n\n\nFunction Exit/Abort\n\uf0c1\n\n\nIn general Function which abort on failure use following name syntax.\n\n\n\n\nExit if XXX\n: \nu_exit_sparse_array\n -  Exit/Abort if it is a sparse array.\n\n\nIf XXX fails Exit\n: \nu_file_is_rw_exit\n - If file is read/writeable fails, exit/abort.\n\n\n\n\nVariable Names\n\uf0c1\n\n\nOwn Variable Names are prefixed with \none underscore\n.\n\n\n\n\n\n\nOwn Variable Name\n: \n_path\n\n\n\n\nSometimes the \nVariable Name\n is prefixed with mutliple underscores: e.g. function within function local variables.\n\n\n\n\n\n\n\n\nlocal variable names are usually in lowercase letters\n\n\n\n\nglobal variable names are usually in uppercase letters\n\n\n\n\nBackticks - Parenthesis\n\uf0c1\n\n\nParenthesis\n are prefered over \nBackticks\n.\n\n\n# YES\n_dir=$(dirname \n/home/me/test/myscript.sh\n)\n\n# NO\n_dir=`dirname \n/home/me/test/myscript.sh\n`\n\n\n\n\nSquare Brackets\n\uf0c1\n\n\nDouble square brackets\n are prefered over \nSingle square brackets\n.\n\n\n_a=\nyes exit\n\n\n# YES\nif [[ ${_a} == \nyes exit\n ]]; then exit 1; fi\n\n# NO\nif [ \n${_a}\n == \nyes exit\n ]; then exit 1; fi\n\n# ERROR: too many arguments\nif [ ${_a} == \nyes exit\n ]; then exit 1; fi\n\n\n\n\nShell Parameter Expansion\n\uf0c1\n\n\nIn general braces are used for parameter expansion. To be consistent braces are also used if a variable stands alone.\n\n\n_a=\ntest\n\n\n# YES\nif [[ ${_a} == \nyes exit\n ]]; then exit 1; fi\n\n# NO\nif [[ $_a == \nyes exit\n ]]; then exit 1; fi\n\n\n\n\nQuotation Marks\n\uf0c1\n\n\nDouble quotations marks\n are prefered over \nSingle quotations marks\n.\n\n\n# YES\n_a=\nA long text\n\n\n# NO\n_a='A long text'\n\n# EXCEPTION: literal text\necho '_lfs_target=$(uname -m)-lfs-linux-gnu' \n .example.txt\n\n\n\n\nVariables Unquoted Within Double Square Brackets\n\uf0c1\n\n\nIn general simple variables within double square brackets are left unquoted.\n\n\n_a=\nyes exit\n\n_b=${_a}\n\n# YES\nif [[ ${_a} == \nyes exit\n ]]; then exit 1; fi\n\nif [[ ${_a} == ${_b} ]]; then exit 1; fi\n\n# NO\nif [[ \n${_a}\n == \nyes exit\n ]]; then exit 1; fi\n\nif [[ \n${_a}\n == \n${_b}\n ]]; then exit 1; fi\n\n\n\n\n\nVariables Unquoted In Right Hand Assignment\n\uf0c1\n\n\nIn general variables in right hand assignment are left unquoted.\n\n\n# YES\n_a=$1\n\n_dir=$(dirname \n/home/me/test/myscript.sh\n)\n\n# NO\n_a=\n$1\n\n\n_dir=\n$(dirname \n/home/me/test/myscript.sh\n)\n\n\n\n\n\nAppending/Adding\n\uf0c1\n\n\nIn general this syntax is used.\n\n\nAppend To A String\n\uf0c1\n\n\n_a=\nSTRING:\n\n_a+=\n appended\n\n\n\n\n\nAppend/Add To An Integer\n\uf0c1\n\n\n_b=8\n((_b+=7))\n\n\n\n\nAppend To An Index Array\n\uf0c1\n\n\n_c=(\nARRAY:\n)\n_c+=(\nappended\n)\n\n\n\n\nReturn Values\n\uf0c1\n\n\nIn general return statements will add always a return value: success (0), failure (1-255)\n\n\n_V=\nyes\n\nif [[ ${_V} == \nyes\n ]]; then\n    return 0\nelse\n    do_something_else\nfi\n\n\n\n\nTesting Return Values\n\uf0c1\n\n\nIn general this syntax is used: TEST if FAILED: \n(( $? ))\n\n\n[[ \na\n == \nb\n ]]\n_ret=${?}\n(( ${_ret} )) \n printf \n%s\\n\n \nCOMMAND FAILED\n\n\n# multiple statements (be careful with the `front/end spaces` and end `;`).\n_ret=${?}\n(( ${_ret} )) \n { printf \n%s\\n\n \nCOMMAND FAILED\n; exit 1; }\n\n\n\n\n_check_failed=${?}\n\n# Return on success\n(( ${_ret} )) || return 0\n\n# OR Simple\n(( ${?} )) || return 0\n\n\n\n\nFunctions\n\uf0c1\n\n\nIn general functions in the \npl_bash_functions package\n are self-contained: they do not use global variables and declare all\nused variabled as: local\n\n\nExceptions:\n\n\n\n\nfunctions within function may use the outer function variables.\n\n\nfunctions will also use the msg variables declared by: \nms_format()\n.\n\n\nsome functions declare on purpose variables which are not set local: e.g.\n\n\nsome Pkgfile related function\n\n\nsome Port processing related function\n\n\n\n\n\n\nsome functions relay on official Pkgfile variables: in such case a Pkgfile must first have been sourced or the required\n    variables set globally.\n\n\n\n\nFunction Arguments/Variables\n\uf0c1\n\n\nIn general:\n\n\n\n\nFIRST: Checks for valid function input arguments\n\n\nSECOND: most function arguments are assigned to local variables before they are used.\n\n\nException:\n in small functions they are not re-assigned to local variables as arguments ar limited in bash:\n    \nError: Argument list too long\n\n\n\n\n\n\nTHIRD: any other used variable are declared \"local\"\n\n\nFourth: comes the rest of the code\n\n\n\n\nSpeed\n\uf0c1\n\n\nIn some cases consideration for faster execution was given - could be in the future improved.\n\n\nTo avoid the creation of many subshell calls like:\n\n\nlocal _result=$(function_1 \nargument1\n)\n\n\n\n\nThe \npl_bash_functions package\n uses for some function which return results \n: a reference variables\n.\n\n\nTypically the first passed argument will hold the updated result. e.g.\n\n\nlocal _result; function_1 _result \nargument1\n\n\n\n\n\n\n\nNote\n\n\nThis has also some costs - especially the usage is not always as easily to spot\nbecause natuarly one considers the first arg only as an other argument and not\nas the return variable.\n\n\nOnly for demonstartion: this does not work: traditional usage\n\n\n_tmp_uri=$(u_prefix_shortest_all \"${_entry}\" \"#\")\n(( ${_num_prefix_sep} \n 0 )) \n _tmp_uri=$(u_postfix_shortest_empty \"${_tmp_uri}\" \"::\")\n_uri=$(u_postfix_longest_all \"${_tmp_uri}\" \"+\")\n\n\n\nSpeed improved usage\n\n\nu_prefix_shortest_all _tmp_uri \"${_entry}\" \"#\"\n(( ${_num_prefix_sep} \n 0 )) \n u_postfix_shortest_empty _tmp_uri \"${_tmp_uri}\" \"::\"\nu_postfix_longest_all _uri \"${_tmp_uri}\" \"+\"\n\n\n\n\n\n\n\nWarning\n\n\nThe variable which is pass MUST NOT have the same name as used in the function,\notherwise one might get (warning: circular name reference) and all breaks.\n\n\nIt is also important that these variables are passed to the function only by name.\n\n\n\n\nFor examples see: \ntests/example_usage__function_return_values.sh\n\n\nDiverse\n\uf0c1", 
+            "title": "Code Style"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#code-style", 
+            "text": "Some 'general' information on code style used in the 'pl_bash_functions' package.    Note  There might be some exceptions as I see fit.", 
+            "title": "Code Style"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#line-length", 
+            "text": "In general the line length used is maximum  127 chars  per line.", 
+            "title": "Line length"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#indentation", 
+            "text": "In general the indentation are  4 Spaces  per level.", 
+            "title": "Indentation"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#naming-convention", 
+            "text": "", 
+            "title": "Naming Convention"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#function-name-prefix", 
+            "text": "In general Function Names are prefixed with the  First letter of the shell filename followed by one underscore .  Example: if the 'pl_bash_functions' file is called:  msg.sh  - the prefix would be:  m_    Function Name :  m_abort    Sometimes the  Function Name  is prefixed with an underscore: e.g. function within function    Exception: sometimes an additional letter is added to distinguish files which start with the same letter.   e.g.  testing.sh, trap_opt.sh", 
+            "title": "Function Name Prefix"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#function-exitabort", 
+            "text": "In general Function which abort on failure use following name syntax.   Exit if XXX :  u_exit_sparse_array  -  Exit/Abort if it is a sparse array.  If XXX fails Exit :  u_file_is_rw_exit  - If file is read/writeable fails, exit/abort.", 
+            "title": "Function Exit/Abort"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#variable-names", 
+            "text": "Own Variable Names are prefixed with  one underscore .    Own Variable Name :  _path   Sometimes the  Variable Name  is prefixed with mutliple underscores: e.g. function within function local variables.     local variable names are usually in lowercase letters   global variable names are usually in uppercase letters", 
+            "title": "Variable Names"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#backticks-parenthesis", 
+            "text": "Parenthesis  are prefered over  Backticks .  # YES\n_dir=$(dirname  /home/me/test/myscript.sh )\n\n# NO\n_dir=`dirname  /home/me/test/myscript.sh `", 
+            "title": "Backticks - Parenthesis"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#square-brackets", 
+            "text": "Double square brackets  are prefered over  Single square brackets .  _a= yes exit \n\n# YES\nif [[ ${_a} ==  yes exit  ]]; then exit 1; fi\n\n# NO\nif [  ${_a}  ==  yes exit  ]; then exit 1; fi\n\n# ERROR: too many arguments\nif [ ${_a} ==  yes exit  ]; then exit 1; fi", 
+            "title": "Square Brackets"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#shell-parameter-expansion", 
+            "text": "In general braces are used for parameter expansion. To be consistent braces are also used if a variable stands alone.  _a= test \n\n# YES\nif [[ ${_a} ==  yes exit  ]]; then exit 1; fi\n\n# NO\nif [[ $_a ==  yes exit  ]]; then exit 1; fi", 
+            "title": "Shell Parameter Expansion"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#quotation-marks", 
+            "text": "Double quotations marks  are prefered over  Single quotations marks .  # YES\n_a= A long text \n\n# NO\n_a='A long text'\n\n# EXCEPTION: literal text\necho '_lfs_target=$(uname -m)-lfs-linux-gnu'   .example.txt", 
+            "title": "Quotation Marks"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#variables-unquoted-within-double-square-brackets", 
+            "text": "In general simple variables within double square brackets are left unquoted.  _a= yes exit \n_b=${_a}\n\n# YES\nif [[ ${_a} ==  yes exit  ]]; then exit 1; fi\n\nif [[ ${_a} == ${_b} ]]; then exit 1; fi\n\n# NO\nif [[  ${_a}  ==  yes exit  ]]; then exit 1; fi\n\nif [[  ${_a}  ==  ${_b}  ]]; then exit 1; fi", 
+            "title": "Variables Unquoted Within Double Square Brackets"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#variables-unquoted-in-right-hand-assignment", 
+            "text": "In general variables in right hand assignment are left unquoted.  # YES\n_a=$1\n\n_dir=$(dirname  /home/me/test/myscript.sh )\n\n# NO\n_a= $1 \n\n_dir= $(dirname  /home/me/test/myscript.sh )", 
+            "title": "Variables Unquoted In Right Hand Assignment"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#appendingadding", 
+            "text": "In general this syntax is used.", 
+            "title": "Appending/Adding"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#append-to-a-string", 
+            "text": "_a= STRING: \n_a+=  appended", 
+            "title": "Append To A String"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#appendadd-to-an-integer", 
+            "text": "_b=8\n((_b+=7))", 
+            "title": "Append/Add To An Integer"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#append-to-an-index-array", 
+            "text": "_c=( ARRAY: )\n_c+=( appended )", 
+            "title": "Append To An Index Array"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#return-values", 
+            "text": "In general return statements will add always a return value: success (0), failure (1-255)  _V= yes \nif [[ ${_V} ==  yes  ]]; then\n    return 0\nelse\n    do_something_else\nfi", 
+            "title": "Return Values"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#testing-return-values", 
+            "text": "In general this syntax is used: TEST if FAILED:  (( $? ))  [[  a  ==  b  ]]\n_ret=${?}\n(( ${_ret} ))   printf  %s\\n   COMMAND FAILED \n\n# multiple statements (be careful with the `front/end spaces` and end `;`).\n_ret=${?}\n(( ${_ret} ))   { printf  %s\\n   COMMAND FAILED ; exit 1; }  _check_failed=${?}\n\n# Return on success\n(( ${_ret} )) || return 0\n\n# OR Simple\n(( ${?} )) || return 0", 
+            "title": "Testing Return Values"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#functions", 
+            "text": "In general functions in the  pl_bash_functions package  are self-contained: they do not use global variables and declare all\nused variabled as: local  Exceptions:   functions within function may use the outer function variables.  functions will also use the msg variables declared by:  ms_format() .  some functions declare on purpose variables which are not set local: e.g.  some Pkgfile related function  some Port processing related function    some functions relay on official Pkgfile variables: in such case a Pkgfile must first have been sourced or the required\n    variables set globally.", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#function-argumentsvariables", 
+            "text": "In general:   FIRST: Checks for valid function input arguments  SECOND: most function arguments are assigned to local variables before they are used.  Exception:  in small functions they are not re-assigned to local variables as arguments ar limited in bash:\n     Error: Argument list too long    THIRD: any other used variable are declared \"local\"  Fourth: comes the rest of the code", 
+            "title": "Function Arguments/Variables"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#speed", 
+            "text": "In some cases consideration for faster execution was given - could be in the future improved.  To avoid the creation of many subshell calls like:  local _result=$(function_1  argument1 )  The  pl_bash_functions package  uses for some function which return results  : a reference variables .  Typically the first passed argument will hold the updated result. e.g.  local _result; function_1 _result  argument1    Note  This has also some costs - especially the usage is not always as easily to spot\nbecause natuarly one considers the first arg only as an other argument and not\nas the return variable.  Only for demonstartion: this does not work: traditional usage  _tmp_uri=$(u_prefix_shortest_all \"${_entry}\" \"#\")\n(( ${_num_prefix_sep}   0 ))   _tmp_uri=$(u_postfix_shortest_empty \"${_tmp_uri}\" \"::\")\n_uri=$(u_postfix_longest_all \"${_tmp_uri}\" \"+\")  Speed improved usage  u_prefix_shortest_all _tmp_uri \"${_entry}\" \"#\"\n(( ${_num_prefix_sep}   0 ))   u_postfix_shortest_empty _tmp_uri \"${_tmp_uri}\" \"::\"\nu_postfix_longest_all _uri \"${_tmp_uri}\" \"+\"    Warning  The variable which is pass MUST NOT have the same name as used in the function,\notherwise one might get (warning: circular name reference) and all breaks.  It is also important that these variables are passed to the function only by name.   For examples see:  tests/example_usage__function_return_values.sh", 
+            "title": "Speed"
+        }, 
+        {
+            "location": "/user_guide/04_code_style/#diverse", 
+            "text": "", 
+            "title": "Diverse"
+        }, 
+        {
+            "location": "/about/readme/", 
+            "text": "pl_bash_functions\n\uf0c1\n\n\nBash functions used by other P-Linux packages.\n\n\n\n\n\nWeb Presence\n\uf0c1\n\n\n\n\npl_bash_functions \nweb site - documentation\n\n\npl_bash_functions \ngithub repository", 
+            "title": "Readme"
+        }, 
+        {
+            "location": "/about/readme/#pl_bash_functions", 
+            "text": "Bash functions used by other P-Linux packages.", 
+            "title": "pl_bash_functions"
+        }, 
+        {
+            "location": "/about/readme/#web-presence", 
+            "text": "pl_bash_functions  web site - documentation  pl_bash_functions  github repository", 
+            "title": "Web Presence"
+        }, 
+        {
+            "location": "/about/license/", 
+            "text": "Copyrights \n Licenses\n\uf0c1\n\n\n\n\npl_bash_functions Package License (GPL2/later)\n\uf0c1\n\n\nThe \npl_bash_functions package\n is licensed under the GNU GENERAL PUBLIC LICENSE (Version 2):\n\n\n\n\nCopyright (c) 2016, \npeter1000\n \nhttps://github.com/peter1000\n.\n\n\nThis program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as\npublished by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.\n\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty\nof MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n\nSee the GNU General Public License for more details.\n\n\nYou should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software\nFoundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.\n\n\nRead the complete license below.\n\n\n\n\nLicenses for incorporated software \n data\n\uf0c1\n\n\nThe \npl_bash_functions package\n includes some code \n data derived from the following projects, which have their own licenses:\n\n\n\n\npacman\n: Copyright (c) 2006-2016 Pacman Development Team \n [GPL2/later]\n\n\npacman\n: Copyright (c) 2002-2006 by Judd Vinet \n [GPL2/later]\n\n\n\n\nMany thanks to the authors and contributors of those wonderful projects.\n\n\nAcknowledgment\n\uf0c1\n\n\nThe \nP-Linux-Logo\n \nPenguin face\n is based on \nLinux 2.0 Penguins\n by Larry Ewing \n and The GIMP.\n\n\nPermission to use and/or modify this image is granted provided you acknowledge\nme lewing@isc.tamu.edu and The GIMP if someone asks.\n\n\n\n\nMany thanks.\n\n\n\n\nCOMPLETE LICENSE\n\uf0c1\n\n\n            GNU GENERAL PUBLIC LICENSE\n               Version 2, June 1991\n\n Copyright (C) 1989, 1991 Free Software Foundation, Inc.\n         59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.\n\n Everyone is permitted to copy and distribute verbatim copies\n of this license document, but changing it is not allowed.\n\n                Preamble\n\n  The licenses for most software are designed to take away your\nfreedom to share and change it.  By contrast, the GNU General Public\nLicense is intended to guarantee your freedom to share and change free\nsoftware--to make sure the software is free for all its users.  This\nGeneral Public License applies to most of the Free Software\nFoundation's software and to any other program whose authors commit to\nusing it.  (Some other Free Software Foundation software is covered by\nthe GNU Library General Public License instead.)  You can apply it to\nyour programs, too.\n\n  When we speak of free software, we are referring to freedom, not\nprice.  Our General Public Licenses are designed to make sure that you\nhave the freedom to distribute copies of free software (and charge for\nthis service if you wish), that you receive source code or can get it\nif you want it, that you can change the software or use pieces of it\nin new free programs; and that you know you can do these things.\n\n  To protect your rights, we need to make restrictions that forbid\nanyone to deny you these rights or to ask you to surrender the rights.\nThese restrictions translate to certain responsibilities for you if you\ndistribute copies of the software, or if you modify it.\n\n  For example, if you distribute copies of such a program, whether\ngratis or for a fee, you must give the recipients all the rights that\nyou have.  You must make sure that they, too, receive or can get the\nsource code.  And you must show them these terms so they know their\nrights.\n\n  We protect your rights with two steps: (1) copyright the software, and\n(2) offer you this license which gives you legal permission to copy,\ndistribute and/or modify the software.\n\n  Also, for each author's protection and ours, we want to make certain\nthat everyone understands that there is no warranty for this free\nsoftware.  If the software is modified by someone else and passed on, we\nwant its recipients to know that what they have is not the original, so\nthat any problems introduced by others will not reflect on the original\nauthors' reputations.\n\n  Finally, any free program is threatened constantly by software\npatents.  We wish to avoid the danger that redistributors of a free\nprogram will individually obtain patent licenses, in effect making the\nprogram proprietary.  To prevent this, we have made it clear that any\npatent must be licensed for everyone's free use or not licensed at all.\n\n  The precise terms and conditions for copying, distribution and\nmodification follow.\n\f\n            GNU GENERAL PUBLIC LICENSE\n   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n\n  0. This License applies to any program or other work which contains\na notice placed by the copyright holder saying it may be distributed\nunder the terms of this General Public License.  The \nProgram\n, below,\nrefers to any such program or work, and a \nwork based on the Program\n\nmeans either the Program or any derivative work under copyright law:\nthat is to say, a work containing the Program or a portion of it,\neither verbatim or with modifications and/or translated into another\nlanguage.  (Hereinafter, translation is included without limitation in\nthe term \nmodification\n.)  Each licensee is addressed as \nyou\n.\n\nActivities other than copying, distribution and modification are not\ncovered by this License; they are outside its scope.  The act of\nrunning the Program is not restricted, and the output from the Program\nis covered only if its contents constitute a work based on the\nProgram (independent of having been made by running the Program).\nWhether that is true depends on what the Program does.\n\n  1. You may copy and distribute verbatim copies of the Program's\nsource code as you receive it, in any medium, provided that you\nconspicuously and appropriately publish on each copy an appropriate\ncopyright notice and disclaimer of warranty; keep intact all the\nnotices that refer to this License and to the absence of any warranty;\nand give any other recipients of the Program a copy of this License\nalong with the Program.\n\nYou may charge a fee for the physical act of transferring a copy, and\nyou may at your option offer warranty protection in exchange for a fee.\n\n  2. You may modify your copy or copies of the Program or any portion\nof it, thus forming a work based on the Program, and copy and\ndistribute such modifications or work under the terms of Section 1\nabove, provided that you also meet all of these conditions:\n\n    a) You must cause the modified files to carry prominent notices\n    stating that you changed the files and the date of any change.\n\n    b) You must cause any work that you distribute or publish, that in\n    whole or in part contains or is derived from the Program or any\n    part thereof, to be licensed as a whole at no charge to all third\n    parties under the terms of this License.\n\n    c) If the modified program normally reads commands interactively\n    when run, you must cause it, when started running for such\n    interactive use in the most ordinary way, to print or display an\n    announcement including an appropriate copyright notice and a\n    notice that there is no warranty (or else, saying that you provide\n    a warranty) and that users may redistribute the program under\n    these conditions, and telling the user how to view a copy of this\n    License.  (Exception: if the Program itself is interactive but\n    does not normally print such an announcement, your work based on\n    the Program is not required to print an announcement.)\n\f\nThese requirements apply to the modified work as a whole.  If\nidentifiable sections of that work are not derived from the Program,\nand can be reasonably considered independent and separate works in\nthemselves, then this License, and its terms, do not apply to those\nsections when you distribute them as separate works.  But when you\ndistribute the same sections as part of a whole which is a work based\non the Program, the distribution of the whole must be on the terms of\nthis License, whose permissions for other licensees extend to the\nentire whole, and thus to each and every part regardless of who wrote it.\n\nThus, it is not the intent of this section to claim rights or contest\nyour rights to work written entirely by you; rather, the intent is to\nexercise the right to control the distribution of derivative or\ncollective works based on the Program.\n\nIn addition, mere aggregation of another work not based on the Program\nwith the Program (or with a work based on the Program) on a volume of\na storage or distribution medium does not bring the other work under\nthe scope of this License.\n\n  3. You may copy and distribute the Program (or a work based on it,\nunder Section 2) in object code or executable form under the terms of\nSections 1 and 2 above provided that you also do one of the following:\n\n    a) Accompany it with the complete corresponding machine-readable\n    source code, which must be distributed under the terms of Sections\n    1 and 2 above on a medium customarily used for software interchange; or,\n\n    b) Accompany it with a written offer, valid for at least three\n    years, to give any third party, for a charge no more than your\n    cost of physically performing source distribution, a complete\n    machine-readable copy of the corresponding source code, to be\n    distributed under the terms of Sections 1 and 2 above on a medium\n    customarily used for software interchange; or,\n\n    c) Accompany it with the information you received as to the offer\n    to distribute corresponding source code.  (This alternative is\n    allowed only for noncommercial distribution and only if you\n    received the program in object code or executable form with such\n    an offer, in accord with Subsection b above.)\n\nThe source code for a work means the preferred form of the work for\nmaking modifications to it.  For an executable work, complete source\ncode means all the source code for all modules it contains, plus any\nassociated interface definition files, plus the scripts used to\ncontrol compilation and installation of the executable.  However, as a\nspecial exception, the source code distributed need not include\nanything that is normally distributed (in either source or binary\nform) with the major components (compiler, kernel, and so on) of the\noperating system on which the executable runs, unless that component\nitself accompanies the executable.\n\nIf distribution of executable or object code is made by offering\naccess to copy from a designated place, then offering equivalent\naccess to copy the source code from the same place counts as\ndistribution of the source code, even though third parties are not\ncompelled to copy the source along with the object code.\n\f\n  4. You may not copy, modify, sublicense, or distribute the Program\nexcept as expressly provided under this License.  Any attempt\notherwise to copy, modify, sublicense or distribute the Program is\nvoid, and will automatically terminate your rights under this License.\nHowever, parties who have received copies, or rights, from you under\nthis License will not have their licenses terminated so long as such\nparties remain in full compliance.\n\n  5. You are not required to accept this License, since you have not\nsigned it.  However, nothing else grants you permission to modify or\ndistribute the Program or its derivative works.  These actions are\nprohibited by law if you do not accept this License.  Therefore, by\nmodifying or distributing the Program (or any work based on the\nProgram), you indicate your acceptance of this License to do so, and\nall its terms and conditions for copying, distributing or modifying\nthe Program or works based on it.\n\n  6. Each time you redistribute the Program (or any work based on the\nProgram), the recipient automatically receives a license from the\noriginal licensor to copy, distribute or modify the Program subject to\nthese terms and conditions.  You may not impose any further\nrestrictions on the recipients' exercise of the rights granted herein.\nYou are not responsible for enforcing compliance by third parties to\nthis License.\n\n  7. If, as a consequence of a court judgment or allegation of patent\ninfringement or for any other reason (not limited to patent issues),\nconditions are imposed on you (whether by court order, agreement or\notherwise) that contradict the conditions of this License, they do not\nexcuse you from the conditions of this License.  If you cannot\ndistribute so as to satisfy simultaneously your obligations under this\nLicense and any other pertinent obligations, then as a consequence you\nmay not distribute the Program at all.  For example, if a patent\nlicense would not permit royalty-free redistribution of the Program by\nall those who receive copies directly or indirectly through you, then\nthe only way you could satisfy both it and this License would be to\nrefrain entirely from distribution of the Program.\n\nIf any portion of this section is held invalid or unenforceable under\nany particular circumstance, the balance of the section is intended to\napply and the section as a whole is intended to apply in other\ncircumstances.\n\nIt is not the purpose of this section to induce you to infringe any\npatents or other property right claims or to contest validity of any\nsuch claims; this section has the sole purpose of protecting the\nintegrity of the free software distribution system, which is\nimplemented by public license practices.  Many people have made\ngenerous contributions to the wide range of software distributed\nthrough that system in reliance on consistent application of that\nsystem; it is up to the author/donor to decide if he or she is willing\nto distribute software through any other system and a licensee cannot\nimpose that choice.\n\nThis section is intended to make thoroughly clear what is believed to\nbe a consequence of the rest of this License.\n\f\n  8. If the distribution and/or use of the Program is restricted in\ncertain countries either by patents or by copyrighted interfaces, the\noriginal copyright holder who places the Program under this License\nmay add an explicit geographical distribution limitation excluding\nthose countries, so that distribution is permitted only in or among\ncountries not thus excluded.  In such case, this License incorporates\nthe limitation as if written in the body of this License.\n\n  9. The Free Software Foundation may publish revised and/or new versions\nof the General Public License from time to time.  Such new versions will\nbe similar in spirit to the present version, but may differ in detail to\naddress new problems or concerns.\n\nEach version is given a distinguishing version number.  If the Program\nspecifies a version number of this License which applies to it and \nany\nlater version\n, you have the option of following the terms and conditions\neither of that version or of any later version published by the Free\nSoftware Foundation.  If the Program does not specify a version number of\nthis License, you may choose any version ever published by the Free Software\nFoundation.\n\n  10. If you wish to incorporate parts of the Program into other free\nprograms whose distribution conditions are different, write to the author\nto ask for permission.  For software which is copyrighted by the Free\nSoftware Foundation, write to the Free Software Foundation; we sometimes\nmake exceptions for this.  Our decision will be guided by the two goals\nof preserving the free status of all derivatives of our free software and\nof promoting the sharing and reuse of software generally.\n\n                NO WARRANTY\n\n  11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY\nFOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN\nOTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES\nPROVIDE THE PROGRAM \nAS IS\n WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED\nOR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF\nMERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS\nTO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE\nPROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,\nREPAIR OR CORRECTION.\n\n  12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\nWILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR\nREDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,\nINCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING\nOUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED\nTO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY\nYOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER\nPROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGES.\n\n             END OF TERMS AND CONDITIONS\n\f\n    Appendix: How to Apply These Terms to Your New Programs\n\n  If you develop a new program, and you want it to be of the greatest\npossible use to the public, the best way to achieve this is to make it\nfree software which everyone can redistribute and change under these terms.\n\n  To do so, attach the following notices to the program.  It is safest\nto attach them to the start of each source file to most effectively\nconvey the exclusion of warranty; and each file should have at least\nthe \ncopyright\n line and a pointer to where the full notice is found.\n\n    \none line to give the program's name and a brief idea of what it does.\n\n    Copyright (C) 19yy  \nname of author\n\n\n    This program is free software; you can redistribute it and/or modify\n    it under the terms of the GNU General Public License as published by\n    the Free Software Foundation; either version 2 of the License, or\n    (at your option) any later version.\n\n    This program is distributed in the hope that it will be useful,\n    but WITHOUT ANY WARRANTY; without even the implied warranty of\n    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n    GNU General Public License for more details.\n\n    You should have received a copy of the GNU General Public License\n    along with this program; if not, write to the Free Software\n    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\nAlso add information on how to contact you by electronic and paper mail.\n\nIf the program is interactive, make it output a short notice like this\nwhen it starts in an interactive mode:\n\n    Gnomovision version 69, Copyright (C) 19yy name of author\n    Gnomovision comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n    This is free software, and you are welcome to redistribute it\n    under certain conditions; type `show c' for details.\n\nThe hypothetical commands `show w' and `show c' should show the appropriate\nparts of the General Public License.  Of course, the commands you use may\nbe called something other than `show w' and `show c'; they could even be\nmouse-clicks or menu items--whatever suits your program.\n\nYou should also get your employer (if you work as a programmer) or your\nschool, if any, to sign a \ncopyright disclaimer\n for the program, if\nnecessary.  Here is a sample; alter the names:\n\n  Yoyodyne, Inc., hereby disclaims all copyright interest in the program\n  `Gnomovision' (which makes passes at compilers) written by James Hacker.\n\n  \nsignature of Ty Coon\n, 1 April 1989\n  Ty Coon, President of Vice\n\nThis General Public License does not permit incorporating your program into\nproprietary programs.  If your program is a subroutine library, you may\nconsider it more useful to permit linking proprietary applications with the\nlibrary.  If this is what you want to do, use the GNU Library General\nPublic License instead of this License.", 
+            "title": "License"
+        }, 
+        {
+            "location": "/about/license/#copyrights-licenses", 
+            "text": "", 
+            "title": "Copyrights &amp; Licenses"
+        }, 
+        {
+            "location": "/about/license/#pl_bash_functions-package-license-gpl2later", 
+            "text": "The  pl_bash_functions package  is licensed under the GNU GENERAL PUBLIC LICENSE (Version 2):   Copyright (c) 2016,  peter1000   https://github.com/peter1000 .  This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as\npublished by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty\nof MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.  You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software\nFoundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  Read the complete license below.", 
+            "title": "pl_bash_functions Package License (GPL2/later)"
+        }, 
+        {
+            "location": "/about/license/#licenses-for-incorporated-software-data", 
+            "text": "The  pl_bash_functions package  includes some code   data derived from the following projects, which have their own licenses:   pacman : Copyright (c) 2006-2016 Pacman Development Team   [GPL2/later]  pacman : Copyright (c) 2002-2006 by Judd Vinet   [GPL2/later]   Many thanks to the authors and contributors of those wonderful projects.", 
+            "title": "Licenses for incorporated software &amp; data"
+        }, 
+        {
+            "location": "/about/license/#acknowledgment", 
+            "text": "The  P-Linux-Logo   Penguin face  is based on  Linux 2.0 Penguins  by Larry Ewing   and The GIMP.  Permission to use and/or modify this image is granted provided you acknowledge\nme lewing@isc.tamu.edu and The GIMP if someone asks.  Many thanks.", 
+            "title": "Acknowledgment"
+        }, 
+        {
+            "location": "/about/license/#complete-license", 
+            "text": "GNU GENERAL PUBLIC LICENSE\n               Version 2, June 1991\n\n Copyright (C) 1989, 1991 Free Software Foundation, Inc.\n         59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.\n\n Everyone is permitted to copy and distribute verbatim copies\n of this license document, but changing it is not allowed.\n\n                Preamble\n\n  The licenses for most software are designed to take away your\nfreedom to share and change it.  By contrast, the GNU General Public\nLicense is intended to guarantee your freedom to share and change free\nsoftware--to make sure the software is free for all its users.  This\nGeneral Public License applies to most of the Free Software\nFoundation's software and to any other program whose authors commit to\nusing it.  (Some other Free Software Foundation software is covered by\nthe GNU Library General Public License instead.)  You can apply it to\nyour programs, too.\n\n  When we speak of free software, we are referring to freedom, not\nprice.  Our General Public Licenses are designed to make sure that you\nhave the freedom to distribute copies of free software (and charge for\nthis service if you wish), that you receive source code or can get it\nif you want it, that you can change the software or use pieces of it\nin new free programs; and that you know you can do these things.\n\n  To protect your rights, we need to make restrictions that forbid\nanyone to deny you these rights or to ask you to surrender the rights.\nThese restrictions translate to certain responsibilities for you if you\ndistribute copies of the software, or if you modify it.\n\n  For example, if you distribute copies of such a program, whether\ngratis or for a fee, you must give the recipients all the rights that\nyou have.  You must make sure that they, too, receive or can get the\nsource code.  And you must show them these terms so they know their\nrights.\n\n  We protect your rights with two steps: (1) copyright the software, and\n(2) offer you this license which gives you legal permission to copy,\ndistribute and/or modify the software.\n\n  Also, for each author's protection and ours, we want to make certain\nthat everyone understands that there is no warranty for this free\nsoftware.  If the software is modified by someone else and passed on, we\nwant its recipients to know that what they have is not the original, so\nthat any problems introduced by others will not reflect on the original\nauthors' reputations.\n\n  Finally, any free program is threatened constantly by software\npatents.  We wish to avoid the danger that redistributors of a free\nprogram will individually obtain patent licenses, in effect making the\nprogram proprietary.  To prevent this, we have made it clear that any\npatent must be licensed for everyone's free use or not licensed at all.\n\n  The precise terms and conditions for copying, distribution and\nmodification follow.\n\f\n            GNU GENERAL PUBLIC LICENSE\n   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n\n  0. This License applies to any program or other work which contains\na notice placed by the copyright holder saying it may be distributed\nunder the terms of this General Public License.  The  Program , below,\nrefers to any such program or work, and a  work based on the Program \nmeans either the Program or any derivative work under copyright law:\nthat is to say, a work containing the Program or a portion of it,\neither verbatim or with modifications and/or translated into another\nlanguage.  (Hereinafter, translation is included without limitation in\nthe term  modification .)  Each licensee is addressed as  you .\n\nActivities other than copying, distribution and modification are not\ncovered by this License; they are outside its scope.  The act of\nrunning the Program is not restricted, and the output from the Program\nis covered only if its contents constitute a work based on the\nProgram (independent of having been made by running the Program).\nWhether that is true depends on what the Program does.\n\n  1. You may copy and distribute verbatim copies of the Program's\nsource code as you receive it, in any medium, provided that you\nconspicuously and appropriately publish on each copy an appropriate\ncopyright notice and disclaimer of warranty; keep intact all the\nnotices that refer to this License and to the absence of any warranty;\nand give any other recipients of the Program a copy of this License\nalong with the Program.\n\nYou may charge a fee for the physical act of transferring a copy, and\nyou may at your option offer warranty protection in exchange for a fee.\n\n  2. You may modify your copy or copies of the Program or any portion\nof it, thus forming a work based on the Program, and copy and\ndistribute such modifications or work under the terms of Section 1\nabove, provided that you also meet all of these conditions:\n\n    a) You must cause the modified files to carry prominent notices\n    stating that you changed the files and the date of any change.\n\n    b) You must cause any work that you distribute or publish, that in\n    whole or in part contains or is derived from the Program or any\n    part thereof, to be licensed as a whole at no charge to all third\n    parties under the terms of this License.\n\n    c) If the modified program normally reads commands interactively\n    when run, you must cause it, when started running for such\n    interactive use in the most ordinary way, to print or display an\n    announcement including an appropriate copyright notice and a\n    notice that there is no warranty (or else, saying that you provide\n    a warranty) and that users may redistribute the program under\n    these conditions, and telling the user how to view a copy of this\n    License.  (Exception: if the Program itself is interactive but\n    does not normally print such an announcement, your work based on\n    the Program is not required to print an announcement.)\n\f\nThese requirements apply to the modified work as a whole.  If\nidentifiable sections of that work are not derived from the Program,\nand can be reasonably considered independent and separate works in\nthemselves, then this License, and its terms, do not apply to those\nsections when you distribute them as separate works.  But when you\ndistribute the same sections as part of a whole which is a work based\non the Program, the distribution of the whole must be on the terms of\nthis License, whose permissions for other licensees extend to the\nentire whole, and thus to each and every part regardless of who wrote it.\n\nThus, it is not the intent of this section to claim rights or contest\nyour rights to work written entirely by you; rather, the intent is to\nexercise the right to control the distribution of derivative or\ncollective works based on the Program.\n\nIn addition, mere aggregation of another work not based on the Program\nwith the Program (or with a work based on the Program) on a volume of\na storage or distribution medium does not bring the other work under\nthe scope of this License.\n\n  3. You may copy and distribute the Program (or a work based on it,\nunder Section 2) in object code or executable form under the terms of\nSections 1 and 2 above provided that you also do one of the following:\n\n    a) Accompany it with the complete corresponding machine-readable\n    source code, which must be distributed under the terms of Sections\n    1 and 2 above on a medium customarily used for software interchange; or,\n\n    b) Accompany it with a written offer, valid for at least three\n    years, to give any third party, for a charge no more than your\n    cost of physically performing source distribution, a complete\n    machine-readable copy of the corresponding source code, to be\n    distributed under the terms of Sections 1 and 2 above on a medium\n    customarily used for software interchange; or,\n\n    c) Accompany it with the information you received as to the offer\n    to distribute corresponding source code.  (This alternative is\n    allowed only for noncommercial distribution and only if you\n    received the program in object code or executable form with such\n    an offer, in accord with Subsection b above.)\n\nThe source code for a work means the preferred form of the work for\nmaking modifications to it.  For an executable work, complete source\ncode means all the source code for all modules it contains, plus any\nassociated interface definition files, plus the scripts used to\ncontrol compilation and installation of the executable.  However, as a\nspecial exception, the source code distributed need not include\nanything that is normally distributed (in either source or binary\nform) with the major components (compiler, kernel, and so on) of the\noperating system on which the executable runs, unless that component\nitself accompanies the executable.\n\nIf distribution of executable or object code is made by offering\naccess to copy from a designated place, then offering equivalent\naccess to copy the source code from the same place counts as\ndistribution of the source code, even though third parties are not\ncompelled to copy the source along with the object code.\n\f\n  4. You may not copy, modify, sublicense, or distribute the Program\nexcept as expressly provided under this License.  Any attempt\notherwise to copy, modify, sublicense or distribute the Program is\nvoid, and will automatically terminate your rights under this License.\nHowever, parties who have received copies, or rights, from you under\nthis License will not have their licenses terminated so long as such\nparties remain in full compliance.\n\n  5. You are not required to accept this License, since you have not\nsigned it.  However, nothing else grants you permission to modify or\ndistribute the Program or its derivative works.  These actions are\nprohibited by law if you do not accept this License.  Therefore, by\nmodifying or distributing the Program (or any work based on the\nProgram), you indicate your acceptance of this License to do so, and\nall its terms and conditions for copying, distributing or modifying\nthe Program or works based on it.\n\n  6. Each time you redistribute the Program (or any work based on the\nProgram), the recipient automatically receives a license from the\noriginal licensor to copy, distribute or modify the Program subject to\nthese terms and conditions.  You may not impose any further\nrestrictions on the recipients' exercise of the rights granted herein.\nYou are not responsible for enforcing compliance by third parties to\nthis License.\n\n  7. If, as a consequence of a court judgment or allegation of patent\ninfringement or for any other reason (not limited to patent issues),\nconditions are imposed on you (whether by court order, agreement or\notherwise) that contradict the conditions of this License, they do not\nexcuse you from the conditions of this License.  If you cannot\ndistribute so as to satisfy simultaneously your obligations under this\nLicense and any other pertinent obligations, then as a consequence you\nmay not distribute the Program at all.  For example, if a patent\nlicense would not permit royalty-free redistribution of the Program by\nall those who receive copies directly or indirectly through you, then\nthe only way you could satisfy both it and this License would be to\nrefrain entirely from distribution of the Program.\n\nIf any portion of this section is held invalid or unenforceable under\nany particular circumstance, the balance of the section is intended to\napply and the section as a whole is intended to apply in other\ncircumstances.\n\nIt is not the purpose of this section to induce you to infringe any\npatents or other property right claims or to contest validity of any\nsuch claims; this section has the sole purpose of protecting the\nintegrity of the free software distribution system, which is\nimplemented by public license practices.  Many people have made\ngenerous contributions to the wide range of software distributed\nthrough that system in reliance on consistent application of that\nsystem; it is up to the author/donor to decide if he or she is willing\nto distribute software through any other system and a licensee cannot\nimpose that choice.\n\nThis section is intended to make thoroughly clear what is believed to\nbe a consequence of the rest of this License.\n\f\n  8. If the distribution and/or use of the Program is restricted in\ncertain countries either by patents or by copyrighted interfaces, the\noriginal copyright holder who places the Program under this License\nmay add an explicit geographical distribution limitation excluding\nthose countries, so that distribution is permitted only in or among\ncountries not thus excluded.  In such case, this License incorporates\nthe limitation as if written in the body of this License.\n\n  9. The Free Software Foundation may publish revised and/or new versions\nof the General Public License from time to time.  Such new versions will\nbe similar in spirit to the present version, but may differ in detail to\naddress new problems or concerns.\n\nEach version is given a distinguishing version number.  If the Program\nspecifies a version number of this License which applies to it and  any\nlater version , you have the option of following the terms and conditions\neither of that version or of any later version published by the Free\nSoftware Foundation.  If the Program does not specify a version number of\nthis License, you may choose any version ever published by the Free Software\nFoundation.\n\n  10. If you wish to incorporate parts of the Program into other free\nprograms whose distribution conditions are different, write to the author\nto ask for permission.  For software which is copyrighted by the Free\nSoftware Foundation, write to the Free Software Foundation; we sometimes\nmake exceptions for this.  Our decision will be guided by the two goals\nof preserving the free status of all derivatives of our free software and\nof promoting the sharing and reuse of software generally.\n\n                NO WARRANTY\n\n  11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY\nFOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN\nOTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES\nPROVIDE THE PROGRAM  AS IS  WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED\nOR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF\nMERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS\nTO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE\nPROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,\nREPAIR OR CORRECTION.\n\n  12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\nWILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR\nREDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,\nINCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING\nOUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED\nTO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY\nYOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER\nPROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGES.\n\n             END OF TERMS AND CONDITIONS\n\f\n    Appendix: How to Apply These Terms to Your New Programs\n\n  If you develop a new program, and you want it to be of the greatest\npossible use to the public, the best way to achieve this is to make it\nfree software which everyone can redistribute and change under these terms.\n\n  To do so, attach the following notices to the program.  It is safest\nto attach them to the start of each source file to most effectively\nconvey the exclusion of warranty; and each file should have at least\nthe  copyright  line and a pointer to where the full notice is found.\n\n     one line to give the program's name and a brief idea of what it does. \n    Copyright (C) 19yy   name of author \n\n    This program is free software; you can redistribute it and/or modify\n    it under the terms of the GNU General Public License as published by\n    the Free Software Foundation; either version 2 of the License, or\n    (at your option) any later version.\n\n    This program is distributed in the hope that it will be useful,\n    but WITHOUT ANY WARRANTY; without even the implied warranty of\n    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n    GNU General Public License for more details.\n\n    You should have received a copy of the GNU General Public License\n    along with this program; if not, write to the Free Software\n    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\nAlso add information on how to contact you by electronic and paper mail.\n\nIf the program is interactive, make it output a short notice like this\nwhen it starts in an interactive mode:\n\n    Gnomovision version 69, Copyright (C) 19yy name of author\n    Gnomovision comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n    This is free software, and you are welcome to redistribute it\n    under certain conditions; type `show c' for details.\n\nThe hypothetical commands `show w' and `show c' should show the appropriate\nparts of the General Public License.  Of course, the commands you use may\nbe called something other than `show w' and `show c'; they could even be\nmouse-clicks or menu items--whatever suits your program.\n\nYou should also get your employer (if you work as a programmer) or your\nschool, if any, to sign a  copyright disclaimer  for the program, if\nnecessary.  Here is a sample; alter the names:\n\n  Yoyodyne, Inc., hereby disclaims all copyright interest in the program\n  `Gnomovision' (which makes passes at compilers) written by James Hacker.\n\n   signature of Ty Coon , 1 April 1989\n  Ty Coon, President of Vice\n\nThis General Public License does not permit incorporating your program into\nproprietary programs.  If your program is a subroutine library, you may\nconsider it more useful to permit linking proprietary applications with the\nlibrary.  If this is what you want to do, use the GNU Library General\nPublic License instead of this License.", 
+            "title": "COMPLETE LICENSE"
+        }, 
+        {
+            "location": "/about/release-notes/", 
+            "text": "Release Notes\n\uf0c1\n\n\n\n\nv0.9.4 (xxxx-xx-xx)\n\uf0c1\n\n\n\n\nrenames variable names with prefix \nCMK_ / cmk_\n to \nCM_ / cm_\n\n\nrenames forgotten refactor: \nms_msg2 / ms_msg2_i\n to \nm_msg2 / m_msg2_i\n\n\nclears first any alias - before setting our own once\n\n\nadds more shopt settings\n\n\n\n\nv0.9.3 (2016-05-15)\n\uf0c1\n\n\n\n\nComplete refactoring to avoid: Error: Argument list too long\n\n\nShorten bashfile/function/variable names, strings etc.\n\n\ngettext was aliased to \n_g\n\n\n\n\n\n\n\n\nv0.9.2 (2016-05-12)\n\uf0c1\n\n\n\n\nSome speed improvements\n\n\nAdds requirement for permission to overwrite files: \nset +o noclobber\n\n\nAdds requirement for: \nshopt -s dotglob\n\n\nAdds separate: pkgarchives.sh\n\n\nNew functions and tests\n\n\nChanges to local source files from \nLocal source MUST NOT start with a slash.\n to \nLocal source MUST NOT contain any slash.\n\n\nReason: for Port-Repo-Files we do want to include all the local files but nothing in subdirectories.\n\n\n\n\n\n\nRun tests in subshells to isolate them a bit\n\n\nArgument was removed from function: ms_format()\n\n\nFunction arguments assignment was reduced to avoid: Error: Argument list too long\n\n\n\n\nv0.9.1 (2016-05-05)\n\uf0c1\n\n\n\n\nsome speed improvements\n\n\nnew \nprocess_ports\n functions\n\n\ninstall scripts/tests in a \nscripts/tests subfolder\n\n\ncode style adjustments: use braces for variables\n\n\n\n\nv0.9.0 (2016-05-02)\n\uf0c1\n\n\n\n\nInitial Release\n\n\n\n\nHistory\n\uf0c1\n\n\nOn 17. March 2016 \npeter1000\n \nhttps://github.com/peter1000/\n started work on the new package\n\npl_bash_functions\n.", 
+            "title": "Release Notes"
+        }, 
+        {
+            "location": "/about/release-notes/#release-notes", 
+            "text": "", 
+            "title": "Release Notes"
+        }, 
+        {
+            "location": "/about/release-notes/#v094-xxxx-xx-xx", 
+            "text": "renames variable names with prefix  CMK_ / cmk_  to  CM_ / cm_  renames forgotten refactor:  ms_msg2 / ms_msg2_i  to  m_msg2 / m_msg2_i  clears first any alias - before setting our own once  adds more shopt settings", 
+            "title": "v0.9.4 (xxxx-xx-xx)"
+        }, 
+        {
+            "location": "/about/release-notes/#v093-2016-05-15", 
+            "text": "Complete refactoring to avoid: Error: Argument list too long  Shorten bashfile/function/variable names, strings etc.  gettext was aliased to  _g", 
+            "title": "v0.9.3 (2016-05-15)"
+        }, 
+        {
+            "location": "/about/release-notes/#v092-2016-05-12", 
+            "text": "Some speed improvements  Adds requirement for permission to overwrite files:  set +o noclobber  Adds requirement for:  shopt -s dotglob  Adds separate: pkgarchives.sh  New functions and tests  Changes to local source files from  Local source MUST NOT start with a slash.  to  Local source MUST NOT contain any slash.  Reason: for Port-Repo-Files we do want to include all the local files but nothing in subdirectories.    Run tests in subshells to isolate them a bit  Argument was removed from function: ms_format()  Function arguments assignment was reduced to avoid: Error: Argument list too long", 
+            "title": "v0.9.2 (2016-05-12)"
+        }, 
+        {
+            "location": "/about/release-notes/#v091-2016-05-05", 
+            "text": "some speed improvements  new  process_ports  functions  install scripts/tests in a  scripts/tests subfolder  code style adjustments: use braces for variables", 
+            "title": "v0.9.1 (2016-05-05)"
+        }, 
+        {
+            "location": "/about/release-notes/#v090-2016-05-02", 
+            "text": "Initial Release", 
+            "title": "v0.9.0 (2016-05-02)"
+        }, 
+        {
+            "location": "/about/release-notes/#history", 
+            "text": "On 17. March 2016  peter1000   https://github.com/peter1000/  started work on the new package pl_bash_functions .", 
+            "title": "History"
+        }
+    ]
+}

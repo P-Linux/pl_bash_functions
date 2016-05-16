@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="peter1000">
+        <link rel="canonical" href="https://p-linux.github.io/pl_bash_functions/user_guide/00_how_to/">
+        <link rel="shortcut icon" href="../../images/p_linux_favicon.ico">
+        
+
+	<title>How To - pl_bash_functions</title>
+
+        <link href="../../css/bootstrap-3.0.3.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link href="../../css/extra.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">pl_bash_functions</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="../..">Home</a>
+                </li>
+            
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li class="active">
+                            <a href="./">How To</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../01_pkgfile_format/">Pkgfile Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../02_pkgarchive_format/">Pkgarchive Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../03_repo_file_format/">Repo-File Format</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../04_code_style/">Code Style</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="../../about/readme/">Readme</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../../about/license/">License</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../../about/release-notes/">Release Notes</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li >
+                    <a rel="next" href="../..">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../01_pkgfile_format/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://github.com/P-Linux/pl_bash_functions/">
+                        
+                            <i class="fa fa-github"></i>
+                        
+                        GitHub
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#how-to">How To</a></li>
+        
+            <li><a href="#system-requirements">System Requirements</a></li>
+        
+            <li><a href="#installation">Installation</a></li>
+        
+            <li><a href="#general-settings-requirements">General Settings Requirements</a></li>
+        
+            <li><a href="#usage">Usage</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="how-to">How To<a class="headerlink" href="#how-to" title="Permanent link"></a></h1>
+<p align="center">How to install & use the 'pl_bash_functions' package.</p>
+
+<hr />
+<h2 id="system-requirements">System Requirements<a class="headerlink" href="#system-requirements" title="Permanent link"></a></h2>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>There are related helper scripts to list intalled versions:
+<a href="https://github.com/P-Linux/pl_helper_scripts">pl_helper_scripts</a></p>
+<p>They might require additional software.</p>
+</div>
+<p>Following software should be installed, <strong>earlier or later versions</strong> of the listed software packages may also work.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you use only some selected functions you may not need all the software installed.</p>
+</div>
+<h3 id="bash-4339">Bash 4.3.39<a class="headerlink" href="#bash-4339" title="Permanent link"></a></h3>
+<h3 id="gnu-gettext-0197">Gnu Gettext 0.19.7<a class="headerlink" href="#gnu-gettext-0197" title="Permanent link"></a></h3>
+<h3 id="ncurses-6020150808">Ncurses 6.0.20150808<a class="headerlink" href="#ncurses-6020150808" title="Permanent link"></a></h3>
+<ul>
+<li>tput</li>
+</ul>
+<h3 id="coreutils-824">Coreutils 8.24<a class="headerlink" href="#coreutils-824" title="Permanent link"></a></h3>
+<h3 id="gnu-findutils-442">Gnu Findutils 4.4.2<a class="headerlink" href="#gnu-findutils-442" title="Permanent link"></a></h3>
+<h3 id="grep-223">Grep 2.23<a class="headerlink" href="#grep-223" title="Permanent link"></a></h3>
+<h3 id="wget-1171">Wget 1.17.1<a class="headerlink" href="#wget-1171" title="Permanent link"></a></h3>
+<h3 id="curl-7471-optional">Curl 7.47.1   (Optional)<a class="headerlink" href="#curl-7471-optional" title="Permanent link"></a></h3>
+<p>Required to pass some tests</p>
+<h3 id="git-271">Git 2.7.1<a class="headerlink" href="#git-271" title="Permanent link"></a></h3>
+<h3 id="subversion-193-r1718519">Subversion 1.9.3 (r1718519)<a class="headerlink" href="#subversion-193-r1718519" title="Permanent link"></a></h3>
+<p>Required for source-entries which fetch there sources from subversion repos.</p>
+<h3 id="mercurial-371">Mercurial 3.7.1<a class="headerlink" href="#mercurial-371" title="Permanent link"></a></h3>
+<p>Required for source-entries which fetch there sources from mercurial repos.</p>
+<h3 id="bazaar-260">Bazaar 2.6.0<a class="headerlink" href="#bazaar-260" title="Permanent link"></a></h3>
+<p>Required for source-entries which fetch there sources from bazaar repos.</p>
+<h3 id="inetutils-194">Inetutils 1.9.4<a class="headerlink" href="#inetutils-194" title="Permanent link"></a></h3>
+<ul>
+<li>ping</li>
+</ul>
+<h3 id="gzip-16">Gzip 1.6<a class="headerlink" href="#gzip-16" title="Permanent link"></a></h3>
+<h3 id="bzip2-106">Bzip2 1.0.6<a class="headerlink" href="#bzip2-106" title="Permanent link"></a></h3>
+<h3 id="xz-522">Xz 5.2.2<a class="headerlink" href="#xz-522" title="Permanent link"></a></h3>
+<h3 id="bsdtar-312-libarchive-312">bsdtar 3.1.2 - libarchive 3.1.2<a class="headerlink" href="#bsdtar-312-libarchive-312" title="Permanent link"></a></h3>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link"></a></h2>
+<p>The package contains only docs, examples, tests, <em>bash functions</em> and related Makefiles to install them.</p>
+<p>To see the <em>help</em>, run in the top-level-directory: <code>make</code></p>
+<h2 id="general-settings-requirements">General Settings Requirements<a class="headerlink" href="#general-settings-requirements" title="Permanent link"></a></h2>
+<p>These are general required settings and <strong>they are set in each file</strong> of the <code>pl_bash_functions package</code>. 
+See function <code>t_general_opt()</code> for a complete list of general settings.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Individual function might not need all of them but some
+function might silently misbehave or fail without them.</p>
+</div>
+<h3 id="variable-grep_options">Variable GREP_OPTIONS<a class="headerlink" href="#variable-grep_options" title="Permanent link"></a></h3>
+<p>The variable <em>GREP_OPTIONS</em> MUST be <em>unset</em>: <code>unset GREP_OPTIONS</code></p>
+<p>This is done in each file of the <code>pl_bash_functions package</code>.</p>
+<p>This variable specifies default options to be placed in front of any explicit options. As this causes problems when writing
+portable scripts, this feature will be removed in a future release of grep, and grep warns if it is used.</p>
+<h3 id="bash-options">BASH Options<a class="headerlink" href="#bash-options" title="Permanent link"></a></h3>
+<p><code>set +o noclobber</code> is required by some functions: this is done in each file of the <code>pl_bash_functions package</code>.</p>
+<h3 id="bash-shopt-options">BASH shopt Options<a class="headerlink" href="#bash-shopt-options" title="Permanent link"></a></h3>
+<ul>
+<li><code>shopt -s extglob</code></li>
+<li><code>shopt -s dotglob</code></li>
+<li><code>shopt -s nullglob</code></li>
+<li><code>shopt -s expand_aliases</code>: e.g. used for the gettext alias.</li>
+</ul>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link"></a></h2>
+<p>In your bash script: source the <code>pl_bash_functions files</code> you want to use.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some functions require functions from other files in this package, there is some dependency order</p>
+</div>
+<h3 id="common-example">Common Example<a class="headerlink" href="#common-example" title="Permanent link"></a></h3>
+<p>Usually one wants to source first <code>trap_opt.sh</code> set the traps, source <code>msg.sh</code> and call function <em>m_format</em>, source <code>util.sh</code>
+and after that anything else.</p>
+<pre><code class="bash">customary_cleanup_function() {
+   echo &quot;Missing code for the customary_cleanup_function&quot;
+}
+
+declare -r _PL_BASH_FUNCTIONS_DIR=&quot;/usr/lib/pl_bash_functions/scripts&quot;
+
+source &quot;${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh&quot;
+for _signal in TERM HUP QUIT; do trap &quot;t_trap_s \&quot;${_signal}\&quot; \&quot;customary_cleanup_function\&quot;&quot; &quot;${_signal}&quot;; done
+trap &quot;t_trap_i \&quot;customary_cleanup_function\&quot;&quot; INT
+trap &quot;t_trap_u \&quot;customary_cleanup_function\&quot;&quot; ERR
+
+source &quot;${_PL_BASH_FUNCTIONS_DIR}/msg.sh&quot;
+m_format
+
+#_M_VERBOSE=&quot;yes&quot;       NOTE: This defaults to: yes
+#_M_VERBOSE_I=&quot;yes&quot;     NOTE: This defaults to: yes
+
+m_header &quot;${_M_GREEN}&quot; &quot;$(_g &quot;Just Testing...&quot;)&quot;
+
+m_ask_continue &quot;root&quot;
+
+m_has_tested_version &quot;0.1.1&quot;
+
+source &quot;${_PL_BASH_FUNCTIONS_DIR}/util.sh&quot;
+
+u_source_safe_exit &quot;anything_else......&quot;
+
+d_got_download_prog_exit      # if the related files where sourced
+e_got_extract_prog_exit       # if the related files where sourced
+</code></pre>
+
+<h4 id="01-optional-cleanup-function">01. Optional Cleanup Function<a class="headerlink" href="#01-optional-cleanup-function" title="Permanent link"></a></h4>
+<p>If needed add a cleanup function to be passed to the traps.</p>
+<pre><code class="bash">customary_cleanup_function() {
+   echo &quot;Missing code for the customary_cleanup_function&quot;
+}
+</code></pre>
+
+<h4 id="02-get-pl_bash_functions_dir">02. Get PL_BASH_FUNCTIONS_DIR<a class="headerlink" href="#02-get-pl_bash_functions_dir" title="Permanent link"></a></h4>
+<p>Specify where the <em>pl_bash_functions package is installed</em>: needs the <em>scripts directory</em>.</p>
+<pre><code class="bash">declare -r _PL_BASH_FUNCTIONS_DIR=&quot;/usr/lib/pl_bash_functions/scripts&quot;
+</code></pre>
+
+<h4 id="03-set-trap">03. Set Trap<a class="headerlink" href="#03-set-trap" title="Permanent link"></a></h4>
+<p>Generally it is a good thing to set <code>traps</code>.</p>
+<pre><code class="bash">source &quot;${_PL_BASH_FUNCTIONS_DIR}/trap_opt.sh&quot;
+for _signal in TERM HUP QUIT; do trap &quot;t_trap_s \&quot;${_signal}\&quot; \&quot;customary_cleanup_function\&quot;&quot; &quot;${_signal}&quot;; done
+trap &quot;t_trap_i \&quot;customary_cleanup_function\&quot;&quot; INT
+trap &quot;t_trap_u \&quot;customary_cleanup_function\&quot;&quot; ERR
+</code></pre>
+
+<p>SOURCING <code>trap_opt.sh"</code>: Sets also the required bash options. </p>
+<pre><code>unset GREP_OPTIONS
+shopt -s extglob dotglob expand_aliases
+set +o noclobber
+</code></pre>
+
+<ul>
+<li>It also checks for some required commands: e.g. gettext, tput</li>
+<li>And sets aliases: e.g. _g an alias for gettext</li>
+</ul>
+<p>For mor info see function: <em>t_general_opt</em></p>
+<h4 id="04-source-msgsh">04. Source 'msg.sh'<a class="headerlink" href="#04-source-msgsh" title="Permanent link"></a></h4>
+<p>This is usually done first because other <em>pl_bash_functions package</em> files may use them. Run function: <code>m_format</code> which
+sets important global variables for  the <em>pl_bash_functions package</em> message system.</p>
+<pre><code class="bash">source &quot;${_PL_BASH_FUNCTIONS_DIR}/msg.sh&quot;
+m_format
+</code></pre>
+
+<h4 id="05-optional-set-message-verbosity">05. Optional Set Message Verbosity<a class="headerlink" href="#05-optional-set-message-verbosity" title="Permanent link"></a></h4>
+<p><strong>GENERAL LEVEL</strong></p>
+<p>The Variable <code>_M_VERBOSE="yes"</code> is set in the function: <em>m_format</em>
+Optionally one can set it to <code>_M_VERBOSE="no"</code> to skip some general messages.</p>
+<ul>
+<li><code>_M_VERBOSE="yes"</code>: all general messages are printed</li>
+<li><code>_M_VERBOSE="no"</code>: general are silenced</li>
+</ul>
+<p><strong>ADDITIONAL INFO LEVEL</strong></p>
+<p>The Variable <code>_M_VERBOSE_I="yes"</code> is set in the function <code>m_format()</code>.
+Optionally one can set it to <code>_M_VERBOSE_I="no"</code> to skip such  additional messages.</p>
+<ul>
+<li><code>_M_VERBOSE_I="yes"</code>: enables such additional messages</li>
+<li><code>_M_VERBOSE_I="no"</code>: silences such additional messages</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Verbosity Levels work independently to silence both one needs to set BOTH levles to <code>no</code></p>
+</div>
+<h4 id="06-optional-print-a-main-header">06. Optional Print A Main Header<a class="headerlink" href="#06-optional-print-a-main-header" title="Permanent link"></a></h4>
+<pre><code class="bash">m_header &quot;${_M_GREEN}&quot; &quot;$(_g &quot;Just Testing...&quot;)&quot;
+</code></pre>
+
+<h4 id="07-optional-request-user-confirmation">07. Optional Request User Confirmation<a class="headerlink" href="#07-optional-request-user-confirmation" title="Permanent link"></a></h4>
+<p>It is recommendet that in end-user scripts a request for user action is set.</p>
+<p>The function <code>m_ask_continue</code> can be used for that: there is an optional user/account argument under which the script must
+run.</p>
+<pre><code class="bash">m_ask_continue
+</code></pre>
+
+<p>Abort if the script is not executed under user/account <em>root</em>.</p>
+<pre><code class="bash">m_ask_continue &quot;root&quot;
+</code></pre>
+
+<h4 id="08-optional-test-pl_bash_functions-version">08. Optional Test 'pl_bash_functions' Version<a class="headerlink" href="#08-optional-test-pl_bash_functions-version" title="Permanent link"></a></h4>
+<p>Test if the users system has the same <code>pl_bash_functions version</code> which your script was tested with.</p>
+<pre><code class="bash">m_has_tested_version &quot;0.1.1&quot;
+</code></pre>
+
+<h4 id="09-source-utilsh">09. Source 'util.sh'<a class="headerlink" href="#09-source-utilsh" title="Permanent link"></a></h4>
+<pre><code class="bash">source &quot;&quot;${_PL_BASH_FUNCTIONS_DIR}/util.sh&quot;
+</code></pre>
+
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Afterwards use function: <code>u_source_safe_exit</code> to source any other files.</p>
+</div>
+<h4 id="10-source-other-files">10. Source Other Files<a class="headerlink" href="#10-source-other-files" title="Permanent link"></a></h4>
+<p>After that source (<em>u_source_safe_exit</em>) any needed other files.</p>
+<pre><code class="text">u_source_safe_exit &quot;anything_else......&quot;
+</code></pre>
+
+<h4 id="11-optional-check-needed-programs">11. Optional Check Needed Programs<a class="headerlink" href="#11-optional-check-needed-programs" title="Permanent link"></a></h4>
+<p>This only checks for the main programs.</p>
+<pre><code class="bash">d_got_download_prog_exit
+e_got_extract_prog_exit
+</code></pre>
+
+<p>With setting the file download program to curl: (default is 'wget').</p>
+<pre><code class="bash">d_got_download_prog_exit &quot;curl&quot;
+e_got_extract_prog_exit
+</code></pre></div>
+        </div>
+
+	<footer class="col-md-12">
+		<hr>
+		
+		<p>Copyright (c) 2016, <a href="https://github.com/peter1000"><strong>peter1000</strong></a></p>
+		
+		<p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+	</footer>
+
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+        <script src="../../js/base.js"></script>
+    </body>
+</html>
