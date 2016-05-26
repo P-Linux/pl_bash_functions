@@ -12,7 +12,7 @@
 #
 #=============================================================================================================================#
 
-t_general_opt
+i_general_opt
 
 
 
@@ -27,44 +27,39 @@ t_general_opt
 #
 #   ARGUMENTS:
 #       `_var`: the variable.
-#       `$2 (_var_name)`: the name of a variable. IMPORTANT: only the name no $
-#       `$3 (_caller_name`): e.g. function name from where this was called for error messages
+#       `_var_name`: the name of a variable. IMPORTANT: only the name no $
 #
 #   OPTIONAL ARGUMENTS
 #       `_inf`: optional additional info to add to any error messages
 #
 #   USAGE
 #       local _ignore_md5="no"
-#       u_is_yes_no_var_exit "${_ignore_md5}" "Variable_name" "Function_Name"
-#       u_is_yes_no_var_exit "${_ignore_md5}" "_ignore_md5" "test_function" "Some optional additional info"
+#       u_is_yes_no_var_exit "${_ignore_md5}" "Variable_name"
+#       u_is_yes_no_var_exit "${_ignore_md5}" "_ignore_md5" "Some optional additional info"
 #******************************************************************************************************************************
 u_is_yes_no_var_exit() {
-    local _fn="u_is_yes_no_var_exit"
-    if (( ${#} < 3 )); then
-        m_exit "${_fn}" "$(_g "FUNCTION: Requires AT LEAST '3' arguments. Got '%s'")" "${#}"
-    fi
-    [[ -n ${1} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
-    [[ -n ${3} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 3 MUST NOT be empty.")"
+    (( ${#} < 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' argument. Got '%s'")" "${#}"
+    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    [[ -n ${2} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
     local _var=${1}
-    # skip assignment:  _var_name=${2}
-    # skip assignment:  _caller_name=${3}
-    local _inf=${4:-""}
+    local _var_name=${2}
+    local _inf=${3:-""}
 
     if [[ ${_var} != "yes" && ${_var} != "no" ]]; then
         if [[ -n ${_inf} ]]; then
-            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' VARIBLE: '%s' MUST be set to: 'yes' or 'no'. Got: '%s' INFO: %s")" \
-                "${3}" "${2}" "${_var}" "${_inf}"
+            i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' (_var: '%s') MUST be set to: 'yes' or 'no'. Got: '%s' INFO: %s")" \
+                "${_var_name}" "${_var}" "${_inf}"
         else
-            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' VARIBLE: '%s' MUST be set to: 'yes' or 'no'. Got: '%s'")" \
-                "${3}" "${2}" "${_var}"
+            i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' (_var: '%s') MUST be set to: 'yes' or 'no'. Got: '%s'")" \
+                "${_var_name}" "${_var}"
         fi
     fi
 }
 
 
+
 #******************************************************************************************************************************
-# Checks if variable is a declared 'string variable': USAGE: u_is_str_var "variable_name"
+# Checks if variable is a declared 'string variable': USAGE: ut_is_declared_string "variable_name"
 #
 #    NOTE: this does not mean it was set. Could have chars or 0 size (empty string).
 #
@@ -104,29 +99,25 @@ u_is_empty_str_var() {
 # Aborts if the variable is not a 'string variable'
 #
 #   ARGUMENTS:
-#       `$1 (_var_name)`: the name of a variable. IMPORTANT: only the name no $
-#       `$2 (_caller_name`): e.g. function name from where this was called for error messages
+#       `$1 (_var_name)`: the variable name. IMPORTANT: only the name no $
 #
 #   OPTIONAL ARGUMENTS
 #       `_inf`: optional additional info to add to any error messages
 #
 #   USAGE
 #       local _path="/home/test"
-#       u_is_str_var_abort "_path" "Function_Name"
+#       u_is_str_var_exit "_path" "additional info"
 #******************************************************************************************************************************
-u_is_str_var_abort() {
-    local _fn="u_is_str_var_abort"
-    (( ${#} < 2 )) && m_exit "${_fn}" "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
-    # skip assignment:  _var_name=${1}
-    # skip assignment:  _caller_name=${2}
-    local _inf=${3:-""}
+u_is_str_var_exit() {
+    (( ${#} < 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '1' argument. Got '%s'")" "${#}"
+    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    # skip assignment:  local _var_name=${1}
+    local _inf=${2:-""}
     if ! u_is_str_var "${1}"; then
         if [[ -n ${_inf} ]]; then
-            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not a declared string variable: '%s' INFO: %s")" "${2}" "${1}" "${_inf}"
+            i_exit 1 ${LINENO} "$(_g "Not a declared string variable: '%s' INFO: %s")" "${1}" "${_inf}"
         else
-            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not a declared string variable: '%s'")" "${2}" "${1}"
+            i_exit 1 ${LINENO} "$(_g "Not a declared string variable: '%s'")" "${1}"
         fi
     fi
 }
@@ -154,28 +145,24 @@ u_is_idx_array_var() {
 #
 #   ARGUMENTS:
 #       `$1 (_var_name)`: the name of a variable. IMPORTANT: only the name no $
-#       `$2 (_caller_name`): e.g. function name from where this was called for error messages
 #
 #   OPTIONAL ARGUMENTS
 #       `_inf`: optional additional info to add to any error messages
 #
 #   USAGE
 #       local _array=(a b c)
-#       u_is_idx_array_exit "_array" "Function_Name"
+#       u_is_idx_array_exit "_array" "additional info"
 #******************************************************************************************************************************
 u_is_idx_array_exit() {
-    local _fn="u_is_str_var_abort"
-    (( ${#} < 2 )) && m_exit "${_fn}" "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
-    # skip assignment:  _var_name=${1}
-    # skip assignment:  _caller_name=${2}
-    local _inf=${3:-""}
+    (( ${#} < 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '1' argument. Got '%s'")" "${#}"
+    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    # skip assignment:  local _var_name=${1}
+    local _inf=${2:-""}
     if ! u_is_idx_array_var "${1}"; then
         if [[ -n ${_inf} ]]; then
-            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not a declared index array: '%s' INFO: %s")" "${2}" "${1}" "${_inf}"
+            i_exit 1 ${LINENO} "$(_g "Not a declared index array variable: '%s' INFO: %s")" "${1}" "${_inf}"
         else
-            m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not a declared index array: '%s'")" "${2}" "${1}"
+            i_exit 1 ${LINENO} "$(_g "Not a declared index array variable: '%s'")" "${1}"
         fi
     fi
 }
@@ -201,32 +188,29 @@ u_is_associative_array_var() {
 #
 #   ARGUMENTS:
 #       `_ref_name`: the reference name of the array IMPORTANT: only the name no $
-#       `$2 (_caller_name`): e.g. function name from where this was called for error messages
 #
 #   USAGE
 #       declare -A _testarray=([a]="Value 1" [b]="Value 2"
 #       declare -n _refarray=_testarray
-#       u_ref_associative_array_exit "_refarray" "Function_Name"
+#       u_ref_associative_array_exit "_refarray"
 #******************************************************************************************************************************
 u_ref_associative_array_exit() {
-    local _fn="u_ref_associative_array_exit"
-    (( ${#} != 2 )) && m_exit "${_fn}" "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
+    (( ${#} != 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '1' argument. Got '%s'")" "${#}"
+    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
     local _ref_name=${1}
-    # skip assignment:  _caller_name=${2}
     local _line="$(declare -p | grep -E "declare -n[lrtux]{0,4} ${_ref_name}=\"[[:alnum:]_]{0,}\"")"
-    local _tmp_var
+    local _v
 
     if [[ ! -n ${_line} ]]; then
-        m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${2}" "${_ref_name}"
+        i_exit 1 ${LINENO} "$(_g "Not a referenced associative array: '%s'")" "${_ref_name}"
     fi
     # extract the name: still has the ending double quote
-    _tmp_var=${_line#*\"}
-    if ! u_is_associative_array_var "${_tmp_var:: -1}"; then
-        m_exit "${_fn}" "$(_g "FUNCTION: '%s()' Not a referenced associative array: '%s'")" "${2}" "${_ref_name}"
+    _v=${_line#*\"}
+    if ! u_is_associative_array_var "${_v:: -1}"; then
+        i_exit 1 ${LINENO} "$(_g "Not a referenced associative array: '%s'")" "${_ref_name}"
     fi
 }
+
 
 
 #=============================================================================================================================#
@@ -251,7 +235,7 @@ u_ref_associative_array_exit() {
 #           number_of_occurrences: <3>
 #******************************************************************************************************************************
 u_count_substr() {
-    (( ${#} != 2 )) &&  m_exit "u_count_substr" "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
+    (( ${#} != 2 )) &&  i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
     grep -o "${1}" <<< "${2}" | wc -l
 }
 
@@ -259,26 +243,35 @@ u_count_substr() {
 #******************************************************************************************************************************
 # Strips all trailing slahes
 #
+#   ARGUMENTS:
+#       `_retres`: a reference var: an empty string wll be updated with the result
+#       `$2 (_in_string`: a reference var: a string
+#
 #   USAGE: local _result; u_strip_end_slahes _result "/home/test////"
 #******************************************************************************************************************************
 u_strip_end_slahes() {
     local -n _retres=${1}
+    # skip assignment:  _in_string=${2}
     _retres="${2%%+(/)}"
 }
 
 
 #******************************************************************************************************************************
-# Strips all leading and trailing whitespace
+# Strips all leading and trailing whitespace: NOTE: needs shopt -s extglob
+#
+#   ARGUMENTS:
+#       `_retres`: a reference var: an empty string wll be updated with the result
+#       `$2 (_in_string`: a reference var: a string
 #
 #   USAGE: local _result; u_strip_whitespace _result "     Just a dummy text      "
 #******************************************************************************************************************************
 u_strip_whitespace() {
     local -n _retres=${1}
-    local _str=${2}
-
-    _retres=${_str##+([[:space:]])}
+    # skip assignment:  _str=${2}
+    _retres=${2##+([[:space:]])}
     _retres=${_retres%%+([[:space:]])}
 }
+
 
 
 #******************************************************************************************************************************
@@ -355,6 +348,8 @@ u_prefix_longest_all() {
 }
 
 
+
+
 #******************************************************************************************************************************
 #
 #   GET POSTFIX
@@ -429,29 +424,27 @@ u_postfix_longest_all() {
 }
 
 
-
 #=============================================================================================================================#
 #
 #                   COMMAN-LINE OPTION HELPER FUNCTIONS
 #
 #=============================================================================================================================#
 
-
 #******************************************************************************************************************************
-# Updates the _retres_array with one or more expected argument values for a command-line option.
+# Updates the _retarray with one or more expected argument values for a command-line option.
 #   Values MUST NOT start with a hyphen-minus
-#       Aborts if a value is an empty string. See also optional argument: _maximum_expected_values
+#       Aborts if a value is an empty string. See also optional argument: _max_expected_values
 #
 #   NOTE: running the function in  subshells does not update _retres_array or increment the passed variable _idx
 #
 #   ARGUMENTS:
-#       `_retres_array`: a reference var: an empty index array
-#       `_idx`: a reference var: integer of the current options index in the *_option_in_all_args array*:
+#       `_retarray`: a reference var: an empty index array
+#       `_idx`: a reference var: integer of the current options index in the *_in_all_args array*:
 #                                Remember bash arrays are 0 indexed
-#       `_option_in_all_args`: a reference var: an index array: command-line arguments
+#       `_in_all_args`: a reference var: an index array: command-line arguments
 #
 #   OPTIONAL ARGUMENTS
-#       `_maximum_expected_values`: (Default: -1) if greater than 0 - aborts if more values are found
+#       `_max_expected_values`: (Default: -1) if greater than 0 - aborts if more values are found
 #
 #   USAGE:
 #       _ARGS1=(-h --help -i --install --config-file /etc/cmk.conf -v --version)
@@ -464,11 +457,11 @@ u_postfix_longest_all() {
 #       for (( _n=0; _n < ${_in_all_args_size}; _n++ )); do
 #           _arg=${_in_all_args[${_n}]}
 #           case "${_arg}" in
-#               -pc|--ports-collection) CMK_PORTSLIST=()
-#                   u_get_cmd_arg_values_array CMK_PORTSLIST _n _in_all_args || exit 1 ;;
+#               -pc|--ports-collection) CM_PORTSLIST=()
+#                   u_get_cmd_arg_values_array CM_PORTSLIST _n _in_all_args || exit 1 ;;
 #               -v|--version) printf "(cards) %s: %s\n" "$VERSION"; exit 0 ;;
 #               -h|--help)    print_help; exit 0 ;;
-#               *)            m_exit xxxxxxx\n";;
+#               *)            i_exit xxxxxxx\n";;
 #           esac
 #       done
 #
@@ -478,42 +471,41 @@ u_postfix_longest_all() {
 #       u_get_cmd_arg_values_array RESULT 4 _ARGS1  1
 #******************************************************************************************************************************
 u_get_cmd_arg_values_array() {
-    local _fn="u_get_cmd_arg_values_array"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 '_idx' MUST NOT be empty.")"
-    declare -n _retres_array=${1}
+    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' arguments. Got '%s'")" "${#}"
+    [[ -n ${2} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 2 '_idx' MUST NOT be empty.")"
+    declare -n _retarray=${1}
     local -n _idx=${2}
-    declare -n _option_in_all_args=${3}
-    declare -i _maximum_expected_values=${4:--1}
-    declare -i _option_in_all_args_size=${#_option_in_all_args[@]}
-    local _option_in_all_args_str=${_option_in_all_args[@]}
-    local _orig_option=${_option_in_all_args[${_idx}]}
+    declare -n _in_all_args=${3}
+    declare -i _max_expected_values=${4:--1}
+    declare -i _in_all_args_size=${#_in_all_args[@]}
+    local _orig_option=${_in_all_args[${_idx}]}
+    local _s=${_in_all_args[@]}     # string of _in_all_args
 
-    (( ${#_retres_array[@]} > 0 )) && m_exit "${_fn}" "$(_g "Argument '_retres_array' MUST be an empty array.")"
-    (( ${_maximum_expected_values} == 0 )) && m_exit "${_fn}" "$(_g "Argument '_maximum_expected_values' MUST NOT be 0")"
+    (( ${#_retarray[@]} > 0 )) && i_exit 1 ${LINENO} "$(_g "Argument '_retarray' MUST be an empty array.")"
+    (( ${_max_expected_values} == 0 )) && i_exit 1 ${LINENO} "$(_g "Argument '_max_expected_values' MUST NOT be 0")"
 
     ((_idx++))
-    if (( ${_idx} < ${_option_in_all_args_size} )); then
-        _arg=${_option_in_all_args[${_idx}]}
-        for (( _idx; _idx < ${_option_in_all_args_size}; _idx++ )); do
-            _arg=${_option_in_all_args[${_idx}]}
+    if (( ${_idx} < ${_in_all_args_size} )); then
+        _arg=${_in_all_args[${_idx}]}
+        for (( _idx; _idx < ${_in_all_args_size}; _idx++ )); do
+            _arg=${_in_all_args[${_idx}]}
             if [[ ! -n ${_arg} ]]; then
-                m_exit "${_fn}" "$(_g "Command-Line option: '%s' value: '%s' MUST NOT be empty: All Arguments: <%s>")" \
-                    "${_orig_option}" "${_arg}" "${_option_in_all_args_str}"
+                i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' value: '%s' MUST NOT be empty: All Arguments: <%s>")" \
+                    "${_orig_option}" "${_arg}" "${_s}"
             elif [[ ${_arg} == "-"* ]]; then
-                (( ${#_retres_array[@]} > 0 )) && break
-                m_exit "${_fn}" "$(_g "Command-Line option: '%s' value: '%s' MUST NOT start with a hyphen-minus")" \
+                (( ${#_retarray[@]} > 0 )) && break
+                i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' value: '%s' MUST NOT start with a hyphen-minus")" \
                     "${_orig_option}" "${_arg}"
             fi
             # Add it
-            _retres_array+=(${_arg})
+            _retarray+=(${_arg})
         done
     else
-        m_exit "${_fn}" "$(_g "Command-Line option: '%s' requires an value. All Arguments: <%s>")" "${_orig_option}" \
-            "${_option_in_all_args_str}"
+        i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' requires an value. All Arguments: <%s>")" "${_orig_option}" "${_s}"
     fi
-    if (( ${_maximum_expected_values} > 0 && ${#_retres_array[@]} > ${_maximum_expected_values} )); then
-        m_exit "${_fn}" "$(_g "Command-Line option: '%s' maximum expected values: '%s'. Found '%s' All ARGS: <%s>")" \
-                "${_orig_option}" "${_maximum_expected_values}" "${#_retres_array[@]}" "${_option_in_all_args_str}"
+    if (( ${_max_expected_values} > 0 && ${#_retarray[@]} > ${_max_expected_values} )); then
+        i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' maximum expected values: '%s'. Found '%s' All ARGS: <%s>")" \
+                "${_orig_option}" "${_max_expected_values}" "${#_retarray[@]}" "${_s}"
     fi
     # remove 1 _idx
     ((_idx--))
@@ -526,11 +518,11 @@ u_get_cmd_arg_values_array() {
 #
 #   ARGUMENTS:
 #       `_retres`: a reference var: a reference var: an empty string
-#       `_cur_idx`: integer of the current options index in the '_option_in_all_args array'
-#       `_option_in_all_args`: a reference var: an index array: command-line arguments
+#       `_cur_idx`: integer of the current options index in the '_in_all_args array'
+#       `_in_all_args`: a reference var: an index array: command-line arguments
 #
 #   OPTIONAL ARGUMENTS:
-#       `_abort_if_no_value`: Default is "yes" if "no" it will not abort if there was no value.
+#       `_exit_if_no_value`: Default is "yes" if "no" it will not abort if there was no value.
 #
 #   USAGE:
 #       declare _array_with_short_option=(-v --version -i --install -cf /home/short_option/cmk.conf -h --help)
@@ -538,57 +530,57 @@ u_get_cmd_arg_values_array() {
 #       printf "u_get_cmd_arg_single_value_string:_path: <%s>\n" "${_path}"
 #******************************************************************************************************************************
 u_get_cmd_arg_single_value_string() {
-    local _fn="u_get_cmd_arg_single_value_string"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
+    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' arguments. Got '%s'")" "${#}"
+    [[ -n ${2} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
     local -n _retres=${1}
     declare -i _cur_idx=${2}
-    declare -n _option_in_all_args=${3}
-    local _abort_if_no_value=${4:-"yes"}
-    declare -i _option_in_all_args_size=${#_option_in_all_args[@]}
-    local _option_in_all_args_str=${_option_in_all_args[@]}
+    declare -n _in_all_args=${3}
+    local _exit_if_no_value=${4:-"yes"}
+    declare -i _in_all_args_size=${#_in_all_args[@]}
     declare -i _next_idx=$((_cur_idx + 1))
+    local _s=${_in_all_args[@]}     # string of _in_all_args
 
     _retres=""
-    if [[ ${_abort_if_no_value} != "yes" && ${_abort_if_no_value} != "no" ]]; then
-        m_exit "${_fn}" "$(_g "4. VARIBLE: '_abort_if_no_value' MUST be set to: 'yes' or 'no'. Got: '%s'")" \
-            "${_abort_if_no_value}"
+    if [[ ${_exit_if_no_value} != "yes" && ${_exit_if_no_value} != "no" ]]; then
+        i_exit 1 ${LINENO} "$(_g "4. VARIBLE: '_exit_if_no_value' MUST be set to: 'yes' or 'no'. Got: '%s'")" \
+            "${_exit_if_no_value}"
     fi
 
-    if (( ${_next_idx} < ${_option_in_all_args_size} )); then
-        _retres=${_option_in_all_args[${_next_idx}]}
+    if (( ${_next_idx} < ${_in_all_args_size} )); then
+        _retres=${_in_all_args[${_next_idx}]}
         if [[ ! -n ${_retres} ]]; then
-            m_exit "${_fn}" "$(_g "Command-Line option: '%s' argument value MUST NOT be empty: All Arguments: <%s>")" \
-                "${_option_in_all_args[${_cur_idx}]}" "${_option_in_all_args_str}"
+            i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' argument value MUST NOT be empty: All Arguments: <%s>")" \
+                "${_in_all_args[${_cur_idx}]}" "${_s}"
         fi
         [[ ${_retres} == "-"* ]] && _retres=""
     fi
 
-    if [[ ${_abort_if_no_value} == "yes" && ! -n ${_retres} ]]; then
-        m_exit "${_fn}" "$(_g "Command-Line option: '%s' requires an value. All Arguments: <%s>")" \
-            "${_option_in_all_args[${_cur_idx}]}" "${_option_in_all_args_str}"
+    if [[ ${_exit_if_no_value} == "yes" && ! -n ${_retres} ]]; then
+        i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' requires an value. All Arguments: <%s>")" \
+            "${_in_all_args[${_cur_idx}]}" "${_s}"
     fi
 }
 
 
 #******************************************************************************************************************************
 # Search for a commnd-line option and return one or more expected argument values. Values MUST NOT start with a hyphen-minus.
-#   Aborts if a value is an empty string. See also optional argument: _maximum_expected_values
+#   Aborts if a value is an empty string. See also optional argument: _max_expected_values
 #
 #   EXAMPLE:
 #
 #       -f, --file <file_path>
 #
-#       If a command-line option: `-f` or `--file` was found in `_search_in_all_args` than it would return the found value(s)
+#       If a command-line option: `-f` or `--file` was found in `_in_all_args` than it would return the found value(s)
 #       If the specified short/long option was not found it returns an empty string
 #
 #   ARGUMENTS:
 #       `_retres`: a reference var: an empty string
 #       `_short_arg`: command-line short option to look for: MUST start With ONE hyphen-minus or be empty.
 #       `_long_arg`: command-line long option to look for: MUST start With TWO hyphen-minus or be empty.
-#       `_search_in_all_args`: a reference var:an index array: command-line arguments
+#       `_in_all_args`: a reference var: an index array: command-line arguments
 #
 #   OPTIONAL ARGUMENTS
-#       `_maximum_expected_values`: (Default: -1) if greater than 0 - aborts if more values are found
+#       `_max_expected_values`: (Default: -1) if greater than 0 - aborts if more values are found
 #
 #   USAGE:
 #       _ARGS1=(-h --help -i --install --config-file /etc/cmk.conf -v --version)
@@ -602,36 +594,33 @@ u_get_cmd_arg_single_value_string() {
 #           u_search_cmd_arg_values_string:_result: <bash wget curl git>
 #******************************************************************************************************************************
 u_search_cmd_arg_values_string() {
-    local _fn="u_search_cmd_arg_values_string"
+    (( ${#} < 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'")" "${#}"
     local -n _retres=${1}
     local _short_arg=${2}
     local _long_arg=${3}
-    declare -n _search_in_all_args=${4}
-    declare -i _maximum_expected_values=${5:--1}
-    declare -i _search_in_all_args_size=${#_search_in_all_args[@]}
-    local _search_in_all_args_str=${_search_in_all_args[@]}
+    declare -n _in_all_args=${4}
+    declare -i _max_expected_values=${5:--1}
+    declare -i _in_all_args_size=${#_in_all_args[@]}
     local _option_value=""
     declare  -i _counted_values=0
+    local _s     # string of _in_all_args
     declare -i _check_arg_length
     local _found_opt _found_search_arg _arg
 
     _retres=""
     if [[ ! -n ${_short_arg} && ! -n ${_long_arg} ]]; then
-        m_exit "${_fn}" \
-            "$(_g "WRONG CODE: Function: '%s()' Argument 1: '%s' Argument 2: '%s'. Only one MAY be empty.")" "${_fn}" \
-            "${_short_arg}" "${_long_arg}"
+        i_exit 1 ${LINENO} "$(_g "WRONG CODE: Argument 1: '%s' Argument 2: '%s'. Only one MAY be empty.")" "${_short_arg}" \
+            "${_long_arg}"
     fi
-    (( _maximum_expected_values == 0 )) && m_exit "${_fn}" "$(_g "Argument '_maximum_expected_values' MUST NOT be 0")"
+    (( _max_expected_values == 0 )) && i_exit 1 ${LINENO} "$(_g "Argument '_max_expected_values' MUST NOT be 0")"
 
     #  Validate Short option to check Input
     if [[ -n ${_short_arg} ]]; then
         _check_arg_length=${#_short_arg}
         if (( ${_check_arg_length} < 2 )); then
-            m_exit "${_fn}" "$(_g "Short option to check: '%s' MUST be at least 2 character long or empty.")" \
-                "${_short_arg}"
+            i_exit 1 ${LINENO} "$(_g "Short option to check: '%s' MUST be at least 2 character long or empty.")" "${_short_arg}"
         elif [[ ${_short_arg} != "-"[!-]* ]]; then
-            m_exit "${_fn}" "$(_g "Short option to check: '%s' MUST start with EXACT ONE hyphen-minus.")" \
-                "${_short_arg}"
+            i_exit 1 ${LINENO} "$(_g "Short option to check: '%s' MUST start with EXACT ONE hyphen-minus.")" "${_short_arg}"
         fi
     fi
 
@@ -639,53 +628,54 @@ u_search_cmd_arg_values_string() {
     if [[ -n ${_long_arg} ]]; then
         _check_arg_length=${#_long_arg}
         if (( ${_check_arg_length} < 3 )); then
-            m_exit "${_fn}" "$(_g "Long option to check: '%s' MUST be at least 3 character long or empty.")" \
-                "${_long_arg}"
+            i_exit 1 ${LINENO} "$(_g "Long option to check: '%s' MUST be at least 3 character long or empty.")" "${_long_arg}"
         elif [[ ${_long_arg:0:2} != "--" || ${_long_arg:2:1} == "-" ]]; then
-            m_exit "${_fn}" "$(_g "Long option to check: '%s' MUST start with EXACT TWO hyphen-minus.")" "${_long_arg}"
+            i_exit 1 ${LINENO} "$(_g "Long option to check: '%s' MUST start with EXACT TWO hyphen-minus.")" "${_long_arg}"
         fi
     fi
 
+    ####
     _found_opt="no"
-    for (( _n=0; _n < ${_search_in_all_args_size}; _n++ )); do
-        _arg=${_search_in_all_args[${_n}]}
-        if [[ ${_found_opt} == "no" ]]; then
-            if [[ ${_arg} == ${_short_arg} ||  ${_arg} == ${_long_arg} ]]; then
-                _found_opt="yes"
-                _found_search_arg=${_arg}
-            fi
-        else
-            if [[ ! -n ${_arg} ]]; then
-                m_exit "${_fn}" "$(_g "Command-Line option: '%s' value: '%s' MUST NOT be empty: All Arguments: <%s>")" \
-                    "${_found_search_arg}" "${_arg}" "${_search_in_all_args_str}"
-            elif [[ ${_arg} == "-"* ]]; then
-                [[ -n ${_retres} ]] && break
-                m_exit "${_fn}" "$(_g "Command-Line option: '%s' value: '%s' MUST NOT start with a hyphen-minus")" \
-                    "${_found_search_arg}" "${_arg}"
-            fi
-            # Add it
-            if [[ -n ${_retres} ]]; then
-                _retres+=" ${_arg}"
-                ((_counted_values++))
+    if (( ${_in_all_args_size} > 0 )); then
+        _s=${_in_all_args[@]}     # string of _in_all_args
+        for (( _n=0; _n < ${_in_all_args_size}; _n++ )); do
+            _arg=${_in_all_args[${_n}]}
+            if [[ ${_found_opt} == "no" ]]; then
+                if [[ ${_arg} == ${_short_arg} ||  ${_arg} == ${_long_arg} ]]; then
+                    _found_opt="yes"
+                    _found_search_arg=${_arg}
+                fi
             else
-                _retres="${_arg}"
-                ((_counted_values++))
+                if [[ ! -n ${_arg} ]]; then
+                    i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' value: '%s' MUST NOT be empty: All Arguments: <%s>")" \
+                        "${_found_search_arg}" "${_arg}" "${_s}"
+                elif [[ ${_arg} == "-"* ]]; then
+                    [[ -n ${_retres} ]] && break
+                    i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' value: '%s' MUST NOT start with a hyphen-minus")" \
+                        "${_found_search_arg}" "${_arg}"
+                fi
+                # Add it
+                if [[ -n ${_retres} ]]; then
+                    _retres+=" ${_arg}"
+                    ((_counted_values++))
+                else
+                    _retres="${_arg}"
+                    ((_counted_values++))
+                fi
             fi
-        fi
-    done
+        done
+    fi
 
     if [[ ${_found_opt} == "yes" ]]; then
         if (( _counted_values < 1 )); then
-            m_exit "${_fn}" "$(_g "Command-Line option: '%s' requires at least 1 value. All ARGS: <%s>")" \
-                "${_found_search_arg}" "${_search_in_all_args_str}"
-        elif (( ${_maximum_expected_values} > 0 && _counted_values > ${_maximum_expected_values} )); then
-            m_exit "${_fn}" \
-                "$(_g "Command-Line option: '%s' maximum expected values: '%s'. Found '%s' All ARGS: <%s>")" \
-                "${_found_search_arg}" "${_maximum_expected_values}" "${_counted_values}" "${_search_in_all_args_str}"
+            i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' requires at least 1 value. All ARGS: <%s>")" \
+                "${_found_search_arg}" "${_s}"
+        elif (( ${_max_expected_values} > 0 && _counted_values > ${_max_expected_values} )); then
+            i_exit 1 ${LINENO} "$(_g "Command-Line option: '%s' maximum expected values: '%s'. Found '%s' All ARGS: <%s>")" \
+                "${_found_search_arg}" "${_max_expected_values}" "${_counted_values}" "${_s}"
         fi
     fi
 }
-
 
 
 #=============================================================================================================================#
@@ -810,7 +800,7 @@ u_is_abspath() {
 #   Path does not need to exist
 #
 #   OPTIONAL ARGUMENTS:
-#       `_error_name`:  used for error messages defaults to: Path
+#       `_err_name`:  used for error messages defaults to: Path
 #
 #   USAGE
 #       u_is_abspath_exit "$SOME_PATH"
@@ -818,11 +808,10 @@ u_is_abspath() {
 #******************************************************************************************************************************
 u_is_abspath_exit() {
     local _path=${1}
-    local _error_name=${2:-"Path"}
+    local _err_name=${2:-"Path"}
 
     if [[ ${_path} != "/"* ]]; then
-        m_exit "u_is_abspath_exit" "$(_g "%s MUST be an absolute path and MUST start with a slash: <%s>")" \
-            "${_error_name}" "${_path}"
+        i_exit 1 ${LINENO} "$(_g "%s MUST be an absolute path and MUST start with a slash: <%s>")" "${_err_name}" "${_path}"
     fi
 }
 
@@ -838,13 +827,12 @@ u_is_abspath_exit() {
 #       fi
 #******************************************************************************************************************************
 u_dir_has_content_exit() {
-    local _fn="u_dir_has_content_exit"
     local _in_dir=${1}
     declare -i _ret=1
     local _content
 
     if [[ -d ${_in_dir} ]]; then
-        [[ -r ${_in_dir} ]] || m_exit "${_fn}" "$(_g "Directory exists but is not readable: <%s>")" "${_in_dir}"
+        [[ -r ${_in_dir} ]] || i_exit 1 ${LINENO} "$(_g "Directory exists but is not readable: <%s>")" "${_in_dir}"
         _content=("${_in_dir}"/*)
         if (( ${#_content[@]} > 1 )); then
             _ret=0
@@ -861,88 +849,84 @@ u_dir_has_content_exit() {
 # Cd to '_in_dir' abort on failure
 #******************************************************************************************************************************
 u_cd_safe_exit() {
-    [[ -n ${1} ]] || m_exit "u_cd_safe_exit" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    cd "${1}" || m_exit "u_cd_safe_exit" "$(_g "Could not change to directory: <%s>")" "${1}"
+    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    cd "${1}" || i_exit 1 ${LINENO} "$(_g "Could not change to directory: <%s>")" "${1}"
 }
 
 
 #******************************************************************************************************************************
-# Checks '_dir_path': Exists, is readable, is writeable, is executeable, (optional is absolute path) - aborts on failure
+# Checks '_dpath': Exists, is readable, is writeable, is executeable, (optional is absolute path) - aborts on failure
 #
 #   OPTIONAL ARGUMENTS:
-#       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dir_path is an absolute path: starts with slash.
-#       `_error_name`:  used for error messages defaults to: Directory
+#       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dpath is an absolute path: starts with slash.
+#       `_err_name`:  used for error messages defaults to: Directory
 #
 #   USAGE
 #       u_dir_is_rwx_exit "testdir/subdir"
 #       u_dir_is_rwx_exit "$SOME_DIR" "yes" "CHECK_DIR"
 #******************************************************************************************************************************
 u_dir_is_rwx_exit() {
-    local _fn="u_dir_is_rwx_exit"
-    local _dir_path=${1}
+    local _dpath=${1}
     local _check_abspath=${2:-"no"}
-    local _error_name=${3:-"Directory"}
+    local _err_name=${3:-"Directory"}
 
-    [[ -d ${_dir_path} ]] || m_exit "${_fn}" "$(_g "%s does not exist: <%s>")" "${_error_name}" "${_dir_path}"
-    [[ -r ${_dir_path} ]] || m_exit "${_fn}" "$(_g "%s is not readable: <%s>")" "${_error_name}" "${_dir_path}"
-    [[ -w ${_dir_path} ]] || m_exit "${_fn}" "$(_g "%s is not writable: <%s>")" "${_error_name}" "${_dir_path}"
-    [[ -x ${_dir_path} ]] || m_exit "${_fn}" "$(_g "%s is not executable: <%s>")" "${_error_name}" "${_dir_path}"
-    if [[ ${_check_abspath} == "yes" && ${_dir_path} != "/"* ]]; then
-        m_exit "${_fn}" "$(_g "%s An absolute directory path MUST start with a slash: <%s>")" "${_error_name}" \
-            "${_dir_path}"
+    [[ -d ${_dpath} ]] || i_exit 1 ${LINENO} "$(_g "%s does not exist: <%s>")" "${_err_name}" "${_dpath}"
+    [[ -r ${_dpath} ]] || i_exit 1 ${LINENO} "$(_g "%s is not readable: <%s>")" "${_err_name}" "${_dpath}"
+    [[ -w ${_dpath} ]] || i_exit 1 ${LINENO} "$(_g "%s is not writable: <%s>")" "${_err_name}" "${_dpath}"
+    [[ -x ${_dpath} ]] || i_exit 1 ${LINENO} "$(_g "%s is not executable: <%s>")" "${_err_name}" "${_dpath}"
+    if [[ ${_check_abspath} == "yes" && ${_dpath} != "/"* ]]; then
+        i_exit 1 ${LINENO} "$(_g "%s An absolute directory path MUST start with a slash: <%s>")" "${_err_name}" "${_dpath}"
     fi
 }
 
 
 #******************************************************************************************************************************
-# Checks '_file_path': Exists, is readable (optional is absolute path) - aborts on failure
+# Checks '_fpath': Exists, is readable (optional is absolute path) - aborts on failure
 #
 #   OPTIONAL ARGUMENTS:
 #       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dir_path is an absolute path: starts with slash.
-#       `_error_name`:  used for error messages defaults to: File
+#       `_err_name`:  used for error messages defaults to: File
 #
 #   USAGE
 #       u_file_is_r_exit "testdir/test_file.txt"
 #       u_file_is_r_exit "${TEST_FILE}" "yes" "Pkgfile"
 #******************************************************************************************************************************
 u_file_is_r_exit() {
-    local _fn="u_file_is_r_exit"
-    local _file_path=${1}
+    local _fpath=${1}
     local _check_abspath=${2:-"no"}
-    local _error_name=${3:-"File"}
+    local _err_name=${3:-"File"}
 
-    [[ -f ${_file_path} ]] || m_exit "${_fn}" "$(_g "%s does not exist: <%s>")" "${_error_name}" "${_file_path}"
-    [[ -r ${_file_path} ]] || m_exit "${_fn}" "$(_g "%s is not readable: <%s>")" "${_error_name}" "${_file_path}"
-    if [[ ${_check_abspath} == "yes" && ${_file_path} != "/"* ]]; then
-        m_exit "${_fn}" "$(_g "%s MUST be an absolute file path and MUST start with a slash: <%s>")" "${_error_name}" \
-            "${_file_path}"
+    [[ -f ${_fpath} ]] || i_exit 1 ${LINENO} "$(_g "%s does not exist: <%s>")" "${_err_name}" "${_fpath}"
+    [[ -r ${_fpath} ]] || i_exit 1 ${LINENO} "$(_g "%s is not readable: <%s>")" "${_err_name}" "${_fpath}"
+    if [[ ${_check_abspath} == "yes" && ${_fpath} != "/"* ]]; then
+        i_exit 1 ${LINENO} "$(_g "%s MUST be an absolute file path and MUST start with a slash: <%s>")" "${_err_name}" \
+            "${_fpath}"
     fi
 }
 
 
 #******************************************************************************************************************************
-# Checks '_file_path': Exists, is readable, is writeable (optional is absolute path) - aborts on failure
+# Checks '_fpath': Exists, is readable, is writeable (optional is absolute path) - aborts on failure
 #
 #   OPTIONAL ARGUMENTS:
 #       `_check_abspath`:  yes/no. if "yes" it is additionally checked if the _dir_path is an absolute path: starts with slash.
-#       `_error_name`:  used for error messages defaults to: File
+#       `_err_name`:  used for error messages defaults to: File
 #
 #   USAGE
 #       u_file_is_rw_exit "testdir/test_file.txt"
 #       u_file_is_rw_exit "$TEST_FILE" "yes" "Pkgfile"
 #******************************************************************************************************************************
 u_file_is_rw_exit() {
-    local _fn="u_file_is_rw_exit"
-    local _file_path=${1}
+    local _fpath=${1}
     local _check_abspath=${2:-"no"}
-    local _error_name=${3:-"File"}
+    local _err_name=${3:-"File"}
 
-    [[ -f ${_file_path} ]] || m_exit "${_fn}" "$(_g "%s does not exist: <%s>")" "${_error_name}" "${_file_path}"
-    [[ -r ${_file_path} ]] || m_exit "${_fn}" "$(_g "%s is not readable: <%s>")" "${_error_name}" "${_file_path}"
-    [[ -w ${_file_path} ]] || m_exit "${_fn}" "$(_g "%s is not writable: <%s>")" "${_error_name}" "${_file_path}"
-    if [[ ${_check_abspath} == "yes" && ${_file_path} != "/"* ]]; then
-        m_exit "${_fn}" "$(_g "%s MUST be an absolute file path and MUST start with a slash: <%s>")" "${_error_name}" \
-            "${_file_path}"
+    [[ -f ${_fpath} ]] || i_exit 1 ${LINENO} "$(_g "%s does not exist: <%s>")" "${_err_name}" "${_fpath}"
+    [[ -r ${_fpath} ]] || i_exit 1 ${LINENO} "$(_g "%s is not readable: <%s>")" "${_err_name}" "${_fpath}"
+    [[ -w ${_fpath} ]] || i_exit 1 ${LINENO} "$(_g "%s is not writable: <%s>")" "${_err_name}" "${_fpath}"
+    if [[ ${_check_abspath} == "yes" && ${_fpath} != "/"* ]]; then
+        i_exit 1 ${LINENO} "$(_g "%s MUST be an absolute file path and MUST start with a slash: <%s>")" "${_err_name}" \
+            "${_fpath}"
     fi
 }
 
@@ -981,6 +965,10 @@ u_get_unix_timestamp() {
 #
 #   Note: 64-bit bash integers limits: -9223372036854775808 to 9223372036854775807
 #
+#
+#   OPTIONAL ARGUMENTS:
+#       `_greater_than`: (defaults to 0)
+#
 #   USAGE:
 #       if u_is_integer_greater 1 0; then
 #           printf "%s\n" "Input was greater than 0"
@@ -993,7 +981,7 @@ u_get_unix_timestamp() {
 #******************************************************************************************************************************
 u_is_integer_greater() {
     local _input=${1}         # do not declare as integer as the input could be anything even an empty string
-    local _greater_than=${2}
+    local _greater_than=${2:-0}
 
     [[ -n ${_greater_than} ]] || _greater_than=0
     (( ${_input} > ${_greater_than} )) &> /dev/null && return 0
@@ -1011,28 +999,27 @@ u_is_integer_greater() {
 #       u_repeat_failed_command 3 4 wget "not found"
 #******************************************************************************************************************************
 u_repeat_failed_command() {
-    local _fn="u_repeat_failed_command"
-    [[ -n ${1} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    [[ -n ${2} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
-    [[ -n ${3} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 3 MUST NOT be empty.")"
+    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    [[ -n ${2} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
+    [[ -n ${3} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 3 MUST NOT be empty.")"
     declare -i _max_tries=${1}
     declare -i _delay_sec=${2}; shift
     declare -i _n _ret
 
     if ! u_is_integer_greater ${_max_tries} 0; then
-        m_exit "${_fn}" "$(_g "'_max_tries': must be greater than 0. Got: '%s'")" "${_max_tries}"
+        i_exit 1 ${LINENO} "$(_g "'_max_tries': must be greater than 0. Got: '%s'")" "${_max_tries}"
     elif ! u_is_integer_greater ${_delay_sec} -1; then
-        m_exit "${_fn}" "$(_g "'_delay_sec': must be greater than -1. Got: '%s'")" "${_delay_sec}"
+        i_exit 1 ${LINENO} "$(_g "'_delay_sec': must be greater than -1. Got: '%s'")" "${_delay_sec}"
     fi
 
     for (( _n=1; _n <= ${_max_tries}; _n++ )); do
         "${@:2}" && return 0
         if (( _n < ${_max_tries} )); then
             sleep ${_delay_sec}
-            m_more_i "$(_g "Repeating failed command: '%s.' time")"  $((_n + 1))
+            i_more_i "$(_g "Repeating failed command: '%s.' time")"  $((_n + 1))
         fi
     done
-    m_color "${_M_YELLOW}" "$(_g "    ====> WARNING: Command failed: '%s' times")"  $((_n - 1))
+    i_color "${_BF_YELLOW}" "$(_g "    ====> WARNING: Command failed: '%s' times")"  $((_n - 1))
     return 1  # Do not exit on this one
 }
 
@@ -1058,7 +1045,7 @@ u_repeat_failed_command() {
 #******************************************************************************************************************************
 u_in_array() {
     # could also be an empty first element or empty _needle
-    (( ${#} != 2 )) &&  m_exit "u_in_array" "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
+    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
     local _needle=${1}
     local -n _in_array=${2}
     local _element
@@ -1077,58 +1064,6 @@ u_got_function() {
     (
         declare -f "${1}" >/dev/null
     )
-}
-
-
-#******************************************************************************************************************************
-# Unset functions by names: using an index array.
-#
-#   ARGUMENTS
-#           `_function_names`: a reference var: An index array with the function names
-#
-#   USAGE
-#       FUNCTIONS_TO_UNSET=(prepare build pack)
-#       u_unset_functions FUNCTIONS_TO_UNSET
-#******************************************************************************************************************************
-u_unset_functions() {
-    local -n _in_array=${1}
-    local _func_name
-
-    for _func_name in "${_in_array[@]}"; do
-        unset -f ${_func_name}
-    done
-}
-
-
-#******************************************************************************************************************************
-# Unset functions by names: using an associative array keys name.
-#
-#   ARGUMENTS
-#           `_function_names`: a reference var: An associative array with the function names as keys
-#
-#   USAGE
-#       declare -A FUNCTIONS_TO_UNSET=([prepare]=0 [build]=0 [pack]=0)
-#       u_unset_functions FUNCTIONS_TO_UNSET
-#******************************************************************************************************************************
-u_unset_functions2() {
-    local -n _in_array=${1}
-    local _func_name
-
-    for _func_name in "${!_in_array[@]}"; do
-        unset -f ${_func_name}
-    done
-}
-
-
-#******************************************************************************************************************************
-# Sources a file inclusive any arguments: aborts on error
-#******************************************************************************************************************************
-u_source_safe_exit() {
-    local _file="${1}"
-
-    shopt -u extglob
-    source "${@}" || m_exit "u_source_safe_exit" "$(_g "Could not source file: <%s>")" "${_file}"
-    shopt -s extglob     # reset SHELLOPTS
 }
 
 
@@ -1156,7 +1091,6 @@ u_get_file_md5sum() {
 #   USAGE: local _chksum; u_get_file_md5sum_exit _chksum "/home/path_to_file"
 #******************************************************************************************************************************
 u_get_file_md5sum_exit() {
-    local _fn="u_get_file_md5sum_exit"
     local -n _retres=${1}
     local _file=${2}
 
@@ -1165,10 +1099,10 @@ u_get_file_md5sum_exit() {
         _retres=$(md5sum "${_file}")
         _retres=${_retres:0:32}
         if [[ ! -n ${_retres} ]]; then
-            m_exit "${_fn}" "$(_g "Could not generate a md5sum for file: <%s>")" "${_file}"
+            i_exit 1 ${LINENO} "$(_g "Could not generate a md5sum for file: <%s>")" "${_file}"
         fi
     else
-        m_exit "${_fn}" "$(_g "Not a readable file path: <%s>")" "${_file}"
+        i_exit 1 ${LINENO} "$(_g "Not a readable file path: <%s>")" "${_file}"
     fi
 }
 
@@ -1177,7 +1111,8 @@ u_get_file_md5sum_exit() {
 # Aborts if command '${1}' is not found. USAGE: u_no_command_exit "wget"
 #******************************************************************************************************************************
 u_no_command_exit() {
-    [[ $(type -p "${1}") ]] || m_exit "u_no_command_exit" "$(_g "Missing command: '%s'")" "${1}"
+    (( ${#} != 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '1' argument. Got '%s'")" "${#}"
+    [[ $(type -p "${1}") ]] || i_exit 1 ${LINENO} "$(_g "Missing command: '%s'")" "${1}"
 }
 
 
@@ -1209,7 +1144,7 @@ u_got_internet() {
         for _uri in "${_web_uris[@]}"; do
             ping -q -w 1 -c 1 "${_uri}" &> /dev/null && return 0
         done
-        m_warn "$(_g "u_got_internet() Couldn't verify internet-connection by pinging popular sites.\n")"
+        i_warn "$(_g "u_got_internet() Couldn't verify internet-connection by pinging popular sites.\n")"
         return 1
     )
 }
@@ -1220,13 +1155,13 @@ u_got_internet() {
 #******************************************************************************************************************************
 u_is_git_uri_accessible() {
     (
-        [[ -n ${1} ]] || m_exit "u_is_git_uri_accessible" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+        [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
         local _uri=${1}
 
         u_got_internet || return 1
 
         GIT_ASKPASS=true git ls-remote "${_uri}" &> /dev/null && return 0
-        m_warn "$(_g "u_is_git_uri_accessible() Couldn't verify that the git uri is accessible: <%s>\n")" "${_uri}"
+        i_warn "$(_g "u_is_git_uri_accessible() Couldn't verify that the git uri is accessible: <%s>\n")" "${_uri}"
         return 1
     )
 }
@@ -1237,13 +1172,13 @@ u_is_git_uri_accessible() {
 #******************************************************************************************************************************
 u_is_svn_uri_accessible() {
     (
-        [[ -n ${1} ]] || m_exit "u_is_git_uri_accessible" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+        [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
         local _uri=${1}
 
         u_got_internet || return 1
 
         svn info "${_uri}" --no-auth-cache --non-interactive --trust-server-cert &> /dev/null && return 0
-        m_warn "$(_g "u_is_svn_uri_accessible() Couldn't verify that the svn uri is accessible: <%s>\n")" "${_uri}"
+        i_warn "$(_g "u_is_svn_uri_accessible() Couldn't verify that the svn uri is accessible: <%s>\n")" "${_uri}"
         return 1
     )
 }
@@ -1254,13 +1189,13 @@ u_is_svn_uri_accessible() {
 #******************************************************************************************************************************
 u_is_hg_uri_accessible() {
     (
-        [[ -n ${1} ]] || m_exit "u_is_hg_uri_accessible" "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+        [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
         local _uri=${1}
 
         u_got_internet || return 1
 
         hg identify "${_uri}" &> /dev/null && return 0
-        m_warn "$(_g "%u_is_hg_uri_accessible() Couldn't verify that the hg uri is accessible: <%s>\n")" "${_uri}"
+        i_warn "$(_g "%u_is_hg_uri_accessible() Couldn't verify that the hg uri is accessible: <%s>\n")" "${_uri}"
         return 1
     )
 }

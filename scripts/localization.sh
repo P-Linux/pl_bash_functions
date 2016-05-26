@@ -12,7 +12,7 @@
 #
 #=============================================================================================================================#
 
-t_general_opt
+i_general_opt
 
 
 
@@ -37,7 +37,7 @@ t_general_opt
 #       `_bugs_url`: Optional: url e.g. "https://github.com/P-Linux/pl_bash_functions/issues"
 #******************************************************************************************************************************
 l_generate_pot_file() {
-    (( ${#} < 5 )) && m_exit "l_generate_pot_file" "$(_g "FUNCTION Requires AT LEAST '5' arguments. Got '%s'")" "${#}"
+    (( ${#} < 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '5' argument. Got '%s'")" "${#}"
     local _in_srcfile=$(readlink -f "${1}")
     local _outdir=$(readlink -f "${2}")
     local _pkgname=${3}
@@ -57,7 +57,7 @@ l_generate_pot_file() {
     declare -i _ret
 
     m_msg "$(_g "Generating original 'pot' file. Output-Dir: <%s>")" "${_outdir}"
-    m_more_i "$(_g "Processing source-file: <%s>")" "${_in_srcfile}"
+    i_more_i "$(_g "Processing source-file: <%s>")" "${_in_srcfile}"
 
     mkdir -p "${_outdir}"
     # remove any existing pot file
@@ -72,7 +72,7 @@ l_generate_pot_file() {
             --from-code=UTF-8 --force-po --no-wrap "${_src_name}"
     fi
     _ret=${?}
-    (( ${_ret} )) &&  m_exit "l_generate_pot_file" "$(_g "Could not generate .pot' file. xgettext Error: '%s'")" "${_ret}"
+    (( ${_ret} )) &&  i_exit 1 ${LINENO} "$(_g "Could not generate .pot' file. xgettext Error: '%s'")" "${_ret}"
 
     # update the pot header
     sed -i.bak "
@@ -105,7 +105,7 @@ l_generate_pot_file() {
 #******************************************************************************************************************************
 l_generate_po_files() {
     local _fn="l_generate_pot_file"
-    (( ${#} < 6 )) && m_exit "${_fn}" "$(_g "FUNCTION Requires AT LEAST '6' arguments. Got '%s'")" "${#}"
+    (( ${#} < 6 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '6' argument. Got '%s'")" "${#}"
     local -n _in_srcfiles=${1}
     local -n _in_utf8_languages=${2}
     local _outdir=$(readlink -f "${3}")
@@ -126,7 +126,7 @@ l_generate_po_files() {
             "${_bugs_url}"
 
         for _locale in "${_in_utf8_languages[@]}"; do
-            [[ ${_locale} == *".UTF-8" ]] || m_exit "${_fn}" "$(_g "Only UTF-8 locale are supported: '%s'")" \
+            [[ ${_locale} == *".UTF-8" ]] || i_exit 1 ${LINENO} "$(_g "Only UTF-8 locale are supported: '%s'")" \
                 "${_locale}"
 
             _locale_po_dir="${_outdir}/${_locale}/LC_MESSAGES"
@@ -140,13 +140,13 @@ l_generate_po_files() {
             if [[ -f ${_final_po_path} ]]; then
                 msgmerge --update --backup=simple --no-wrap  "${_final_po_path}" "${_pot_file}"
                 _ret=${?}
-                (( ${_ret} )) &&  m_exit "${_fn}" "$(_g "Could not update .po' file. 'msgmerge' Error: '%s'")" "${_ret}"
+                (( ${_ret} )) &&  i_exit 1 ${LINENO} "$(_g "Could not update .po' file. 'msgmerge' Error: '%s'")" "${_ret}"
             else
                 rm -f "${_empty_po_path}"
                 msginit  --no-wrap --no-translator --locale="${_locale}" --input="${_pot_file}"  \
                     --output-file="${_empty_po_path}"
                 _ret=${?}
-                (( ${_ret} )) && m_exit "${_fn}" "$(_g "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
+                (( ${_ret} )) && i_exit 1 ${LINENO} "$(_g "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
 
                 # update the po header: use the whole defined local: e.g. de_DE
                 u_prefix_longest_all _only_locale "${_locale}" ".UTF-8"

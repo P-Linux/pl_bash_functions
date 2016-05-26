@@ -52,7 +52,7 @@ Example Pkgfile-Variables:
 ```bash
 pkgvers=0.1.0.r1.2f12e1a
 pkgrel=1
-pkgsources=($url/files/${CMK_NAME}-${pkgvers}.tar.xz)
+pkgsources=($url/files/${CM_PORTNAME}-${pkgvers}.tar.xz)
 pkgmd5sum=("SKIP")
 ```
 
@@ -132,14 +132,14 @@ There are a number of *Pkgfile functions* which are automatically executed by th
 |:--------:|:---------------------------------------|:-----------------------------------------------------|
 | YES      | `build()`                              | The main function to build he package.               |
 | NO       | `setpkgvers()`                         | Must return a package version: mostly useful for VCS |
-| NO       | `CMK_GROUPS array defined functions`   | for more info see (CMK_GROUPS array functions)       |
+| NO       | `CM_GROUPS array defined functions`    | for more info see (CM_GROUPS array functions)        |
 
 
 Example Pkgfile-Functions:
 
 ```bash
 build() {
-    cd ${CMK_PORTNAME}-${pkgvers}
+    cd ${CM_PORTNAME}-${pkgvers}
     ./configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info
     make
     make DESTDIR=${pkgdir} install
@@ -147,9 +147,9 @@ build() {
 ```
 
 
-### CMK_GROUPS array functions
+### CM_GROUPS array functions
 
-If the configuration variable `CMK_GROUPS` is set in the 'cmk.conf' file or in an individual Pkgfile, *cmk* will try to
+If the configuration variable `CM_GROUPS` is set in the 'cmk.conf' file or in an individual Pkgfile, *cmk* will try to
 split the produced package into additional groups defined in this array.
 A default function is executed if a function with the same name is not found in the Pkgfile.
 Supported default group functions are: lib() devel() doc() man() service()

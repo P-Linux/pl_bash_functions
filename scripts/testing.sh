@@ -12,7 +12,7 @@
 #
 #=============================================================================================================================#
 
-t_general_opt
+i_general_opt
 
 
 
@@ -26,21 +26,21 @@ t_general_opt
 # Formatted HEADER message
 #
 #   ARGUMENTS
-#       `$1 (_file_name)`: filename / or path of the file we test
+#       `_file`: filename / or path of the file we test
 #
 #   USAGE
 #       te_print_header "testing.sh"
 #******************************************************************************************************************************
 te_print_header() {
-    # skip assignment:  _file_name=${1}
+    local _file=${1}
 
-    printf "$(tput bold)$(tput setaf 2)\n" >&1
+    printf "${_BF_GREEN}\n" >&1
     printf "#===========================================================================#\n" >&1
     printf "#\n" >&1
-    printf "$(_g "# EXAMPLES/TESTS for: '%s'\n")" "${1}" >&1
+    printf "$(_g "# EXAMPLES/TESTS for: '%s'\n")" "${_file}" >&1
     printf "#\n" >&1
     printf "#===========================================================================#\n" >&1
-    printf "$(tput sgr0)\n" >&1
+    printf "${_BF_OFF}\n" >&1
 }
 
 
@@ -48,35 +48,35 @@ te_print_header() {
 # Formatted FINAL RESULT message
 #
 #   ARGUMENTS
-#       `$1 (_filename)`: name of the file/testscript
-#       `$2 (_cok)`: Counter of OK Tests
-#       `$3 (_cfail)`: Counter of FAILED Tests
+#       `_filename`: name of the file/testscript
+#       `_cok`: Counter of OK Tests
+#       `_cfail`: Counter of FAILED Tests
 #
 #   USAGE
 #       declare -i _COK=0
 #       declare -i _CFAIL=0
-#       te_print_final_result _COK _CFAIL "_COK" "_CFAIL"
+#       te_print_final_result _COK _CFAIL
 #******************************************************************************************************************************
 te_print_final_result() {
-    (( ${#} < 3 )) && te_abort "te_print_final_result" "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'\n\n")" "${#}"
-    # skip assignment:  _filename=${1}
-    # skip assignment:  _cok=${2}
-    # skip assignment:  _cfail=${3}
+    (( ${#} != 3 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'\n\n")" "${#}"
+    local _filename=${1}
+    local _cok=${2}
+    local _cfail=${3}
 
     echo
     echo
-    printf "$(tput bold)$(tput setaf 2)\n" >&1
+    printf "${_BF_GREEN}\n" >&1
     printf "#===========================================================================#\n" >&1
     printf "#\n" >&1
-    printf "$(_g "# TESTS RESULTS <%s>: OK: '%s' FAILED: '%s'\n")" "${1}" "${2}" "${3}" >&1
+    printf "$(_g "# TESTS RESULTS <%s>: OK: '%s' FAILED: '%s'\n")" "${_filename}" "${_cok}" "${_cfail}" >&1
     printf "#\n" >&1
     printf "#===========================================================================#\n" >&1
-    printf "$(tput sgr0)\n" >&1
+    printf "${_BF_OFF}\n" >&1
 
-    if (( ${3} > 0 )); then
-        printf "$(tput bold)$(tput setaf 3)\n" >&1
-        printf "$(_g "    There are FAILED TEST RESULTS (%s): Check the terminal output.")" "${3}" >&1
-        printf "$(tput sgr0)\n" >&1
+    if (( ${_cfail} > 0 )); then
+        printf "${_BF_BOLD}${_BF_YELLOW}\n" >&1
+        printf "$(_g "    There are FAILED TEST RESULTS (%s): Check the terminal output.")" "${_cfail}" >&1
+        printf "${_BF_OFF}\n" >&1
     fi
 }
 
@@ -85,45 +85,58 @@ te_print_final_result() {
 # Formatted FINAL RESULT message
 #
 #   ARGUMENTS
-#       `$1 (_func_info)`: e.g. info which function is tested
+#       `_func_inf`: e.g. info which function is tested
 #
 #   USAGE
 #       te_print_function_msg "te_find_err_msg() very limited tests"
 #******************************************************************************************************************************
 te_print_function_msg() {
-    # skip assignment:  _func_info=${1}
+    local _func_inf=${1}
     local _text=$(_g "TESTING:")
-    printf "$(tput bold)$(tput setaf 5)\n=======> ${_text}$(tput sgr0)$(tput bold)$(tput setaf 4) ${1}$(tput sgr0)\n" >&1
+    printf "${_BF_MAGENTA}\n=======> ${_text}${_BF_OFF}${_BF_BLUE} ${_func_inf}${_BF_OFF}\n" >&1
 }
 
 
 #******************************************************************************************************************************
-#   USAGE: te_abort "from_where_name" "$(_g "Message did not find path: '%s'")" "$PATH"
+#   USAGE: te_abort ${LINENO} "ERROR IN TEST-case: Keeping build_dir: <${_builds_dir}> should still exist."
 #******************************************************************************************************************************
 te_abort() {
     if (( ${#} < 2 )); then
-        m_exit "te_abort" "$(_g "FUNCTION 'm_exit()': Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
+        te_abort ${LINENO} "$(_g "FUNCTION  Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
     fi
-    local _from=${1}
-    local _m=${2}; shift
-    local _blue="$(tput bold)$(tput setaf 4)"
-    local _m2=$(_g "ABORTING....from:")
+    local _lineno=${1}
+    local _msg=${2}; shift
+    local _m1=$(_g "ABORTING....from:")
+    local _m2=$(_g "Line:")
+    local _m3=$(_g "Function:")
+    local _m4=$(_g "File:")
+    local _m5=$(_g "CAN NOT CONINUE TESTING.")
+    local _fbasename=${BASH_SOURCE[1]}
 
-    printf "$(tput bold)$(tput setaf 5)\n\n=======> ${_m2}$(tput sgr0)${_blue} <${_from}> $(tput sgr0)\n" >&2
-    printf "$(tput bold)$(tput setaf 1)    ->$(tput sgr0)$$(tput bold) ${_m}$(tput sgr0)\n\n" "${@:2}" >&2
-    exit 1
+    _fbasename=${_fbasename%%+(/)}
+    _fbasename=${_fbasename##*/}
+
+    printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
+    printf "${_BF_RED}    -> ${_m2} '${_BF_BOLD}${_lineno}${_BF_OFF}' ${_m3} '${_BF_BOLD}${FUNCNAME[1]}${_BF_OFF}' "
+    printf "${_m4} '${_BF_BOLD}${_fbasename}${_BF_OFF}'\n\n\n" >&2
+
+    printf "${_BF_YELLOW}    -> MESSAGE !!${_BF_OFF}${_BF_BOLD} ${_msg}${_BF_OFF}\n\n\n" "${@:2}" >&2
+
+    printf "\n\n${_BF_YELLOW}    ${_m5}${_BF_OFF}\n\n" >&2
+
+    # do not use exit 1 otherwise we get an additional trap call
+    exit 0
 }
 
 
 #******************************************************************************************************************************
-#   USAGE: te_warn "from_where_name" "This Test needs working internet."
+#   USAGE: te_warn "${FUNCNAME[0]}" "This Test needs working internet."
 #******************************************************************************************************************************
 te_warn() {
-    (( ${#} < 2 )) && m_exit "te_abort" "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
-    # skip assignment:  _from=${1}
+    (( ${#} < 2 )) && te_abort ${LINENO} "${FUNCNAME[0]}" "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
+    local _from=${1}
     local _m=${2}; shift
-
-    printf "$(tput bold)$(tput setaf 1)  >>> WARNING: <${1}>  ${_m}$(tput sgr0)\n" "${@:2}" >&2
+    printf "${_BF_RED}  >>> WARNING: <${_from}>  ${_m}${_BF_OFF}\n" "${@:2}" >&2
 }
 
 
@@ -141,13 +154,12 @@ te_warn() {
 #       fi
 #******************************************************************************************************************************
 te_ms_ok() {
-    (( ${#} < 2 )) && te_abort "te_ms_ok" "$(_g "FUNCTION Requires AT LEAST '2' argument. Got '%s'\n\n")" "${#}"
+    (( ${#} < 2 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'\n\n")" "${#}"
     local -n _ret_cok=${1}
     local _m=${2}; shift
     local _m_prefix=$(_g "Testing:")
-
-    printf "$(tput bold)$(tput setaf 2)    [  OK  ] $(tput sgr0)${_m_prefix}$(tput bold) ${_m}$(tput sgr0)\n" "${@:2}" >&1
-    ((_ret_cok++))
+    printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m_prefix}${_BF_BOLD} ${_m}${_BF_OFF}\n" "${@:2}" >&1
+    _ret_cok+=1
 }
 
 
@@ -165,13 +177,12 @@ te_ms_ok() {
 #       fi
 #******************************************************************************************************************************
 te_ms_failed() {
-    (( ${#} < 2 )) && te_abort "te_ms_failed" "$(_g "FUNCTION Requires AT LEAST '2' argument. Got '%s'\n\n")" "${#}"
-    local -n _ret_cok=${1}
+    (( ${#} < 2 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'\n\n")" "${#}"
+    local -n _ret_cfail=${1}
     local _m=${2}; shift
     local _m_prefix=$(_g "Testing:")
-
-    printf "$(tput bold)$(tput setaf 1)    [FAILED] $(tput sgr0)${_m_prefix}$(tput bold) ${_m}$(tput sgr0)\n" "${@:2}" >&1
-    ((_ret_cok++))
+    printf "${_BF_BOLD}${_BF_RED}    [FAILED] ${_BF_OFF}${_m_prefix}${_BF_BOLD} ${_m}${_BF_OFF}\n" "${@:2}" >&1
+    _ret_cfail+=1
 }
 
 
@@ -182,13 +193,13 @@ te_ms_failed() {
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
-# Reports OK: if the `_func_output` contains the `_find_error_message`
+# Reports OK: if the `_func_output` contains the `_find_err_msg`
 #
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `$3 (_func_output)`: output message of an function to check
-#       `$4 (_find_error_message)`: error message to search for
+#       `_func_output`: output message of an function to check
+#       `_find_err_msg`: error message to search for
 #
 #   OPTIONAL ARGUMETNTS
 #       `_inf`: extra info message
@@ -201,27 +212,26 @@ te_ms_failed() {
 #       te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: Requires AT LEAST '7' arguments. Got '8'" "EXTRA"
 #******************************************************************************************************************************
 te_find_err_msg() {
-    local _fn="te_find_err_msg"
-    (( ${#} < 4 )) && te_abort "${_fn}" "$(_g "FUNCTION Requires AT LEAST '4' argument. Got '%s'\n\n")" "${#}"
-    [[ -n $3 ]] || te_abort "${_fn}" "$(_g "FUNCTION Argument 3 MUST NOT be empty.\n\n")"
-    [[ -n $4 ]] || te_abort "${_fn}" "$(_g "FUNCTION Argument 4 MUST NOT be empty.\n\n")"
+    (( ${#} < 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'\n\n")" "${#}"
+    [[ -n $3 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 3 MUST NOT be empty.\n\n")"
+    [[ -n $4 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 4 MUST NOT be empty.\n\n")"
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    # skip assignment:  _func_output=${3}
-    # skip assignment:  _find_error_message=${4}
+    local _func_output=${3}
+    local _find_err_msg=${4}
     local _inf=${5:-""}
     local _m=$(_g "Find err-msg:")
 
     [[ -n ${_inf} ]] && _inf=" ${_inf}"
-    if [[ ${3} == *${4}* ]]; then
-        printf "$(tput bold)$(tput setaf 2)    [  OK  ] $(tput sgr0)${_m}$(tput bold) ${4}$(tput sgr0)${_inf}\n" >&1
-        ((_ret_cok++))
+    if [[ ${_func_output} == *${_find_err_msg}* ]]; then
+        printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_err_msg}${_BF_OFF}${_inf}\n" >&1
+        _ret_cok+=1
     else
-        printf "$(tput bold)$(tput setaf 1)    [FAILED] $(tput sgr0)${_m}$(tput bold) ${4}$(tput sgr0)${_inf}\n" >&1
-        ((_ret_cfail++))
+        printf "${_BF_BOLD}${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_err_msg}${_BF_OFF}${_inf}\n" >&1
+        _ret_cfail+=1
     fi
 
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
+    # Avoid: ABORTING....from: <ERR Trap>
     return 0
 }
 
@@ -232,8 +242,8 @@ te_find_err_msg() {
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `$3 (_func_output)`: output message of an function to check
-#       `$4 (_find_info_message)`: info message to search for
+#       `_func_output`: output message of an function to check
+#       `_find_inf_msg`: info message to search for
 #
 #   OPTIONAL ARGUMETNTS
 #       `_inf`: extra info message
@@ -246,27 +256,26 @@ te_find_err_msg() {
 #       te_find_info_msg _COK _CFAIL "${_output}" "FUNCTION 'xxx()': Download success but." "EXTRA Optional Info"
 #******************************************************************************************************************************
 te_find_info_msg() {
-    local _fn="te_find_info_msg"
-    (( ${#} < 4 )) && te_abort "${_fn}" "$(_g "FUNCTION Requires AT LEAST '4' argument. Got '%s'\n\n")" "${#}"
-    [[ -n $3 ]] || te_abort "${_fn}" "$(_g "FUNCTION Argument 3 MUST NOT be empty.\n\n")"
-    [[ -n $4 ]] || te_abort "${_fn}" "$(_g "FUNCTION Argument 4 MUST NOT be empty.\n\n")"
+    (( ${#} < 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'\n\n")" "${#}"
+    [[ -n $3 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 3 MUST NOT be empty.\n\n")"
+    [[ -n $4 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 4 MUST NOT be empty.\n\n")"
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    # skip assignment:  _func_output=${3}
-    # skip assignment:  _find_info_message=${4}
+    local _func_output=${3}
+    local _find_inf_msg=${4}
     local _inf=${5:-""}
     local _m=$(_g "Find info-msg:")
 
     [[ -n ${_inf} ]] && _inf=" ${_inf}"
-    if [[ ${3} == *${4}* ]]; then
-        printf "$(tput bold)$(tput setaf 2)    [  OK  ] $(tput sgr0)${_m}$(tput bold) ${4}$(tput sgr0)${_inf}\n" >&1
-        ((_ret_cok++))
+    if [[ ${_func_output} == *${_find_inf_msg}* ]]; then
+        printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_inf_msg}${_BF_OFF}${_inf}\n" >&1
+        _ret_cok+=1
     else
-        printf "$(tput bold)$(tput setaf 1)    [FAILED] $(tput sgr0)${_m}$(tput bold) ${4}$(tput sgr0)${_inf}\n" >&1
-        ((_ret_cfail++))
+        printf "${_BF_BOLD}${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_inf_msg}${_BF_OFF}${_inf}\n" >&1
+        _ret_cfail+=1
     fi
 
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
+    # Avoid: ABORTING....from: <ERR Trap>
     return 0
 }
 
@@ -277,8 +286,8 @@ te_find_info_msg() {
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `$3 (_in_str)`: string value to compare `_func_output` to: could also be empty
-#       `$4 (_ref_str)`: string expected function output: could also be empty
+#       `_in_str`: string value to compare `_func_output` to: could also be empty
+#       `_ref_str`: string expected function output: could also be empty
 #
 #   OPTIONAL ARGUMETNTS
 #       `_inf`: extra info message
@@ -301,39 +310,39 @@ te_find_info_msg() {
 #       te_same_val _COK _CFAIL "${_tmp_str}" "value1 value2 value3"
 #******************************************************************************************************************************
 te_same_val() {
-    (( ${#} < 4 )) && te_abort "te_same_val" "$(_g "FUNCTION Requires AT LEAST '4' argument. Got '%s'\n\n")" "${#}"
+    (( ${#} < 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'\n\n")" "${#}"
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    # skip assignment:  _in_str=${3}
-    # skip assignment:  _ref_str=${4}
+    local _in_str=${3}
+    local _ref_str=${4}
     local _inf=${5:-""}
-    local _off=$(tput sgr0)
-    local _bold=$(tput bold)
     local _m=$(_g "Expected value: <")
     local _m1=$(_g "> Got:")
+    local _off=${_BF_OFF}  # shorten the var name: so we keep the line char limit
+    local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
     [[ -n ${_inf} ]] && _inf=" ${_inf}"
-    if [[ ${3} == ${4} ]]; then
-        printf "${_bold}$(tput setaf 2)    [  OK  ] ${_off}${_m}${_bold}${4}${_off}${_m1} <${_bold}${3}${_off}>${_inf}\n" >&1
-        ((_ret_cok++))
+    if [[ ${_in_str} == ${_ref_str} ]]; then
+        printf "${_b}${_BF_GREEN}    [  OK  ] ${_off}${_m}${_b}${_ref_str}${_off}${_m1} <${_b}${_in_str}${_off}>${_inf}\n" >&1
+        _ret_cok+=1
     else
-        printf "${_bold}$(tput setaf 1)    [FAILED] ${_off}${_m}${_bold}${4}${_off}${_m1} <${_bold}${3}${_off}>${_inf}\n" >&1
-        ((_ret_cfail++))
+        printf "${_b}${_BF_RED}    [FAILED] ${_off}${_m}${_b}${_ref_str}${_off}${_m1} <${_b}${_in_str}${_off}>${_inf}\n" >&1
+        _ret_cfail+=1
     fi
 
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
+    # Avoid: ABORTING....from: <ERR Trap>
     return 0
 }
 
 
 #******************************************************************************************************************************
-# Reports OK: if the `_in_string` is empty. [[ -z _in_string ]]
+# Reports OK: if the `_in_str` is empty. [[ -z _in_str ]]
 #
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `$3 (_in_string)`: value to check
-#       `$4 (_inf)`: info message
+#       `_in_str`: value to check
+#       `_inf`: info message
 #
 #   USAGE
 #       declare -i _COK=0
@@ -342,35 +351,35 @@ te_same_val() {
 #       te_empty_val _COK _CFAIL "none_empty" "Testing something - expected an empty string"
 #******************************************************************************************************************************
 te_empty_val() {
-    (( ${#} != 4 )) && te_abort "te_empty_val" "$(_g "FUNCTION Requires EXACT '4' argument. Got '%s'\n\n")" "${#}"
+    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    # skip assignment:  _in_string=${3}
-    # skip assignment:  _inf=${4}
-    local _off=$(tput sgr0)
+    local _in_str=${3}
+    local _inf=${4}
     local _m=$(_g "Expected empty <>. Got:")
+    local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
-    if [[ -z ${3} ]]; then
-        printf "$(tput bold)$(tput setaf 2)    [  OK  ] ${_off}${_m} <$(tput bold)}${3}${_off}>${_bold} ${4}${_off}\n" >&1
-        ((_ret_cok++))
+    if [[ -z ${_in_str} ]]; then
+        printf "${_b}${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+        _ret_cok+=1
     else
-        printf "$(tput bold)$(tput setaf 1)    [FAILED] ${_off}${_m} <$(tput bold)${3}${_off}>${_bold} ${4}${_off}\n" >&1
-        ((_ret_cfail++))
+        printf "${_b}${_BF_RED}    [FAILED] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+        _ret_cfail+=1
     fi
 
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
+    # Avoid: ABORTING....from: <ERR Trap>
     return 0
 }
 
 
 #******************************************************************************************************************************
-# Reports OK: if the `_in_string` is not empty. [[ -n _in_string ]]
+# Reports OK: if the `_in_str` is not empty. [[ -n _in_str ]]
 #
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `$3 (_in_string)`: value to check
-#       `$4 (_inf)`: info message
+#       `_in_str`: value to check
+#       `_inf`: info message
 #
 #   USAGE
 #       declare -i _COK=0
@@ -379,67 +388,23 @@ te_empty_val() {
 #       te_not_empty_val _COK _CFAIL "" "Testing something - expected an none empty string"
 #******************************************************************************************************************************
 te_not_empty_val() {
-    (( ${#} != 4 )) && te_abort "te_not_empty_val" "$(_g "FUNCTION Requires EXACT '4' argument. Got '%s'\n\n")" "${#}"
+    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    # skip assignment:  _in_string=${3}
-    # skip assignment:  _inf=${4}
-    local _off=$(tput sgr0)
+    local _in_str=${3}
+    local _inf=${4}
     local _m=$(_g "Expected not empty. Got:")
+    local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
-    if [[ -n ${3} ]]; then
-        printf "$(tput bold)$(tput setaf 2)    [  OK  ] ${_off}${_m} <$(tput bold)${3}${_off}>${_bold} ${4}${_off}\n" >&1
-        ((_ret_cok++))
+    if [[ -n ${_in_str} ]]; then
+        printf "${_b}${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+        _ret_cok+=1
     else
-        printf "$(tput bold)$(tput setaf 1)    [FAILED] ${_off}${_m} <$(tput bold)${3}${_off}>${_bold} ${4}${_off}\n" >&1
-        ((_ret_cfail++))
+        printf "${_b}${_BF_RED}    [FAILED] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+        _ret_cfail+=1
     fi
 
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
-    return 0
-}
-
-
-#******************************************************************************************************************************
-# Reports OK: if `_func_ret` is 0
-#
-#   ARGUMENTS
-#       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
-#       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `_func_ret`: return value of an function to check
-#       `$4 (_inf)`: info message
-#
-#   USAGE
-#       declare -i _COK=0
-#       declare -i _CFAIL=0
-#       _info_msg="Checksum verification but no download_mirror defined."
-#       te_retval_0 _COK _CFAIL 0 "${_info_msg}"
-#       te_retval_0 _COK _CFAIL 1 "${_info_msg}"
-#       te_retval_0 _COK _CFAIL ${?} "${_info_msg}"
-#******************************************************************************************************************************
-te_retval_0() {
-    local _fn="te_retval_0"
-    (( ${#} != 4 )) && te_abort "${_fn}" "$(_g "FUNCTION Requires EXACT '4' argument. Got '%s'\n\n")" "${#}"
-    local -n _ret_cok=${1}
-    local -n _ret_cfail=${2}
-    declare -i _func_ret=${3}
-    # skip assignment:  _inf=${4}
-    local _off=$(tput sgr0)
-    local _bold=$(tput bold)
-    local _red="${_bold}$(tput setaf 1)"
-    local _green="${_bold}$(tput setaf 2)"
-    local _m=$(_g "Expected ret-val (")
-    local _m1=$(_g ") GOT:")
-
-    if (( _func_ret )); then
-        printf "${_red}    [FAILED] ${_off}${_m}${_bold}0${_off}${_m1} (${_bold}${_func_ret}${_off}) ${4}\n" >&1
-        ((_ret_cfail++))
-    else
-        printf "${_green}    [  OK  ] ${_off}${_m}${_bold}0${_off}${_m1} (${_bold}${_func_ret}${_off}) ${4}\n" >&1
-        ((_COK++))
-    fi
-
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
+    # Avoid: ABORTING....from: <ERR Trap>
     return 0
 }
 
@@ -451,39 +416,116 @@ te_retval_0() {
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
 #       `_func_ret`: return value of an function to check
-#       `$4 (_inf)`: info message
+#       `_inf`: info message
 #
 #   USAGE
 #       declare -i _COK=0
 #       declare -i _CFAIL=0
 #       _info_msg="Checksum verification but no download_mirror defined."
-#       te_retval_1 _COK _CFAIL 1 "${_info_msg}"
-#       te_retval_1 _COK _CFAIL 0 "${_info_msg}"
-#       te_retval_1 _COK _CFAIL ${?} "${_info_msg}"
+#       te_retcode_0 _COK _CFAIL 1 "${_info_msg}"
+#       te_retcode_0 _COK _CFAIL 0 "${_info_msg}"
+#       te_retcode_0 _COK _CFAIL ${?} "${_info_msg}"
 #******************************************************************************************************************************
-te_retval_1() {
-    local _fn="te_retval_1"
-    (( ${#} != 4 )) && te_abort "${_fn}" "$(_g "FUNCTION Requires EXACT '4' argument. Got '%s'\n\n")" "${#}"
+te_retcode_0() {
+    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
     declare -i _func_ret=${3}
-    # skip assignment:  _inf=${4}
-    local _off=$(tput sgr0)
-    local _bold=$(tput bold)
-    local _red="${_bold}$(tput setaf 1)"
-    local _green="${_bold}$(tput setaf 2)"
+    local _inf=${4}
     local _m=$(_g "Expected ret-val (")
     local _m1=$(_g ") GOT:")
+    local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
     if (( ${_func_ret} )); then
-        printf "${_green}    [  OK  ] ${_off}${_m}${_bold}1${_off}${_m1} (${_bold}${_func_ret}${_off}) ${4}\n" >&1
-        ((_COK++))
+        printf "${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_b}0${_BF_OFF}${_m1} (${_b}${_func_ret}${_BF_OFF}) ${_inf}\n" >&1
+        _ret_cfail+=1
     else
-        printf "${_red}    [FAILED] ${_off}${_m}${_bold}1${_off}${_m1} (${_bold}${_func_ret}${_off}) ${4}\n" >&1
-        ((_ret_cfail++))
+        printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_b}0${_BF_OFF}${_m1} (${_b}${_func_ret}${_BF_OFF}) ${_inf}\n" >&1
+        _ret_cok+=1
     fi
 
-    # Avoid: ABORTING....from: <ts_trap_opt_unknown_error>
+    # Avoid: ABORTING....from: <ERR Trap>
+    return 0
+}
+
+
+#******************************************************************************************************************************
+# Reports OK: if `_func_ret` is 1
+#
+#   ARGUMENTS
+#       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
+#       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
+#       `_func_ret`: return value of an function to check
+#       `_inf`: info message
+#
+#   USAGE
+#       declare -i _COK=0
+#       declare -i _CFAIL=0
+#       _info_msg="Checksum verification but no download_mirror defined."
+#       te_retcode_1 _COK _CFAIL 1 "${_info_msg}"
+#       te_retcode_1 _COK _CFAIL 0 "${_info_msg}"
+#       te_retcode_1 _COK _CFAIL ${?} "${_info_msg}"
+#******************************************************************************************************************************
+te_retcode_1() {
+    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
+    local -n _ret_cok=${1}
+    local -n _ret_cfail=${2}
+    declare -i _func_ret=${3}
+    local _inf=${4}
+    local _m=$(_g "Expected ret-val (")
+    local _m1=$(_g ") GOT:")
+    local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
+
+    if (( ${_func_ret} )); then
+        printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_b}1${_BF_OFF}${_m1} (${_b}${_func_ret}${_BF_OFF}) ${_inf}\n" >&1
+        _ret_cok+=1
+    else
+        printf "${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_b}1${_BF_OFF}${_m1} (${_b}${_func_ret}${_BF_OFF}) ${_inf}\n" >&1
+        _ret_cfail+=1
+    fi
+
+    # Avoid: ABORTING....from: <ERR Trap>
+    return 0
+}
+
+
+#******************************************************************************************************************************
+# Reports OK: if `_func_ret` is the same as the expected `_ref_code`
+#
+#   ARGUMENTS
+#       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
+#       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
+#       `_func_ret`: return value of an function to check
+#       `_ref_code`: integer expected function return code
+#       `_inf`: info message
+#
+#   USAGE
+#       declare -i _COK=0
+#       declare -i _CFAIL=0
+#       _info_msg="Checksum verification but no download_mirror defined."
+#       te_retcode_same _COK _CFAIL ${?} 18 "${_info_msg}"
+#******************************************************************************************************************************
+te_retcode_same() {
+    (( ${#} != 5 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'\n\n")" "${#}"
+    local -n _ret_cok=${1}
+    local -n _ret_cfail=${2}
+    declare -i _func_ret=${3}
+    declare -i _ref_code=${4}
+    local _inf=${5}
+    local _m=$(_g "Expected ret-val (")
+    local _m1=$(_g ") GOT:")
+    local _o=${_BF_OFF}  # shorten the var name: so we keep the line char limit
+    local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
+
+    if (( ${_func_ret} == ${_ref_code} )); then
+        printf "${_BF_GREEN}    [  OK  ] ${_o}${_m}${_b}${_ref_code}${_o}${_m1} (${_b}${_func_ret}${_o}) ${_inf}\n" >&1
+        _ret_cok+=1
+    else
+        printf "${_BF_RED}    [FAILED] ${_o}${_m}${_b}${_ref_code}${_o}${_m1} (${_b}${_func_ret}${_o}) ${_inf}\n" >&1
+        _ret_cfail+=1
+    fi
+
+    # Avoid: catched by a trap
     return 0
 }
 

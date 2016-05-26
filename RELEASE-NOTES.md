@@ -4,9 +4,16 @@
 ---
 
 
-## v0.9.4 (xxxx-xx-xx)
+## v0.9.5 (xxxx-xx-xx)
 
-* 
+*
+
+
+## v0.9.4 (2016-05-26)
+
+* adds more general stricter settings: shopt, set
+* Code refactoring
+* Fixes some errors
 
 
 ## v0.9.3 (2016-05-15)

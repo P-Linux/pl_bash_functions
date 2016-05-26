@@ -46,14 +46,21 @@ In general Function which abort on failure use following name syntax.
 
 ### Variable Names
 
-Own Variable Names are prefixed with **one underscore**.
+'pl_bash_functions' package own variable names follow following syntax.
 
-* `Own Variable Name`: **_path**
 
-    * Sometimes the **Variable Name** is prefixed with mutliple underscores: e.g. function within function local variables.
+#### Global Variable Names
 
-* local variable names are usually in lowercase letters
-* global variable names are usually in uppercase letters
+Global variable names are prefixed with `_BF` (Bash Functions) and use uppercase letters, digits and underscores.
+
+Example: `_BF_VERSION`
+
+
+#### Local Variable Names
+
+Local variable names are prefixed with `_` and use lowercase letters, digits and underscores.
+
+Example: `_pkgfile_path`
 
 
 ## Backticks - Parenthesis
@@ -171,9 +178,33 @@ _a+=" appended"
 
 ### Append/Add To An Integer
 
+All integer variables should be declared as integer: `declare -i _myint=0`
+Variables are also access through the $
+
+
 ```bash
-_b=8
+# YES
+declare -i _b=8
+_b+=7
+echo ${_b}
+
+declare -i _b=5
+declare -i _c=6
+_b+=${_c}
+echo ${_b}
+
+declare -i _b=0
+declare -i _c=0
+_b+=${_c}
+echo ${_b}
+
+# NO: Reason it raises our `ERR trap` if both values are 0
+declare -i _b=8
 ((_b+=7))
+
+declare -i _b=0
+declare -i _c=0
+((_b+=_c))      # Raises `ERR trap`
 ```
 
 
@@ -201,7 +232,7 @@ fi
 
 ### Testing Return Values
 
-In general this syntax is used: TEST if FAILED: `(( $? ))`
+In general this syntax is used: TEST if FAILED: `(( ${?} ))`
 
 ```bash
 [[ "a" == "b" ]]

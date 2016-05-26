@@ -12,7 +12,7 @@
 #
 #=============================================================================================================================#
 
-t_general_opt
+i_general_opt
 
 
 
@@ -163,7 +163,7 @@ t_general_opt
 #******************************************************************************************************************************
 s_get_src_matrix() {
     local _fn="s_get_src_matrix"
-    (( ${#} < 4 )) && m_exit "${_fn}" "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'")" "${#}"
+    (( ${#} < 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' argument. Got '%s'")" "${#}"
     local -n _retmatrix=${1}
     local -n _in_entries=${2}
     local -n _in_checksums=${3}
@@ -171,7 +171,8 @@ s_get_src_matrix() {
     # use an associative array which is faster for lookups
     declare -A _supported_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0 ["local"]=0)
     declare -A _supported_vclplus_schemes=(["http"]=0 ["https"]=0 ["lp"]=0)
-    if [[ -n $5 ]]; then
+    if (( ${#} > 4 )); then
+        [[ -n ${5} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 5 '_srcdst_dir' MUST NOT be empty.")"
         local _srcdst_dir=${5}
     else
         local _srcdst_dir; u_dirname _srcdst_dir "${_pkgfile_path}"
@@ -180,30 +181,37 @@ s_get_src_matrix() {
     declare -i _in_checksums_size=${#_in_checksums[@]}
     local _ent _chksum _noextract _prefix _uri _fragment _protocol _destname _destpath
     local  _total_prefix _num_prefix_sep _vclplus_schemes _tmp_uri
-    declare -i _next_idx _n
+    declare -i _next_idx _n _diff
 
-    u_ref_associative_array_exit "_retmatrix" "${_fn}"
+    u_ref_associative_array_exit "_retmatrix"
 
     # Validate _in_checksums array
     if (( ${_in_checksums_size} < ${_in_entries_size} )); then
-        m_more_i "$(_g "SRC_CHECKSUMS array size: '%s' is less than SRC_ENTRIES Array size: '%s'")" "${_in_checksums_size}" \
+        i_more_i "$(_g "SRC_CHECKSUMS array size: '%s' is less than SRC_ENTRIES Array size: '%s'")" "${_in_checksums_size}" \
             "${_in_entries_size}"
+        i_more_i "$(_g "Added temporarily checksum entries SKIP.")"
+        _diff=${_in_entries_size}-${_in_checksums_size}
+        for (( _n=0; _n < ${_diff}; _n++ )); do
+            
+            _in_checksums+=("SKIP")
+        done
+        _in_checksums_size=${#_in_checksums[@]}
     elif (( ${_in_checksums_size} > ${_in_entries_size} )); then
-        m_more_i "$(_g "SRC_CHECKSUMS array size: '%s' is greater than SRC_ENTRIES Array size: '%s'")" \
+        i_more_i "$(_g "SRC_CHECKSUMS array size: '%s' is greater than SRC_ENTRIES Array size: '%s'")" \
             "${_in_checksums_size}" "${_in_entries_size}"
     fi
+
     for (( _n=0; _n < ${_in_entries_size}; _n++ )); do
         _chksum=${_in_checksums[${_n}]}
         if [[ -z ${_chksum} ]]; then
             _in_checksums[${_n}]="SKIP"
         elif [[ (( ${#_chksum} != 32 )) && ${_chksum} != "SKIP" ]]; then
-            m_more "$(_g "CHECKSUM [%s]: '%s' MUST be SKIP or 32 chars. Got:'%s'. Pkgfile: <%s>")" $((_n + 1)) "${_chksum}" \
-                ${#_chksum} "${_pkgfile_path}"
+            i_more "$(_g "CHECKSUM [%s]: '%s' MUST be 'SKIP' or 32 chars. Got: '%s'. Pkgfile: <%s>")" $((_n + 1)) \
+                "${_chksum}" ${#_chksum} "${_pkgfile_path}"
             _in_checksums[${_n}]="SKIP"
-            m_more_i "$(_g "Replaced the checksum temporarily with SKIP.")"
+            i_more_i "$(_g "Replaced the checksum temporarily with SKIP.")"
         fi
     done
-
     if [[ -v _retmatrix[NUM_IDX] ]]; then
        _next_idx=${_retmatrix[NUM_IDX]}
     else
@@ -216,20 +224,20 @@ s_get_src_matrix() {
 
         _ent=${_in_entries[${_n}]}
         if (( $(u_count_substr ":::" "${_ent}") != 0 )); then
-            m_exit "${_fn}" "$(_g "Entry MUST NOT contain any triple colons (:::): <%s>")" "${_ent}"
+            i_exit 1 ${LINENO} "$(_g "Entry MUST NOT contain any triple colons (:::): <%s>")" "${_ent}"
         fi
 
         _num_prefix_sep=$(u_count_substr "::" "${_ent}")
         if (( ${_num_prefix_sep} > 2 )); then
-            m_exit "${_fn}" "$(_g "Entry MUST NOT contain more than 2 prefix_sep (::). Got:'%s': <%s>")" ${_num_prefix_sep} \
+            i_exit 1 ${LINENO} "$(_g "Entry MUST NOT contain more than 2 prefix_sep (::). Got:'%s': <%s>")" ${_num_prefix_sep} \
                 "${_ent}"
         fi
 
-        (( $(u_count_substr "+" "${_ent}") > 1 )) && m_exit "${_fn}" \
+        (( $(u_count_substr "+" "${_ent}") > 1 )) && i_exit 1 ${LINENO} \
                                                         "$(_g "Entry MUST NOT contain more than 1 plus (+): <%s>")" "${_ent}"
 
         if (( $(u_count_substr "#" "${_ent}") > 1 )); then
-            m_exit "${_fn}" "$(_g "Entry MUST NOT contain more than 1 number sign (#): <%s>")" "${_ent}"
+            i_exit 1 ${LINENO} "$(_g "Entry MUST NOT contain more than 1 number sign (#): <%s>")" "${_ent}"
         fi
 
         u_postfix_shortest_empty _fragment "${_ent}" "#"
@@ -241,7 +249,7 @@ s_get_src_matrix() {
         if [[ ${_tmp_uri} == *"+"* ]]; then
             u_prefix_shortest_all _vclplus_schemes "${_uri}" ":"
             if [[ ! -v _supported_vclplus_schemes[${_vclplus_schemes}] ]]; then
-                m_exit "${_fn}" "$(_g "Supported vclplus_schemes: 'http' 'https' 'lp'. Got '%s': <%s>")" \
+                i_exit 1 ${LINENO} "$(_g "Supported vclplus_schemes: 'http' 'https' 'lp'. Got '%s': <%s>")" \
                     "${_vclplus_schemes}" "${_ent}"
             fi
         fi
@@ -251,7 +259,7 @@ s_get_src_matrix() {
         u_prefix_shortest_all _protocol "${_protocol}" "+"
         [[ ${_protocol} == ${_tmp_uri} ]] && _protocol="local"
 
-        [[ -v _supported_protocols[${_protocol}] ]] || m_exit "${_fn}" "$(_g "The protocol: '%s' is not supported: <%s>")" \
+        [[ -v _supported_protocols[${_protocol}] ]] || i_exit 1 ${LINENO} "$(_g "The protocol: '%s' is not supported: <%s>")" \
                                                         "${_protocol}" "${_ent}"
         ### DO NOEXTRACT/PREFIX
         _noextract=""
@@ -277,26 +285,26 @@ s_get_src_matrix() {
 
         # Some Validations
         if ! [[ -z ${_noextract} || ${_noextract} == "NOEXTRACT" ]]; then
-            m_exit "${_fn}" "$(_g "'NOEXTRACT' MUST be empty or: NOEXTRACT. Got: '%s': <%s>")" "${_noextract}" "${_ent}"
+            i_exit 1 ${LINENO} "$(_g "'NOEXTRACT' MUST be empty or: NOEXTRACT. Got: '%s': <%s>")" "${_noextract}" "${_ent}"
         fi
         case "${_protocol}" in
             local)
-                [[ ${_ent} == *"/"* ]] && m_exit "${_fn}" "$(_g "Local source MUST NOT contain any slash: <%s>")" "${_ent}"
-                [[ -n ${_noextract} ]] && m_exit "${_fn}" "$(_g "Local source MUST NOT have a 'NOEXTRACT': <%s>")" "${_ent}"
-                [[ -n ${_prefix} ]] && m_exit "${_fn}" "$(_g "Local source MUST NOT have a prefix: '%s': <%s>")" "${_prefix}" \
+                [[ ${_ent} == *"/"* ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT contain any slash: <%s>")" "${_ent}"
+                [[ -n ${_noextract} ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a 'NOEXTRACT': <%s>")" "${_ent}"
+                [[ -n ${_prefix} ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a prefix: '%s': <%s>")" "${_prefix}" \
                                         "${_ent}"
-                [[ -n ${_fragment} ]] && m_exit "${_fn}" "$(_g "Local source MUST NOT have a fragment: '%s': <%s>")" \
+                [[ -n ${_fragment} ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a fragment: '%s': <%s>")" \
                                             "${_fragment}" "${_ent}"
                 ;;
             ftp|http|https)
-                [[ -n ${_fragment} ]] && m_exit "${_fn}" "$(_g "ftp|http|https source MUST NOT have a fragment: '%s': <%s>")" \
+                [[ -n ${_fragment} ]] && i_exit 1 ${LINENO} "$(_g "ftp|http|https source MUST NOT have a fragment: '%s': <%s>")" \
                                             "${_fragment}" "${_ent}"
                 ;;
             git|svn|hg|bzr)
-                [[ -n ${_noextract} ]] && m_exit "${_fn}" "$(_g "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT: <%s>")" \
+                [[ -n ${_noextract} ]] && i_exit 1 ${LINENO} "$(_g "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT: <%s>")" \
                                             "${_ent}"
                 if [[ ${_retmatrix[${_next_idx}:CHKSUM]} != "SKIP" ]]; then
-                    m_exit "${_fn}" "$(_g "'git|svn|hg|bzr source MUST NOT have a checksum: '%s': <%s>")" \
+                    i_exit 1 ${LINENO} "$(_g "'git|svn|hg|bzr source MUST NOT have a checksum: '%s': <%s>")" \
                         "${_retmatrix[${_next_idx}:CHKSUM]}" "${_ent}"
                 fi
                 ;;

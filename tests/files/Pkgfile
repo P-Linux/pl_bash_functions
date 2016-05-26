@@ -13,6 +13,7 @@ pkgdeps=(
     xz git subversion mercurial 
     bzr
 )
+pkgdepsrun=(bash)
 
 pkgvers=0.1.0.r1.2f12e1a 
 pkgrel=4
@@ -20,7 +21,7 @@ pkgsources=("pl_bash_functions::https://github.com/P-Linux/pl_bash_functions.git
 pkgmd5sums=("SKIP")
 
 build() {
-    cd "${SRC}/${CMK_NAME}"
+    cd "${SRC}/${CM_PORTNAME}"
 
     make all
     make DESTDIR=${PKG} install

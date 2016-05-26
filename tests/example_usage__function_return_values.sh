@@ -72,17 +72,17 @@ _EX_VERSION="0.1.1"
 echo
 echo "CHECKING:: _EX_VERSION: <${_EX_VERSION}> expect all return values to be 0"
 testfunc1
-echo "<$?>"
+echo "<${?}>"
 testfunc2
-echo "<$?>"
+echo "<${?}>"
 
 _EX_VERSION="0.0.1"
 echo
 echo "CHECKING:: _EX_VERSION: <${_EX_VERSION}> expect all return values to be 1"
 testfunc1
-echo "<$?>"
+echo "<${?}>"
 testfunc2
-echo "<$?>"
+echo "<${?}>"
 
 
 #******************************************************************************************************************************

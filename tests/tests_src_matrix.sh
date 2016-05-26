@@ -5,37 +5,37 @@
 #       For more info and example usage: see the 'pl_bash_functions' package *documentation*.
 #
 #******************************************************************************************************************************
-
 _THIS_SCRIPT_PATH=$(readlink -f "${BASH_SOURCE[0]}")
 _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
-_FUNCTIONS_DIR="${_TEST_SCRIPT_DIR}/../scripts"
+_FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="src_matrix.sh"
 
-source "${_FUNCTIONS_DIR}/trap_opt.sh"
-for _signal in TERM HUP QUIT; do trap "t_trap_s \"${_signal}\"" "${_signal}"; done
-trap "t_trap_i" INT
-# DOES NOT WORK IF 'tests_all.sh' runs because of the readonly variables:  trap "t_trap_u" ERR
+source "${_FUNCTIONS_DIR}/init_conf.sh"
+_BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
-source "${_FUNCTIONS_DIR}/testing.sh"
+for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}"; done
+trap 'i_trap_i ${?}' INT
+# For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
+#trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+
+i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
 
-source "${_FUNCTIONS_DIR}/msg.sh"
-m_format
+i_source_safe_exit "${_FUNCTIONS_DIR}/util.sh"
+i_source_safe_exit "${_FUNCTIONS_DIR}/src_matrix.sh"
 
-source "${_FUNCTIONS_DIR}/util.sh"
-u_source_safe_exit "${_FUNCTIONS_DIR}/src_matrix.sh"
+# MUST SET THESE GLOBAL for the tests_all.sh
+declare -gi _COK=0
+declare -gi _CFAIL=0
 
-declare -i _COK=0
-declare -i _CFAIL=0
-
-EXCHANGE_LOG=$(mktemp)
+_EXCHANGE_LOG=$(mktemp)
 
 
 #******************************************************************************************************************************
 # TEST: s_get_src_matrix() CHECKSUMS array
 #******************************************************************************************************************************
 tss__s_get_src_matrix_checksums() {
-    (source "${EXCHANGE_LOG}"
+    (source "${_EXCHANGE_LOG}"
 
     te_print_function_msg "s_get_src_matrix() CHECKSUMS array"
     local _pkgfile_path="/var/cards_mk/ports/only_download/Pkgfile"
@@ -45,15 +45,23 @@ tss__s_get_src_matrix_checksums() {
 
     _sources=("mylocal.patch")
     _checksums=()
-    _output=$(s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}")
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "INFO: SRC_CHECKSUMS array size: '0' is less than SRC_ENTRIES Array size: '1'"
+    _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "INFO: SRC_CHECKSUMS array size: '0' is less than SRC_ENTRIES Array size: '1'"
+
+    _sources=("mylocal.patch")
+    _checksums=()
+    _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 5 '_srcdst_dir' MUST NOT be empty."
+
+    _sources=("mylocal.patch" "mylocal2.patch")
+    _checksums=("SKIP")
+    _output=$(s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") &> /dev/null
+    te_find_info_msg _COK _CFAIL "${_output}" "INFO: Added temporarily checksum entries SKIP."
 
     _sources=("mylocal.patch")
     _checksums=("SKIP" "SKIP")
-    _output=$(s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}")
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "SRC_CHECKSUMS array size: '2' is greater than SRC_ENTRIES Array size: '1'"
+    _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "SRC_CHECKSUMS array size: '2' is greater than SRC_ENTRIES Array size: '1'"
 
     _sources=("mylocal.patch")
     _checksums=("SKIP")
@@ -63,14 +71,12 @@ tss__s_get_src_matrix_checksums() {
     _sources=("mylocal.patch")
     _checksums=("00_to_short_checksum")
     _output=$(s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}")
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "'00_to_short_checksum' MUST be SKIP or 32 chars. Got:'20'. Pkgfile: </var/cards_mk/ports/only_download/Pkgfile>"
+    te_find_err_msg _COK _CFAIL "${_output}" "'00_to_short_checksum' MUST be 'SKIP' or 32 chars. Got: '20'."
 
     _sources=("mylocal.patch")
     _checksums=("000000000000000000000_to_long_checksum")
     _output=$(s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}")
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "'000000000000000000000_to_long_checksum' MUST be SKIP or 32 chars. Got:'38'. Pkgfile"
+    te_find_err_msg _COK _CFAIL "${_output}" "'000000000000000000000_to_long_checksum' MUST be 'SKIP' or 32 chars. Got: '38'."
 
     _scrmtx=()
     _sources=("mylocal_1.patch" "mylocal_2.patch" "mylocal_3.patch")
@@ -80,10 +86,10 @@ tss__s_get_src_matrix_checksums() {
 
     [[ ${_scrmtx[1:CHKSUM]} == 10000000000000000000000000000000 && ${_scrmtx[2:CHKSUM]} == SKIP && \
         ${_scrmtx[3:CHKSUM]} == "SKIP" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test missing checksums - check SKIP checksum items."
+    te_retcode_0 _COK _CFAIL ${?} "Test missing checksums - check SKIP checksum items."
 
     ###
-    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
 tss__s_get_src_matrix_checksums
@@ -93,7 +99,7 @@ tss__s_get_src_matrix_checksums
 # TEST: s_get_src_matrix() multiple source arrays
 #******************************************************************************************************************************
 tss__s_get_src_matrix_multiple_source_arrays() {
-    (source "${EXCHANGE_LOG}"
+    (source "${_EXCHANGE_LOG}"
 
     te_print_function_msg "s_get_src_matrix()  multiple source arrays"
     local _pkgfile_path_1="/home/only_download_1/Pkgfile"
@@ -123,20 +129,18 @@ tss__s_get_src_matrix_multiple_source_arrays() {
         ${_scrmtx[1:PROTOCOL]} == "http"                              && \
         ${_scrmtx[1:DESTNAME]} == "dummy_1"                           && \
         ${_scrmtx[1:DESTPATH]} == "/home/pkg_sources_1/dummy_1" ]]
-    te_retval_0 _COK _CFAIL ${?} \
-        "Test 1. entry (from 1. Pkgfile) all Fields as expected: <${_sources_1[0]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test 1. entry (from 1. Pkgfile) all Fields as expected: <${_sources_1[0]}>."
 
     [[ ${_scrmtx[2:ENTRY]} == "mylocal_1.patch"                && \
         ${_scrmtx[2:CHKSUM]} == "SKIP"                         && \
         -z ${_scrmtx[2:NOEXTRACT]}                             && \
         -z ${_scrmtx[2:PREFIX]}                                && \
-        ${_scrmtx[2:URI]} == "mylocal_1.patch"       && \
+        ${_scrmtx[2:URI]} == "mylocal_1.patch"                 && \
         -z ${_scrmtx[2:FRAGMENT]}                              && \
         ${_scrmtx[2:PROTOCOL]} == "local"                      && \
-        ${_scrmtx[2:DESTNAME]} == "mylocal_1.patch"  && \
+        ${_scrmtx[2:DESTNAME]} == "mylocal_1.patch"            && \
         ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/mylocal_1.patch" ]]
-    te_retval_0 _COK _CFAIL ${?} \
-        "Test 2. entry (from 1. Pkgfile) all Fields as expected: <${_sources_1[1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test 2. entry (from 1. Pkgfile) all Fields as expected: <${_sources_1[1]}>."
 
     [[ ${_scrmtx[3:ENTRY]} == "http://www.download.test/dummy_2"   && \
         ${_scrmtx[3:CHKSUM]} == "SKIP"                             && \
@@ -147,8 +151,7 @@ tss__s_get_src_matrix_multiple_source_arrays() {
         ${_scrmtx[3:PROTOCOL]} == "http"                           && \
         ${_scrmtx[3:DESTNAME]} == "dummy_2"                        && \
         ${_scrmtx[3:DESTPATH]} == "/home/pkg_sources_2/dummy_2" ]]
-    te_retval_0 _COK _CFAIL ${?} \
-        "Test 3. entry (from 2. Pkgfile) all Fields as expected: <${_sources_2[0]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test 3. entry (from 2. Pkgfile) all Fields as expected: <${_sources_2[0]}>."
 
     [[ ${_scrmtx[4:ENTRY]} == "mylocal_2.patch"                        && \
         ${_scrmtx[4:CHKSUM]} == "20000000000000000000000000000000"     && \
@@ -159,11 +162,10 @@ tss__s_get_src_matrix_multiple_source_arrays() {
         ${_scrmtx[4:PROTOCOL]} == "local"                              && \
         ${_scrmtx[4:DESTNAME]} == "mylocal_2.patch"                    && \
         ${_scrmtx[4:DESTPATH]} == "/home/only_download_2/mylocal_2.patch" ]]
-    te_retval_0 _COK _CFAIL ${?} \
-        "Test 4. entry (from 2. Pkgfile) all Fields as expected: <${_sources_2[1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test 4. entry (from 2. Pkgfile) all Fields as expected: <${_sources_2[1]}>."
 
     ###
-    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
 tss__s_get_src_matrix_multiple_source_arrays
@@ -173,7 +175,7 @@ tss__s_get_src_matrix_multiple_source_arrays
 # TEST: s_get_src_matrix() no srcdst dir input
 #******************************************************************************************************************************
 tss__s_get_src_matrix_no_srcdst_dir_input() {
-    (source "${EXCHANGE_LOG}"
+    (source "${_EXCHANGE_LOG}"
 
     te_print_function_msg "s_get_src_matrix() no srcdst dir input"
     local _pkgfile_path="/home/only_download_1/Pkgfile"
@@ -183,7 +185,7 @@ tss__s_get_src_matrix_no_srcdst_dir_input() {
     _sources=("http://www.download.test/dummy_1" "mylocal_1.patch")
     _checksums=("10000000000000000000000000000000" "SKIP")
 
-    s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir_1}"
+    s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}"
 
     [[ ${_scrmtx[1:ENTRY]} == "http://www.download.test/dummy_1"       && \
         ${_scrmtx[1:CHKSUM]} == "10000000000000000000000000000000"     && \
@@ -194,8 +196,7 @@ tss__s_get_src_matrix_no_srcdst_dir_input() {
         ${_scrmtx[1:PROTOCOL]} == "http"                               && \
         ${_scrmtx[1:DESTNAME]} == "dummy_1"                            && \
         ${_scrmtx[1:DESTPATH]} == "/home/only_download_1/dummy_1" ]]
-    te_retval_0 _COK _CFAIL ${?} \
-        "Test 1. entry no srcdst dir input all Fields as expected: <${_sources[0]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test 1. entry no srcdst dir input all Fields as expected: <${_sources[0]}>."
 
     [[ ${_scrmtx[2:ENTRY]} == "mylocal_1.patch"      && \
         ${_scrmtx[2:CHKSUM]} == "SKIP"                         && \
@@ -206,11 +207,10 @@ tss__s_get_src_matrix_no_srcdst_dir_input() {
         ${_scrmtx[2:PROTOCOL]} == "local"                      && \
         ${_scrmtx[2:DESTNAME]} == "mylocal_1.patch"  && \
         ${_scrmtx[2:DESTPATH]} == "/home/only_download_1/mylocal_1.patch" ]]
-    te_retval_0 _COK _CFAIL ${?} \
-        "Test 2. entry no srcdst dir input all Fields as expected: <${_sources[1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test 2. entry no srcdst dir input all Fields as expected: <${_sources[1]}>."
 
     ###
-    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
 tss__s_get_src_matrix_no_srcdst_dir_input
@@ -220,7 +220,7 @@ tss__s_get_src_matrix_no_srcdst_dir_input
 # TEST: s_get_src_matrix() general errors
 #******************************************************************************************************************************
 tss__s_get_src_matrix_general_errors() {
-    (source "${EXCHANGE_LOG}"
+    (source "${_EXCHANGE_LOG}"
 
     te_print_function_msg "s_get_src_matrix() general errors"
     local _pkgfile_path="/var/cards_mk/ports/only_download/Pkgfile"
@@ -229,25 +229,28 @@ tss__s_get_src_matrix_general_errors() {
     declare -a _scrmtx_wrong_index_array
     local _output _sources _checksums
 
+    _sources=()
+    _checksums=()
+    (s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") &> /dev/null
+    te_retcode_0 _COK _CFAIL ${?} "Test empty _sources array."
+
     _sources=("mylocal.patch")
     _checksums=()
-    _output=$((s_get_src_matrix _scrmtx_wrong_index_array _sources _checksums "${_pkgfile_path}" \
-        "${_srcdest_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "FUNCTION: 's_get_src_matrix()' Not a referenced associative array: '_retmatrix'"\
+    _output=$((s_get_src_matrix _scrmtx_wrong_index_array _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Not a referenced associative array: '_retmatrix'" \
         "Test Not a referenced associative array <_scrmtx_wrong_index_array>"
 
     _sources=("NOEXTRACT::renamed.tar.xz:::http://dummy.tar.xz")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}"\
+    te_find_err_msg _COK _CFAIL "${_output}" \
         "Entry MUST NOT contain any triple colons (:::): <NOEXTRACT::renamed.tar.xz:::http://dummy.tar.xz>"
 
     _sources=("NOEXTRACT::renamed.tar.xz::wrong::http://y.tar.xz")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Entry MUST NOT contain more than 2 prefix_sep (::). Got:'3': <NOEXTRACT::renamed.tar.xz::wrong::http://y.tar.xz"
+        "Entry MUST NOT contain more than 2 prefix_sep (::). Got:'3': <NOEXTRACT::renamed.tar.xz::wrong::http://y.tar.xz>"
 
     _sources=("helper_+scripts::git+https://P-Linux/pl_bash_functions.git")
     _checksums=("10000000000000000000000000000000")
@@ -270,8 +273,7 @@ tss__s_get_src_matrix_general_errors() {
     _sources=("sftp://www.download.test/dummy.tar.xz")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "The protocol: 'sftp' is not supported: <sftp://www.download.test/dummy.tar.xz>" \
+    te_find_err_msg _COK _CFAIL "${_output}" "The protocol: 'sftp' is not supported: <sftp://www.download.test/dummy.tar.xz>" \
         "Test abort: Unsupported protocol."
 
     _sources=("WRONG::renamed.tar.xz::http://dummy.tar.xz")
@@ -283,20 +285,18 @@ tss__s_get_src_matrix_general_errors() {
     _sources=("wrong/mylocal.patch")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "Local source MUST NOT contain any slash: <wrong/mylocal.patch>"
+    te_find_err_msg _COK _CFAIL "${_output}" "Local source MUST NOT contain any slash: <wrong/mylocal.patch>"
 
     _sources=("NOEXTRACT::mylocal.patch")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "Local source MUST NOT have a 'NOEXTRACT': <NOEXTRACT::mylocal.patch>"
+    te_find_err_msg _COK _CFAIL "${_output}" "Local source MUST NOT have a 'NOEXTRACT': <NOEXTRACT::mylocal.patch>"
 
     _sources=("wrong_renamed.patch::mylocal.patch")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        " Local source MUST NOT have a prefix: 'wrong_renamed.patch': <wrong_renamed.patch::mylocal.patch>"
+        "Local source MUST NOT have a prefix: 'wrong_renamed.patch': <wrong_renamed.patch::mylocal.patch>"
 
     _sources=("dummy.patch#wrong_fragment")
     _checksums=("10000000000000000000000000000000")
@@ -307,7 +307,7 @@ tss__s_get_src_matrix_general_errors() {
     _sources=("http://dummy.tar.xz#wrong_fragment")
     _checksums=("10000000000000000000000000000000")
     _output=$((s_get_src_matrix _scrmtx _sources _checksums "${_pkgfile_path}" "${_srcdest_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
+    te_find_err_msg _COK _CFAIL "${_output}" \d
         "ftp|http|https source MUST NOT have a fragment: 'wrong_fragment': <http://dummy.tar.xz#wrong_fragment>"
 
     _sources=("NOEXTRACT::git+https://haxelib.git")
@@ -323,7 +323,7 @@ tss__s_get_src_matrix_general_errors() {
         "'git|svn|hg|bzr source MUST NOT have a checksum: '10000000000000000000000000000000': <git+https://haxelib.git>"
 
     ###
-    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
 tss__s_get_src_matrix_general_errors
@@ -333,7 +333,7 @@ tss__s_get_src_matrix_general_errors
 # TEST: s_get_src_matrix() check expected values
 #******************************************************************************************************************************
 tss__s_get_src_matrix_check_expected_values() {
-    (source "${EXCHANGE_LOG}"
+    (source "${_EXCHANGE_LOG}"
 
     te_print_function_msg "s_get_src_matrix() check expected values"
     local _tmpstr
@@ -397,7 +397,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "http" && \
         ${_scrmtx[${_n}:DESTNAME]} == "acl-2.2.52.src.tar.gz" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/acl-2.2.52.src.tar.gz" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz" && \
@@ -409,7 +409,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "http" && \
         ${_scrmtx[${_n}:DESTNAME]} == "autoconf-2.69.tar.xz" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/autoconf-2.69.tar.xz" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-4.4.0.tar.xz" && \
@@ -421,7 +421,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "https" && \
         ${_scrmtx[${_n}:DESTNAME]} == "iproute2-4.4.0.tar.xz" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/iproute2-4.4.0.tar.xz" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "ftp://ftp.astron.com/pub/file/file-5.25.tar.gz" && \
@@ -433,7 +433,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "ftp" && \
         ${_scrmtx[${_n}:DESTNAME]} == "file-5.25.tar.gz" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/file-5.25.tar.gz" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "NOEXTRACT::renamed_zlib.tar.xz::http://www.zlib.net/zlib-1.2.8.tar.xz" && \
@@ -445,7 +445,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "http" && \
         ${_scrmtx[${_n}:DESTNAME]} == "renamed_zlib.tar.xz" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/renamed_zlib.tar.xz" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "renamed_xz.tar.xz::http://tukaani.org/xz/xz-5.2.2.tar.xz" && \
@@ -457,7 +457,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "http" && \
         ${_scrmtx[${_n}:DESTNAME]} == "renamed_xz.tar.xz" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/renamed_xz.tar.xz" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "mylocal.patch" && \
@@ -469,7 +469,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "local" && \
         ${_scrmtx[${_n}:DESTNAME]} == "mylocal.patch" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/var/cards_mk/ports/only_download/mylocal.patch" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "mylocal2.patch" && \
@@ -481,7 +481,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "local" && \
         ${_scrmtx[${_n}:DESTNAME]} == "mylocal2.patch" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/var/cards_mk/ports/only_download/mylocal2.patch" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "helper_scripts::git+https://github.com/P-Linux/pl_bash_functions.git" && \
@@ -493,7 +493,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "git" && \
         ${_scrmtx[${_n}:DESTNAME]} == "helper_scripts" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/helper_scripts" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "git+https://github.com/shazow/urllib3.git#tag=1.14" && \
@@ -505,7 +505,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "git" && \
         ${_scrmtx[${_n}:DESTNAME]} == "urllib3" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/urllib3" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "git+https://github.com/mate-desktop/mozo.git#branch=gtk3" && \
@@ -517,7 +517,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "git" && \
         ${_scrmtx[${_n}:DESTNAME]} == "mozo" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/mozo" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "git+https://github.com/HaxeFoundation/haxelib.git#commit=2f12e1a" && \
@@ -529,7 +529,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "git" && \
         ${_scrmtx[${_n}:DESTNAME]} == "haxelib" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/haxelib" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "svn://svn.code.sf.net/p/netpbm/code/advanced" && \
@@ -541,7 +541,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "svn" && \
         ${_scrmtx[${_n}:DESTNAME]} == "advanced" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/advanced" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "svn://svn.code.sf.net/p/splix/code/splix#revision=315" && \
@@ -553,7 +553,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "svn" && \
         ${_scrmtx[${_n}:DESTNAME]} == "splix" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/splix" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "vpnc::svn+http://svn.unix-ag.uni-kl.de/vpnc/trunk#revision=550" && \
@@ -565,7 +565,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "svn" && \
         ${_scrmtx[${_n}:DESTNAME]} == "vpnc" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/vpnc" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "svn+https://svn.code.sf.net/p/portmedia/code/portsmf/trunk#revision=228" && \
@@ -577,7 +577,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "svn" && \
         ${_scrmtx[${_n}:DESTNAME]} == "trunk" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/trunk" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "hg+http://linuxtv.org/hg/dvb-apps/#revision=d40083fff895" && \
@@ -589,7 +589,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "hg" && \
         ${_scrmtx[${_n}:DESTNAME]} == "dvb-apps" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/dvb-apps" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "hg+http://bitbucket.org/pypy/pypy#tag=release-4.0.1" && \
@@ -601,7 +601,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "hg" && \
         ${_scrmtx[${_n}:DESTNAME]} == "pypy" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/pypy" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "hg+http://hg.nginx.org/nginx#branch=stable-1.8" && \
@@ -613,7 +613,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "hg" && \
         ${_scrmtx[${_n}:DESTNAME]} == "nginx" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/nginx" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "hg_hello_example::hg+https://bitbucket.org/bos/hg-tutorial-hello" && \
@@ -625,7 +625,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "hg" && \
         ${_scrmtx[${_n}:DESTNAME]} == "hg_hello_example" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/hg_hello_example" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     [[ ${_scrmtx[${_n}:ENTRY]} == "contractor::bzr+lp:~elementary-os/contractor/elementary-contracts" && \
@@ -637,7 +637,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "bzr" && \
         ${_scrmtx[${_n}:DESTNAME]} == "contractor" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/contractor" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     _tmpstr="bzr+http://bzr.linuxfoundation.org/openprinting/foomatic/foomatic-db/#revision=1295"
@@ -650,7 +650,7 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "bzr" && \
         ${_scrmtx[${_n}:DESTNAME]} == "foomatic-db" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/foomatic-db" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     (( _n++ ))
     _tmpstr="bzr+http://bazaar.launchpad.net/~system-settings-touch/gsettings-qt/trunk/#revision=75"
@@ -663,10 +663,10 @@ tss__s_get_src_matrix_check_expected_values() {
         ${_scrmtx[${_n}:PROTOCOL]} == "bzr" && \
         ${_scrmtx[${_n}:DESTNAME]} == "trunk" && \
         ${_scrmtx[${_n}:DESTPATH]} == "/home/dummy_sources/trunk" ]]
-    te_retval_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
+    te_retcode_0 _COK _CFAIL ${?} "Test all fields - expected values: <${_sources[${_n}-1]}>."
 
     ###
-    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${EXCHANGE_LOG}"
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
 tss__s_get_src_matrix_check_expected_values
@@ -675,9 +675,9 @@ tss__s_get_src_matrix_check_expected_values
 
 #******************************************************************************************************************************
 
-source "${EXCHANGE_LOG}"
+source "${_EXCHANGE_LOG}"
 te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
-rm -f "${EXCHANGE_LOG}"
+rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
 # End of file

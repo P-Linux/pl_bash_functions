@@ -12,7 +12,7 @@
 #
 #=============================================================================================================================#
 
-t_general_opt
+i_general_opt
 
 
 
@@ -35,13 +35,14 @@ t_general_opt
 #
 #   USAGE
 #       TARGETS=()
-#       CMK_PORTNAME="hwinfo"
-#       CMK_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       CMK_ARCH="$(uname -m)"
-#       CMK_PKG_EXT="cards.tar"
-#       a_list_pkgarchives TARGETS "${CMK_PORTNAME}" "${CMK_PORT_PATH}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
+#       CM_PORTNAME="hwinfo"
+#       CM_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       CM_ARCH="$(uname -m)"
+#       CM_PKG_EXT="cards.tar"
+#       a_list_pkgarchives TARGETS "${CM_PORTNAME}" "${CM_PORT_PATH}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_list_pkgarchives() {
+    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
     local -n _ret_list=${1}
     local _name=${2}
     local _path=${3}
@@ -75,13 +76,13 @@ a_list_pkgarchives() {
 #   USAGE
 #       PORTNAME="hwinfo"
 #       PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       CMK_ARCH="$(uname -m)"
-#       CMK_PKG_EXT="cards.tar"
-#       a_rm_pkgarchives "${PORTNAME}" "${PORT_PATH}" "${CMK_ARCH}" "${CMK_PKG_EXT}" "${PKGARCHIVE_BACKUP_DIR}"
+#       CM_ARCH="$(uname -m)"
+#       CM_PKG_EXT="cards.tar"
+#       a_rm_pkgarchives "${PORTNAME}" "${PORT_PATH}" "${CM_ARCH}" "${CM_PKG_EXT}" "${PKGARCHIVE_BACKUP_DIR}"
 #******************************************************************************************************************************
 a_rm_pkgarchives() {
     local _fn="a_rm_pkgarchives"
-    (( ${#} != 5 )) &&  m_exit "${_fn}" "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
+    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
     local _name=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -89,23 +90,49 @@ a_rm_pkgarchives() {
     local _backup_dir=${5}
     local _f
 
-    [[ -n ${_backup_dir} ]] || m_exit "${_fn}" "$(_g "FUNCTION Argument 5 (_backup_dir) MUST NOT be empty.")"
+    [[ -n ${_backup_dir} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 5 (_backup_dir) MUST NOT be empty.")"
 
     if [[ ${_backup_dir} == "NONE" ]]; then
-        m_more "$(_g "Removing any existing pkgarchive files for Port <%s>")" "${_path}"
-
+        i_more_i "$(_g "Removing any existing pkgarchive files for Port <%s>")" "${_path}"
         for _f in "${_path}/${_name}"*"${_sysarch}.${_ref_ext}"* "${_path}/${_name}"*"any.${_ref_ext}"*; do
             [[ ${_f} == *"*" ]] || rm -f "${_f}"
         done
     else
-        m_more "$(_g "Moving any existing pkgarchive files for Port <%s>")" "${_path}"
-        m_more_i "$(_g "Moving to pkgarchive_backup_dir: <%s>")" "${_backup_dir}"
-
+        i_more_i "$(_g "Moving any existing pkgarchive files for Port <%s>")" "${_path}"
+        i_more_i "$(_g "    Moving to pkgarchive_backup_dir: <%s>")" "${_backup_dir}"
         u_dir_is_rwx_exit "${_backup_dir}" "yes" "_in_backup_dir"
-
         for _f in "${_path}/${_name}"*"${_sysarch}.${_ref_ext}"* "${_path}/${_name}"*"any.${_ref_ext}"*; do
             [[ ${_f} == *"*" ]] || mv -f "${_f}" "${_backup_dir}"
         done
+    fi
+}
+
+
+#******************************************************************************************************************************
+# Returns the pkgarchive extension part.
+#
+#   ARGUMENTS
+#       `_ret_ext_e`: a reference var: an empty string which will be updated with the result.
+#       `_path`: the full path of a pkgarchive or just the pkgarchive file name
+#       `_ref_ext`: the Reference pkgarchive extension withouth compression
+#
+#   USAGE
+#       local EXTENTION=""
+#       a_get_archive_ext EXTENTION "${PKGARCHIVE}" "${CM_PKG_EXT}"
+#******************************************************************************************************************************
+a_get_archive_ext() {
+    (( ${#} != 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'")" "${#}"
+    local -n _ret_ext_e=${1}
+    local _path=${2}
+    local _ref_ext=${3}
+
+    if [[ ${_path} == *"${_ref_ext}.xz" ]]; then
+        _ret_ext_e=".${_ref_ext}.xz"
+    elif [[ ${_path} == *"${_ref_ext}" ]]; then
+        _ret_ext_e=".${_ref_ext}"
+    else
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz': <%s>")" "${_ref_ext}" \
+            "${_ref_ext}" "${_path}"
     fi
 }
 
@@ -121,9 +148,10 @@ a_rm_pkgarchives() {
 #
 #   USAGE
 #       local NAME=""
-#       a_get_archive_name NAME "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
+#       a_get_archive_name NAME "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_name() {
+    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
     local -n _ret_name_n=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -138,14 +166,13 @@ a_get_archive_name() {
         _ret_arch="${_sysarch}"
         _ending="${_sysarch}${_ext}"
     else
-        m_exit "a_get_archive_name" "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" \
-            "${_path}"
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
     fi
 
     _ret_name_n=${_name:: -((${#_ending}+10))} # add 10 for UTC Build timestamp
-    [[ -n ${_ret_name_n} ]] ||  m_exit "a_get_archive_name" "$(_g "A pkgarchive 'name' part MUST NOT be empty: <%s>")" \
-        "${_path}"
+    [[ -n ${_ret_name_n} ]] ||  i_exit 1 ${LINENO} "$(_g "A pkgarchive 'name' part MUST NOT be empty: <%s>")" "${_path}"
 }
+
 
 #******************************************************************************************************************************
 # Returns the pkgarchive buildversion part.
@@ -158,9 +185,10 @@ a_get_archive_name() {
 #
 #   USAGE
 #       local BUILDVERS=""
-#       a_get_archive_buildvers BUILDVERS "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
+#       a_get_archive_buildvers BUILDVERS "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_buildvers() {
+    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
     local -n _ret_buildvers_b=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -174,18 +202,17 @@ a_get_archive_buildvers() {
         _ret_arch="${_sysarch}"
         _ending="${_sysarch}${_ext}"
     else
-        m_exit "a_get_archive_buildvers" \
-            "$(_g "A pkgarchive 'architecture' part must be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'architecture' part must be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
     fi
 
     _ret_buildvers_b=${_path:: -${#_ending}}
     _ret_buildvers_b=${_ret_buildvers_b: -10}
     if [[ ${_ret_buildvers_b} != +([[:digit:]]) ]]; then
-        m_exit "a_get_archive_buildvers" \
-            "$(_g "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s': <%s>")" \
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s': <%s>")" \
             "${_ret_buildvers_b//[[:digit:]]}" "${_path}"
     fi
 }
+
 
 #******************************************************************************************************************************
 # Returns the pkgarchive architecture part.
@@ -198,9 +225,10 @@ a_get_archive_buildvers() {
 #
 #   USAGE
 #       local ARCH=""
-#       a_get_archive_arch ARCH "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
+#       a_get_archive_arch ARCH "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_arch() {
+    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
     local -n _ret_arch_a=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -212,36 +240,7 @@ a_get_archive_arch() {
     elif [[ ${_path} == *"${_sysarch}${_ext}" ]]; then
         _ret_arch_a="${_sysarch}"
     else
-        m_exit "a_get_archive_arch" "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" \
-            "${_path}"
-    fi
-}
-
-
-#******************************************************************************************************************************
-# Returns the pkgarchive extension part.
-#
-#   ARGUMENTS
-#       `_ret_ext_e`: a reference var: an empty string which will be updated with the result.
-#       `_path`: the full path of a pkgarchive or just the pkgarchive file name
-#       `_ref_ext`: the Reference pkgarchive extension withouth compression
-#
-#   USAGE
-#       local EXTENTION=""
-#       a_get_archive_ext EXTENTION "${PKGARCHIVE}" "${CMK_PKG_EXT}"
-#******************************************************************************************************************************
-a_get_archive_ext() {
-    local -n _ret_ext_e=${1}
-    local _path=${2}
-    local _ref_ext=${3}
-
-    if [[ ${_path} == *"${_ref_ext}.xz" ]]; then
-        _ret_ext_e=".${_ref_ext}.xz"
-    elif [[ ${_path} == *"${_ref_ext}" ]]; then
-        _ret_ext_e=".${_ref_ext}"
-    else
-        m_exit "a_get_archive_ext" "$(_g "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz': <%s>")" "${_ref_ext}" \
-            "${_ref_ext}" "${_path}"
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
     fi
 }
 
@@ -262,9 +261,10 @@ a_get_archive_ext() {
 #
 #   USAGE
 #       local NAME BUILDVERS ARCH EXT
-#       a_get_archive_parts NAME BUILDVERS ARCH EXT "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
+#       a_get_archive_parts NAME BUILDVERS ARCH EXT "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_parts() {
+    (( ${#} != 7 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '7' arguments. Got '%s'")" "${#}"
     local -n _ret_name_parts=${1}
     local -n _ret_buildvers_parts=${2}
     local -n _ret_arch_parts=${3}
@@ -282,7 +282,7 @@ a_get_archive_parts() {
     elif [[ ${_name} == *"${_ref_ext}" ]]; then
         _ret_ext_parts=".${_ref_ext}"
     else
-        m_exit "a_get_archive_parts" \
+        i_exit 1 ${LINENO} \
             "$(_g "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz': <%s>")" "${_ref_ext}" "${_ref_ext}" "${_path}"
     fi
 
@@ -292,8 +292,7 @@ a_get_archive_parts() {
     elif [[ ${_name} == *"${_sysarch}${_ret_ext_parts}" ]]; then
         _ret_arch_parts="${_sysarch}"
     else
-        m_exit "a_get_archive_parts" "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" \
-            "${_path}"
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
     fi
 
     ###
@@ -304,15 +303,13 @@ a_get_archive_parts() {
     _ret_buildvers_parts=${_name:: -${_ending_size}}
     _ret_buildvers_parts=${_ret_buildvers_parts: -10}
     if [[ ${_ret_buildvers_parts} != +([[:digit:]]) ]]; then
-        m_exit "a_get_archive_parts" \
-            "$(_g "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s': <%s>")" \
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'buildvers' MUST NOT be empty and only contain digits and not: '%s': <%s>")" \
             "${_ret_buildvers_parts//[[:digit:]]}" "${_path}"
     fi
 
     # NAME
     _ret_name_parts=${_name:: -((${_ending_size}+10))} # add 10 for UTC Build timestamp
-    [[ -n ${_ret_name_parts} ]] || m_exit "a_get_archive_parts" "$(_g "A pkgarchive 'name' part MUST NOT be empty: <%s>")" \
-                                    "${_path}"
+    [[ -n ${_ret_name_parts} ]] || i_exit 1 ${LINENO} "$(_g "A pkgarchive 'name' part MUST NOT be empty: <%s>")" "${_path}"
 }
 
 
@@ -330,9 +327,10 @@ a_get_archive_parts() {
 #
 #   USAGE
 #       local NAME ARCH
-#       a_get_archive_name_arch NAME ARCH "${PKGARCHIVE}" "${CMK_ARCH}" "${CMK_PKG_EXT}"
+#       a_get_archive_name_arch NAME ARCH "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_name_arch() {
+    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
     local -n _ret_name_na=${1}
     local -n _ret_arch_na=${2}
     local _path=${3}
@@ -347,8 +345,8 @@ a_get_archive_name_arch() {
     elif [[ ${_name} == *"${_ref_ext}" ]]; then
         _ret_ext_parts=".${_ref_ext}"
     else
-        m_exit "a_get_archive_name_arch" \
-            "$(_g "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz': <%s>")" "${_ref_ext}" "${_ref_ext}" "${_path}"
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'extension' part MUST end with: '%s' or '%s.xz': <%s>")" "${_ref_ext}" \
+            "${_ref_ext}" "${_path}"
     fi
 
     # ARCH
@@ -357,8 +355,7 @@ a_get_archive_name_arch() {
     elif [[ ${_name} == *"${_sysarch}${_ret_ext_parts}" ]]; then
         _ret_arch_na="${_sysarch}"
     else
-        m_exit "a_get_archive_name_arch" \
-            "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
+        i_exit 1 ${LINENO} "$(_g "A pkgarchive 'architecture' part MUST be: '%s' or 'any': <%s>")" "${_sysarch}" "${_path}"
     fi
 
     ###
@@ -366,8 +363,7 @@ a_get_archive_name_arch() {
 
     # NAME
     _ret_name_na=${_name:: -((${#_ending}+10))} # add 10 for UTC Build timestamp
-    [[ -n ${_ret_name_na} ]] || m_exit "a_get_archive_name_arch" "$(_g "A pkgarchive 'name' part MUST NOT be empty: <%s>")" \
-                                    "${_path}"
+    [[ -n ${_ret_name_na} ]] || i_exit 1 ${LINENO} "$(_g "A pkgarchive 'name' part MUST NOT be empty: <%s>")" "${_path}"
 }
 
 
@@ -384,6 +380,7 @@ a_get_archive_name_arch() {
 #       a_is_archive_uptodate PKGARCHIVE_IS_UP_TO_DATE "${PKGFILE_PATH}" "${PKGARCHIVE_PATH}"
 #******************************************************************************************************************************
 a_is_archive_uptodate() {
+    (( ${#} != 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'")" "${#}"
     local -n _retres=${1}
     local _pkgfile=${2}
     local _archive=${3}
@@ -391,8 +388,7 @@ a_is_archive_uptodate() {
     _retres="no"
     if [[ -f ${_archive} ]]; then
         _retres="yes"
-        [[ -f ${_pkgfile} ]] || m_exit "a_is_archive_uptodate" "$(_g "Corresponding Pkgfile does not exist. Path: <%s>")" \
-                                    "${_pkgfile}"
+        [[ -f ${_pkgfile} ]] || i_exit 1 ${LINENO} "$(_g "Corresponding Pkgfile does not exist. Path: <%s>")" "${_pkgfile}"
         [[ ${_pkgfile} -nt ${_archive} ]] && _retres="no"
     fi
 }
