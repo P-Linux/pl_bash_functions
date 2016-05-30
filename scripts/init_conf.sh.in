@@ -8,6 +8,12 @@
 
 #=============================================================================================================================#
 #
+#                   SETUP ENVIROMENT: source pl_bash_functions, set variables etc..
+#
+#=============================================================================================================================#
+
+#=============================================================================================================================#
+#
 #                   GENERAL FUNCTIONS
 #
 #=============================================================================================================================#
@@ -49,7 +55,7 @@ i_general_opt() {
     set -o nounset              # -o: using this stricter setting for code robustness
     set +o onecmd
     set +o physical
-    set -o pipefail             # -o: using this stricter setting for code robustness
+    set +o pipefail             # +o: e.g. current version of: u_count_substr needs it
     set +o posix                # +o: need this: otherwise tests_all.sh aborts on: readonly variable
     set -o privileged
     set +o verbose
@@ -116,7 +122,7 @@ i_general_opt() {
 
 
 #******************************************************************************************************************************
-# Retrieve the Process-Group-ID from any Process-ID
+# Returns the Process-Group-ID from any Process-ID
 #
 #   ARGUMENTS
 #       `_retpgid`: a reference var: should be declare as integer
@@ -125,12 +131,12 @@ i_general_opt() {
 #   USAGE: declare  -i _PGID; i_get_pgid _PGID ${_PID}
 #******************************************************************************************************************************
 i_get_pgid() {
-    local -n _retpgid=${1}
+    local -n _ret=${1}
     local _pid=${2}
     # Note: ps inserts leading spaces when PID is less than five digits and right aligned
     #       assigning it directoy to a integer saves stripping this in case the _retpgid was not an integer
     declare -i _tmp=$(ps -o pgid --no-headers ${_pid})
-    _retpgid=${_tmp}
+    _ret=${_tmp}
 }
 
 
@@ -138,11 +144,11 @@ i_get_pgid() {
 # Sources a file inclusive any arguments: aborts on error: This is added here so it can be used for all other sourcing.
 #******************************************************************************************************************************
 i_source_safe_exit() {
-    (( ${#} < 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '1' argument (_file). Got '%s'")" "${#}"
-    local _file=${1}
+    i_min_args_exit ${LINENO} 1 ${#}
+    # skip assignment:  local _file=${1}
 
     shopt -u extglob
-    source "${@}" || i_exit ${?} ${LINENO} "$(_g "Could not source file: <%s>")" "${_file}"
+    source "${@}" || i_exit ${?} ${LINENO} "$(_g "Could not source file: <%s>")" "${1}"
     shopt -s extglob     # reset SHELLOPTS
 }
 
@@ -150,11 +156,11 @@ i_source_safe_exit() {
 #******************************************************************************************************************************
 # Returns the installation directory of the used: pl_bash_functions
 #
-#   USAGE: local _ret_r; i_pl_bash_functions_dir _ret_r
+#   USAGE: local _bf_dir; i_pl_bash_functions_dir _bf_dir
 #******************************************************************************************************************************
 i_pl_bash_functions_dir() {
-    local -n _ret_r=${1}
-    _ret_r=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+    local -n _ret=${1}
+    _ret=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 }
 
 
@@ -168,13 +174,13 @@ i_has_tested_version() {
     local _m1=$(_g "WARNING:")
     local _m2=$(_g "This script was %sTESTET%s with <pl_bash_functions>: '%s'")
     local _m3=$(_g "You've got <pl_bash_functions>: '%s'")
-    local _plfunc_dir
+    local _bf_dir
 
     if [[ ${_BF_VERSION} != ${__tested_vers} ]]; then
         printf "${_BF_YELLOW}====> ${_m1}${_BF_OFF} ${_m2}${_BF_OFF}\n" "${_BF_BOLD}" "${_BF_OFF}" "${__tested_vers}" >&2
         printf "               ${_m3}\n" "${_BF_VERSION}" >&2
-        i_pl_bash_functions_dir _plfunc_dir
-        printf "                 ${_m4}\n\n" "${_plfunc_dir}" >&2
+        i_pl_bash_functions_dir _bf_dir
+        printf "                 PATH: <%s>\n\n" "${_bf_dir}" >&2
     fi
 }
 
@@ -224,6 +230,7 @@ i_ask_continue() {
 #     for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}"; done
 #     trap 'i_trap_i ${?}' INT
 #     trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+#     trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 #
 #       IMPORTANT: do use the 'single quotes' to get correct exit-status codes and NOT double quotes
 #
@@ -234,6 +241,7 @@ i_ask_continue() {
 #     for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}" "own_cleanup_function_name"' "${_signal}"; done
 #     trap 'i_trap_i ${?} "own_cleanup_function_name"' INT
 #     trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO} "own_cleanup_function_name"' ERR
+#     trap 'i_trap_exit ${?} "${BASH_COMMAND}" "own_cleanup_function_name"' EXIT
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
@@ -244,7 +252,7 @@ i_ask_continue() {
 #       `_lines`: bash stack line number entries: BASH_LINENO[@]
 #       `_src`: bash stack source entries: BASH_SOURCE[@]
 #       `_func`: bash stack function name entries: FUNCNAME[@]
-#       `_fname`: empty or a name of a function to run before the final exit: usful for cleanup etc..
+#       `_fname`: empty or a name of a function to run before the final exit: useful for cleanup etc..
 #
 #   USAGE: i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] "cleanup_function"
 #******************************************************************************************************************************
@@ -301,7 +309,7 @@ i_common_exit() {
 #       `_signal`: exit signal type
 #
 #   OPTIONAL ARGUMENTS
-#       `_fname`: a name of a function to run before the final exit: usful for cleanup etc..
+#       `_fname`: a name of a function to run before the final exit: useful for cleanup etc..
 #******************************************************************************************************************************
 i_trap_s() {
     # unhook all traps to avoid race conditions
@@ -313,17 +321,17 @@ i_trap_s() {
     local _m1=$(_g "ABORTING....from:")
     local _m2=$(_g "Exit Status:")
     local _m3=$(_g "File:")
-    local _exc_filebasename=${BASH_SOURCE[1]}
+    local _exc_f=${BASH_SOURCE[1]}
 
-    _exc_filebasename=${_exc_filebasename%%+(/)}
-    _exc_filebasename=${_exc_filebasename##*/}
+    _exc_f=${_exc_f%%+(/)}
+    _exc_f=${_exc_f##*/}
 
     printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]} (signal: '%s')> ${_BF_OFF}\n" \
         "${_signal}" >&2
-    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_exc_filebasename}${_BF_OFF}'\n\n" >&2
+    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_exc_f}${_BF_OFF}'\n\n" >&2
 
     i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] "${_fname}"
-    exit ${_exc}  # returnt he original error code
+    exit ${_exc}  # return the original error code
 }
 
 
@@ -332,7 +340,7 @@ i_trap_s() {
 #       `_exc`: the exit signal code used for the error message.
 #
 #   OPTIONAL ARGUMENTS
-#       `_fname`: a name of a function to run before the final exit: usful for cleanup etc..
+#       `_fname`: a name of a function to run before the final exit: useful for cleanup etc..
 #******************************************************************************************************************************
 i_trap_i() {
     # unhook all traps to avoid race conditions
@@ -343,16 +351,16 @@ i_trap_i() {
     local _m1=$(_g "ABORTING....from:")
     local _m2=$(_g "Interrupted by user! Exit Status:")
     local _m3=$(_g "File:")
-    local _exc_filebasename=${BASH_SOURCE[1]}
+    local _exc_f=${BASH_SOURCE[1]}
 
-    _exc_filebasename=${_exc_filebasename%%+(/)}
-    _exc_filebasename=${_exc_filebasename##*/}
+    _exc_f=${_exc_f%%+(/)}
+    _exc_f=${_exc_f##*/}
 
     printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
-    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_exc_filebasename}${_BF_OFF}'\n\n" >&2
+    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_exc_f}${_BF_OFF}'\n\n" >&2
 
     i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] "${_fname}"
-    exit ${_exc}  # returnt he original error code
+    exit ${_exc}  # return the original error code
 }
 
 
@@ -360,37 +368,73 @@ i_trap_i() {
 #   ARGUMENTS
 #       `_exc`: the exit signal code used for the error message.
 #       `_cmd`: command: ${BASH_COMMAND}
-#       `_lineno`: command: ${LINENO}
+#       `_lno`: command: ${LINENO}
 #
 #   OPTIONAL ARGUMENTS
-#       `_fname`: a name of a function to run before the final exit: usful for cleanup etc..
+#       `_fname`: a name of a function to run before the final exit: useful for cleanup etc..
 #******************************************************************************************************************************
 i_trap_err() {
     # unhook all traps to avoid race conditions
     trap '' EXIT TERM HUP QUIT INT ERR
 
     declare -i _exc=${1}
-    declare _cmd=${2}
-    local _lineno=${3}
+    local _cmd=${2}
+    declare -i _lno=${3}
     local _fname=${4:-""}
     local _m1=$(_g "ABORTING....from:")
     local _m2=$(_g "Exit Status:")
     local _m3=$(_g "Line:")
     local _m4=$(_g "File:")
     local _m5=$(_g "Command:")
-    local _exc_filebasename=${BASH_SOURCE[1]}
+    local _exc_f=${BASH_SOURCE[1]}
 
-    _exc_filebasename=${_exc_filebasename%%+(/)}
-    _exc_filebasename=${_exc_filebasename##*/}
+    _exc_f=${_exc_f%%+(/)}
+    _exc_f=${_exc_f##*/}
 
     printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
-    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_lineno}${_BF_OFF}' " >&2
-    printf "${_m4} '${_BF_BOLD}${_exc_filebasename}${_BF_OFF}' ${_m5} '${_BF_BOLD}${_cmd}${_BF_OFF}'\n\n" >&2
+    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_lno}${_BF_OFF}' " >&2
+    printf "${_m4} '${_BF_BOLD}${_exc_f}${_BF_OFF}' ${_m5} '${_BF_BOLD}${_cmd}${_BF_OFF}'\n\n" >&2
 
     i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] "${_fname}"
-    exit ${_exc}  # returnt he original error code
+    exit ${_exc}  # return the original error code
 }
 
+
+#******************************************************************************************************************************
+# Trap: exits if _exc is greater than 0: example catches unbound variables
+#
+#   ARGUMENTS
+#       `_exc`: the exit signal code used for the error message.
+#       `_cmd`: command: ${BASH_COMMAND}
+#
+#   OPTIONAL ARGUMENTS
+#       `_fname`: a name of a function to run before the final exit: useful for cleanup etc..
+#******************************************************************************************************************************
+i_trap_exit() {
+    declare -i _exc=${1}
+    local _cmd=${2}
+    local _fname=${3:-""}
+    local _m1=$(_g "ABORTING....from:")
+    local _m2=$(_g "Exit Status:")
+    local _m3=$(_g "File:")
+    local _m4=$(_g "Command:")
+    local _exc_f=${BASH_SOURCE[1]}
+
+    if (( ${_exc} > 0 )); then
+        # unhook all traps to avoid race conditions
+        trap '' EXIT TERM HUP QUIT INT ERR
+
+        _exc_f=${_exc_f%%+(/)}
+        _exc_f=${_exc_f##*/}
+
+        printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
+        printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} " >&2
+        printf "${_m3} '${_BF_BOLD}${_exc_f}${_BF_OFF}' ${_m4} '${_BF_BOLD}${_cmd}${_BF_OFF}'\n\n" >&2
+
+        i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] "${_fname}"
+        exit ${_exc}  # return the original error code
+    fi
+}
 
 
 #=============================================================================================================================#
@@ -417,12 +461,150 @@ i_trap_err() {
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
-# ABORTING message: always enabled
+# Aborts if `_var` is empty: always enabled
+#
+#   ARGUMENTS
+#       `_lno`: command: ${LINENO}
+#       `$2 (_var)`: variable
+#       `$3 (_arg_number)`: integer number of the argument for error output
+#
+#   USAGE
+#       i_exit_empty_arg ${LINENO} "${2}" 2
+#******************************************************************************************************************************
+i_exit_empty_arg() {
+    i_exact_args_exit ${LINENO} 3 ${#}
+    declare -i _lno=${1}
+    # skip assignment:  local _var=${2}
+    # skip assignment:  declare -i _arg_number=${3}
+    declare -i _exc=1
+
+    if [[ ! -n ${2} ]]; then
+        # unhook all traps to avoid race conditions
+        trap '' EXIT TERM HUP QUIT INT ERR
+
+        i_print_exit_help ${_exc} ${_lno} "$(_g "FUNCTION: '%s()' Argument '%s' MUST NOT be empty.")" "${FUNCNAME[1]}" "${3}"
+        i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] ""
+        exit ${_exc}  # return the original error code
+    fi
+}
+
+
+#******************************************************************************************************************************
+# Helper: Prints some common info (MESSAGE) for exit and related function
 #
 #   ARGUMENTS
 #       `_exc`: the exit signal code used for the error message.
-#       `_lineno`: command: ${LINENO}
+#       `_lno`: command: ${LINENO}
 #       `_msg`: the info/error message
+#
+#   USAGE
+#       i_print_exit_help ${_exc} ${_lno} "$(_g "Did not find any examples in: '%s'")" "${_example_path}"
+#       i_print_exit_help ${_exc} ${_lno} "${@:3}"
+#******************************************************************************************************************************
+i_print_exit_help() {
+    declare -i _exc=${1}
+    declare -i _lno=${2}
+    local _msg=${3}; shift
+    local _m1=$(_g "ABORTING....from:")
+    local _m2=$(_g "Exit Status:")
+    local _m3=$(_g "Line:")
+    local _m4=$(_g "File:")
+    local _m5=$(_g "MESSAGE")
+    local _exc_f=${BASH_SOURCE[2]}     # add one function level: normal BASH_SOURCE[1]
+
+    _exc_f=${_exc_f%%+(/)}
+    _exc_f=${_exc_f##*/}
+
+    # add one function level: normal FUNCNAME[0]
+    printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[1]}> ${_BF_OFF}\n" >&2
+    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_lno}${_BF_OFF}' " >&2
+    printf "${_m4} '${_BF_BOLD}${_exc_f}${_BF_OFF}'\n\n\n" >&2
+
+    printf "${_BF_YELLOW}    -> MESSAGE !!${_BF_OFF}${_BF_BOLD} ${_msg}${_BF_OFF}\n\n\n" "${@:3}" >&2
+}
+
+
+#******************************************************************************************************************************
+# Checks that the number of `_args` is the same as the `_req_arg` if not aborts: always enabled
+#
+#   ARGUMENTS
+#       `_lno`: command: ${LINENO}
+#       `_req_arg`: integer number of required function arguments
+#       `_args`: integer number of function arguments: ${#}
+#
+#   USAGE
+#       i_exact_args_exit ${LINENO} 1 ${#}
+#******************************************************************************************************************************
+i_exact_args_exit() {
+    if (( ${#} != 3 )); then        # KEEP THIS AS IS
+        i_exit 1 ${LINENO} "$(_g "FUNCTION: 'i_exact_args_exit()' Requires EXACT '3' arguments. Got '%s'")" ${#}
+    fi
+    declare -i _lno=${1}
+    declare -i _req_arg=${2}
+    declare -i _narg=${3}
+    declare -i _exc=1
+
+    if (( ${_narg} != ${_req_arg} )); then
+        # unhook all traps to avoid race conditions
+        trap '' EXIT TERM HUP QUIT INT ERR
+
+        if (( ${_req_arg} > 1 )); then
+            i_print_exit_help ${_exc} ${_lno} "$(_g "FUNCTION: '%s()' Requires EXACT '%s' arguments. Got '%s'")" \
+                "${FUNCNAME[1]}" "${_req_arg}" "${_narg}"
+        else
+            i_print_exit_help ${_exc} ${_lno} "$(_g "FUNCTION: '%s()' Requires EXACT '%s' argument. Got '%s'")" \
+                "${FUNCNAME[1]}" "${_req_arg}" "${_narg}"
+        fi
+        i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] ""
+        exit ${_exc}  # return the original error code
+    fi
+}
+
+
+#******************************************************************************************************************************
+# Checks that the number of `_args` is at least the `_req_arg`: if less it aborts: always enabled
+#
+#   ARGUMENTS
+#       `_lno`: command: ${LINENO}
+#       `_req_arg`: integer number of minimum required function arguments
+#       `_args`: integer number of function arguments: ${#}
+#
+#   USAGE
+#       i_min_args_exit ${LINENO} 1 ${#}
+#******************************************************************************************************************************
+i_min_args_exit() {
+    if (( ${#} != 3 )); then        # KEEP THIS AS IS
+        i_exit 1 ${LINENO} "$(_g "FUNCTION: 'i_min_args_exit()' Requires EXACT '3' arguments. Got '%s'")" ${#}
+    fi
+    declare -i _lno=${1}
+    declare -i _req_arg=${2}
+    declare -i _narg=${3}
+    declare -i _exc=1
+
+    if (( ${_narg} < ${_req_arg} )); then
+        # unhook all traps to avoid race conditions
+        trap '' EXIT TERM HUP QUIT INT ERR
+
+        if (( ${_req_arg} > 1 )); then
+            i_print_exit_help ${_exc} ${_lno} "$(_g "FUNCTION: '%s()' Requires AT LEAST '%s' arguments. Got '%s'")" \
+                "${FUNCNAME[1]}" "${_req_arg}" "${_narg}"
+        else
+            i_print_exit_help ${_exc} ${_lno} "$(_g "FUNCTION: '%s()' Requires AT LEAST '%s' argument. Got '%s'")" \
+                "${FUNCNAME[1]}" "${_req_arg}" "${_narg}"
+        fi
+        i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] ""
+        exit ${_exc}  # return the original error code
+    fi
+}
+
+
+#******************************************************************************************************************************
+# ABORTING message: always enabled:
+#
+#   ARGUMENTS
+#       `_exc`: the exit signal code used for the error message.
+#       `$2 (_lno)`: command: ${LINENO}
+#       `$3 (_msg)`: the info/error message
 #
 #   USAGE
 #       local _example="no"
@@ -433,28 +615,15 @@ i_exit() {
     # unhook all traps to avoid race conditions
     trap '' EXIT TERM HUP QUIT INT ERR
 
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' arguments. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 3 ${#}
     declare -i _exc=${1}
-    local _lineno=${2}
-    local _msg=${3}; shift
-    local _m1=$(_g "ABORTING....from:")
-    local _m2=$(_g "Exit Status:")
-    local _m3=$(_g "Line:")
-    local _m4=$(_g "File:")
-    local _m5=$(_g "MESSAGE")
-    local _exc_filebasename=${BASH_SOURCE[1]}
+    # skip assignment:  declare -i _lno=${2}
+    # skip assignment:  local _msg=${3}
 
-    _exc_filebasename=${_exc_filebasename%%+(/)}
-    _exc_filebasename=${_exc_filebasename##*/}
-
-    printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
-    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_lineno}${_BF_OFF}' " >&2
-    printf "${_m4} '${_BF_BOLD}${_exc_filebasename}${_BF_OFF}'\n\n\n" >&2
-
-    printf "${_BF_YELLOW}    -> MESSAGE !!${_BF_OFF}${_BF_BOLD} ${_msg}${_BF_OFF}\n\n\n" "${@:3}" >&2
+    i_print_exit_help ${_exc} ${2} "${@:3}"
 
     i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] ""
-    exit ${_exc}  # returnt he original error code
+    exit ${_exc}  # return the original error code
 }
 
 
@@ -463,10 +632,10 @@ i_exit() {
 #
 #   ARGUMENTS
 #       `_exc`: the exit signal code used for the error message.
-#       `_lineno`: command: ${LINENO}
+#       `$2 (_lno)`: command: ${LINENO}
 #       `_do_remove`: yes or no: if yes any existing path specified in `` will be removed before exiting.
 #       `_path`: empty or absolute path
-#       `_msg`: the info/error message
+#       `$5 (_msg)`: the info/error message
 #
 #   USAGE
 #       local _example_path="/home/examples"
@@ -476,7 +645,7 @@ i_exit_remove_path() {
     # unhook all traps to avoid race conditions
     trap '' EXIT TERM HUP QUIT INT ERR
 
-    (( ${#} < 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '5' arguments. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 5 ${#}
     if [[ ${3} != "yes" && ${3} != "no" ]]; then
         i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '3' (_do_remove) MUST be 'yes' or 'no'. Got '%s'")" "${3}"
     fi
@@ -486,25 +655,12 @@ i_exit_remove_path() {
     fi
 
     declare -i _exc=${1}
-    local _lineno=${2}
+    # skip assignment:  declare -i _lno=${2}
     local _do_remove=${3}
     local _path=${4}
-    local _msg=${5}; shift
-    local _m1=$(_g "ABORTING....from:")
-    local _m2=$(_g "Exit Status:")
-    local _m3=$(_g "Line:")
-    local _m4=$(_g "File:")
-    local _m5=$(_g "MESSAGE")
-    local _exc_filebasename=${BASH_SOURCE[1]}
+    # skip assignment:  local _msg=${5}; shift
 
-    _exc_filebasename=${_exc_filebasename%%+(/)}
-    _exc_filebasename=${_exc_filebasename##*/}
-
-    printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
-    printf "${_BF_RED}    -> ${_m2} '${_exc}'${_BF_OFF} ${_m3} '${_BF_BOLD}${_lineno}${_BF_OFF}' " >&2
-    printf "${_m4} '${_BF_BOLD}${_exc_filebasename}${_BF_OFF}'\n\n\n" >&2
-
-    printf "${_BF_YELLOW}    -> MESSAGE !!${_BF_OFF}${_BF_BOLD} ${_msg}${_BF_OFF}\n\n\n" "${@:5}" >&2
+    i_print_exit_help ${_exc} ${2} "${@:5}"
 
     if [[ ${_do_remove} == "yes" ]]; then
         i_more_i "$(_g "Removing path: <%s>")\n\n" "${_path}" >&2
@@ -512,7 +668,7 @@ i_exit_remove_path() {
     fi
 
     i_common_exit ${_exc} BASH_LINENO[@] BASH_SOURCE[@] FUNCNAME[@] ""
-    exit ${_exc}  # returnt he original error code
+    exit ${_exc}  # return the original error code
 }
 
 
@@ -716,7 +872,7 @@ i_header_i() {
 #   OUTPUT: Green line '#=========================#'
 #******************************************************************************************************************************
 i_hrl() {
-    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 5 ${#}
     local _format=${1}
     local _start_txt=${2}
     local _repeated_text=${3}
@@ -731,12 +887,85 @@ i_hrl() {
 }
 
 
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#   helpful command to get variable names: `declare -p` or `compgen -A variable`
+#******************************************************************************************************************************
+i_export() {
+    local _func_names _var_names
 
-#=============================================================================================================================#
-#
-#                   SETUP ENVIROMENT: source pl_bash_functions, set variables etc..
-#
-#=============================================================================================================================#
+    _func_names=(
+        i_ask_continue
+        i_bold
+        i_bold2
+        i_bold2_i
+        i_bold_i
+        i_color
+        i_common_exit
+        i_err
+        i_err2
+        i_exact_args_exit
+        i_exit
+        i_exit_empty_arg
+        i_exit_remove_path
+        i_export
+        i_general_opt
+        i_get_pgid
+        i_has_tested_version
+        i_header
+        i_header_i
+        i_hrl
+        i_min_args_exit
+        i_more
+        i_more_i
+        i_msg
+        i_msg2
+        i_msg2_i
+        i_msg_b
+        i_msg_i
+        i_pl_bash_functions_dir
+        i_print_exit_help
+        i_set_pl_bash_function_var_readonly
+        i_source_safe_exit
+        i_trap_err
+        i_trap_exit
+        i_trap_i
+        i_trap_s
+        i_warn
+        i_warn2
+    )
+
+    _var_names=(
+        _BF_BLUE
+        _BF_BOLD
+        _BF_GREEN
+        _BF_MAGENTA
+        _BF_OFF
+        _BF_ON_ERROR_KILL_PROCESS
+        _BF_OUT
+        _BF_OUT_I
+        _BF_RED
+        _BF_VERSION
+        _BF_YELLOW
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+        export "${_var_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+        export -n "${_var_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+i_export
+
+
 
 #******************************************************************************************************************************
 # Set General Settings
@@ -749,8 +978,8 @@ i_general_opt
 
 declare _BF_VERSION='@_VERSION@'
 
+# _BF_ON_ERROR_KILL_PROCESS: Set the sleep seconds before killing all related processes or to less than 1 to skip it
 declare -i _BF_ON_ERROR_KILL_PROCESS=-1
-
 
 #******************************************************************************************************************************
 # Sets the message formatting Variables
@@ -764,6 +993,7 @@ declare _BF_GREEN="${_BF_BOLD}$(tput setaf 2)"
 declare _BF_YELLOW="${_BF_BOLD}$(tput setaf 3)"
 declare _BF_BLUE="${_BF_BOLD}$(tput setaf 4)"
 declare _BF_MAGENTA="${_BF_BOLD}$(tput setaf 5)"
+
 
 
 #******************************************************************************************************************************

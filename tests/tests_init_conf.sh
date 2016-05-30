@@ -10,6 +10,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="init_conf.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -17,6 +18,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 # do not use `i_source_safe_exit` in this case because it was not yet testet
 source "${_FUNCTIONS_DIR}/testing.sh"
@@ -32,7 +34,6 @@ _EXCHANGE_LOG=$(mktemp)
 #******************************************************************************************************************************
 # TEST: i_set_pl_bash_function_var_readonly                             SKIP THIS TEST
 #******************************************************************************************************************************
-
 
 #******************************************************************************************************************************
 # TEST: i_general_opt() Limited test to just cross check some setting
@@ -50,7 +51,7 @@ tsi__i_general_opt() {
     te_find_info_msg _COK _CFAIL "${_output}" "set +o monitor" "Test option: set +o monitor"
     te_find_info_msg _COK _CFAIL "${_output}" "set +o noclobber" "Test option: set +o noclobber"
     te_find_info_msg _COK _CFAIL "${_output}" "set -o nounset" "Test option: set -o nounset"
-    te_find_info_msg _COK _CFAIL "${_output}" "set -o pipefail" "Test option: set -o pipefail"
+    te_find_info_msg _COK _CFAIL "${_output}" "set +o pipefail" "Test option: set -o pipefail"
     te_find_info_msg _COK _CFAIL "${_output}" "set +o posix" "Test option: set +o posix"
 
     _output=$(shopt -p)
@@ -99,7 +100,7 @@ tsi__i_source_safe_exit() {
     local _output
 
     _output=$((i_source_safe_exit) 2>&1)  # avoid trap call
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '1' argument (_file). Got '0'" \
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'i_source_safe_exit()' Requires AT LEAST '1' argument. Got '0'" \
         "Test No argument (file) supplied."
 
     _output=$((i_source_safe_exit "${_TEST_SCRIPT_DIR}/files/none_existing_file") 2>&1)
@@ -270,6 +271,119 @@ tsi__i_trap_err
 
 
 #******************************************************************************************************************************
+# TEST: i_trap_exit
+#******************************************************************************************************************************
+tsi__i_trap_exit() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "i_trap_exit()"
+    local _output
+
+
+    _output=$((i_trap_exit 27 "test command") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "File: '${_BF_BOLD}tests_init_conf.sh${_BF_OFF}'"
+    te_find_err_msg _COK _CFAIL "${_output}" "Command: '${_BF_BOLD}test command${_BF_OFF}'"
+echo ":::$_output:::"
+    (i_trap_exit 127 "test command") &> /dev/null
+    te_retcode_same _COK _CFAIL ${?} 127 "Test return code is passed through."
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__i_trap_exit
+
+
+#******************************************************************************************************************************
+# TEST: i_exit_empty_arg
+#******************************************************************************************************************************
+tsi__i_exit_empty_arg() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "i_exit_empty_arg()"
+    local _output
+
+    _output=$((i_exit_empty_arg 1) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'i_exit_empty_arg()' Requires EXACT '3' arguments. Got '1'"
+
+    (i_exit_empty_arg 180 "OK" 2) &> /dev/null
+    te_retcode_0 _COK _CFAIL ${?} "Test none empty arg"
+
+    _output=$((i_exit_empty_arg 180 "" 2) 2>&1)
+    te_retcode_1 _COK _CFAIL ${?} "Test empty arg"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'tsi__i_exit_empty_arg()' Argument '2' MUST NOT be empty."
+
+    ##
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__i_exit_empty_arg
+
+
+#******************************************************************************************************************************
+# TEST: i_print_exit_help                                               SKIP THIS TEST
+#******************************************************************************************************************************
+
+#******************************************************************************************************************************
+# TEST: i_exact_args_exit
+#******************************************************************************************************************************
+tsi__i_exact_args_exit() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "i_exact_args_exit()"
+    local _output
+
+    _output=$((i_exact_args_exit 1) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'i_exact_args_exit()' Requires EXACT '3' arguments. Got '1'"
+
+    (i_exact_args_exit 180 5 5) &> /dev/null
+    te_retcode_0 _COK _CFAIL ${?} "Test require 5 got 5 args."
+
+    _output=$((i_exact_args_exit 180 4 2) 2>&1)
+    te_retcode_1 _COK _CFAIL ${?} "Test require 4 got 2 args."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'tsi__i_exact_args_exit()' Requires EXACT '4' arguments. Got '2'"
+
+    _output=$((i_exact_args_exit 180 4 7) 2>&1)
+    te_retcode_1 _COK _CFAIL ${?} "Test require 4 got 2 args."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'tsi__i_exact_args_exit()' Requires EXACT '4' arguments. Got '7'"
+
+    ##
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__i_exact_args_exit
+
+
+#******************************************************************************************************************************
+# TEST: i_min_args_exit
+#******************************************************************************************************************************
+tsi__i_min_args_exit() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "i_min_args_exit()"
+    local _output
+
+    _output=$((i_min_args_exit 1) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'i_min_args_exit()' Requires EXACT '3' arguments. Got '1'"
+
+    (i_min_args_exit 180 4 5) &> /dev/null
+    te_retcode_0 _COK _CFAIL ${?} "Test require 4 got 5 args."
+
+    (i_min_args_exit 180 5 5) &> /dev/null
+    te_retcode_0 _COK _CFAIL ${?} "Test require 5 got 5 args."
+
+    _output=$((i_min_args_exit 180 4 2) 2>&1)
+    te_retcode_1 _COK _CFAIL ${?} "Test require 4 got 2 args."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'tsi__i_min_args_exit()' Requires AT LEAST '4' arguments. Got '2'"
+
+    ##
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__i_min_args_exit
+
+
+#******************************************************************************************************************************
 # TEST: i_exit()
 #******************************************************************************************************************************
 tsi__i_exit() {
@@ -281,7 +395,7 @@ tsi__i_exit() {
     local _output
 
     _output=$((i_exit 1 180) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '3' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'i_exit()' Requires AT LEAST '3' arguments. Got '2'"
 
     _output=$((i_exit 1 180 "Did Not find file: <${_filename}> _info: '${_info}'") 2>&1)
     te_find_info_msg _COK _CFAIL "${_output}" "_info: 'Find passed info message: Just some extra info.'"
@@ -308,7 +422,7 @@ tsi__i_exit_remove_path() {
     local _output
 
     _output=$((i_exit_remove_path 180) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '5' arguments. Got '1'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'i_exit_remove_path()' Requires AT LEAST '5' arguments. Got '1'"
 
     _output=$((i_exit_remove_path 5 180 "wrong" "${_builds_dir}" "No examples") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument '3' (_do_remove) MUST be 'yes' or 'no'. Got 'wrong'"
@@ -481,9 +595,64 @@ tsi__i_hrl
 
 
 #******************************************************************************************************************************
+# TEST: i_export()
+#******************************************************************************************************************************
+tsi__i_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "i_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((i_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((i_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        i_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -p) == *"declare -x _BF_VERSION"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported variable: 'declare -x _BF_VERSION'."
+
+        [[ $(declare -F) == *"declare -fx i_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx i_export'."
+
+        _BF_EXPORT_ALL="no"
+        i_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+        [[ $(declare -p) == *"declare -- _BF_VERSION"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported variable: 'declare -- _BF_VERSION'."
+
+        [[ $(declare -F) == *"declare -f i_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f i_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__i_export
+
+
+
+#******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 76
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

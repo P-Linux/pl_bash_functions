@@ -23,10 +23,10 @@ i_general_opt
 #=============================================================================================================================#
 
 #******************************************************************************************************************************
-# Generate a corresponding `pot` file from '_in_srcfile', it will be written to the `_outdir`
+# Generate a corresponding `pot` file from '_srcfile', it will be written to the `_outdir`
 #
 #   ARGUMENTS:
-#       `_in_srcfile`: path to a bash source file
+#       `_srcfile`: path to a bash source file
 #       `_outdir`: path to the output directory for `po` files
 #       `_pkgname`: Package name
 #       `_copyright`: Copyright holder
@@ -37,16 +37,16 @@ i_general_opt
 #       `_bugs_url`: Optional: url e.g. "https://github.com/P-Linux/pl_bash_functions/issues"
 #******************************************************************************************************************************
 l_generate_pot_file() {
-    (( ${#} < 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '5' argument. Got '%s'")" "${#}"
-    local _in_srcfile=$(readlink -f "${1}")
+    i_min_args_exit ${LINENO} 5 ${#}
+    local _srcfile=$(readlink -f "${1}")
     local _outdir=$(readlink -f "${2}")
     local _pkgname=${3}
     local _copyright=${4}
     local _copyright_start=${5}
     local _url=${6:-""}
     local _bugs_url=${7:-""}
-    local _src_name; u_basename _src_name "${_in_srcfile}"
-    local _src_dir; u_dirname _src_dir "${_in_srcfile}"
+    local _src_name; u_basename _src_name "${_srcfile}"
+    local _src_dir; u_dirname _src_dir "${_srcfile}"
     local _pot_file="${_outdir}/${_src_name}.pot"
     local _current_year="$(date +%Y)"
     if [[ -n ${_url} ]]; then
@@ -57,7 +57,7 @@ l_generate_pot_file() {
     declare -i _ret
 
     m_msg "$(_g "Generating original 'pot' file. Output-Dir: <%s>")" "${_outdir}"
-    i_more_i "$(_g "Processing source-file: <%s>")" "${_in_srcfile}"
+    i_more_i "$(_g "Processing source-file: <%s>")" "${_srcfile}"
 
     mkdir -p "${_outdir}"
     # remove any existing pot file
@@ -72,7 +72,9 @@ l_generate_pot_file() {
             --from-code=UTF-8 --force-po --no-wrap "${_src_name}"
     fi
     _ret=${?}
-    (( ${_ret} )) &&  i_exit 1 ${LINENO} "$(_g "Could not generate .pot' file. xgettext Error: '%s'")" "${_ret}"
+    if (( ${_ret} )); then
+        i_exit 1 ${LINENO} "$(_g "Could not generate .pot' file. xgettext Error: '%s'")" "${_ret}"
+    fi
 
     # update the pot header
     sed -i.bak "
@@ -92,7 +94,7 @@ l_generate_pot_file() {
 # Generate all .pot files and corresponding 'po' files for all defind locale.
 #
 #   ARGUMENTS:
-#       `_in_srcfiles`: a reference var: an indexed array of source files
+#       `_srcfiles`: a reference var: an indexed array of source files
 #       `_in_utf8_languages`: a reference var: an indexed array of UTF-8 locale
 #       `_outdir`: path to the output directory for `po` files
 #       `_pkgname`: Package name
@@ -104,8 +106,7 @@ l_generate_pot_file() {
 #       `_bugs_url`: Optional: url e.g. "https://github.com/P-Linux/pl_bash_functions/issues"
 #******************************************************************************************************************************
 l_generate_po_files() {
-    local _fn="l_generate_pot_file"
-    (( ${#} < 6 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '6' argument. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 6 ${#}
     local -n _in_srcfiles=${1}
     local -n _in_utf8_languages=${2}
     local _outdir=$(readlink -f "${3}")
@@ -114,7 +115,7 @@ l_generate_po_files() {
     local _copyright_start=${6}
     local _url=${7:-""}
     local _bugs_url=${8:-""}
-    local  _f _src_name _pot_file _locale _only_locale
+    local _f _src_name _pot_file _locale _only_locale
     declare -i _ret
 
     m_msg "$(_g "Generating 'pot' file and corresponding 'po' files. Output-Dir: <%s>")" "${_outdir}"
@@ -140,13 +141,17 @@ l_generate_po_files() {
             if [[ -f ${_final_po_path} ]]; then
                 msgmerge --update --backup=simple --no-wrap  "${_final_po_path}" "${_pot_file}"
                 _ret=${?}
-                (( ${_ret} )) &&  i_exit 1 ${LINENO} "$(_g "Could not update .po' file. 'msgmerge' Error: '%s'")" "${_ret}"
+                if (( ${_ret} )); then
+                    i_exit 1 ${LINENO} "$(_g "Could not update .po' file. 'msgmerge' Error: '%s'")" "${_ret}"
+                fi
             else
                 rm -f "${_empty_po_path}"
                 msginit  --no-wrap --no-translator --locale="${_locale}" --input="${_pot_file}"  \
                     --output-file="${_empty_po_path}"
                 _ret=${?}
-                (( ${_ret} )) && i_exit 1 ${LINENO} "$(_g "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
+                if (( ${_ret} )); then
+                    i_exit 1 ${LINENO} "$(_g "Could not generate .po' file. 'msginit' Error: '%s'")" "${_ret}"
+                fi
 
                 # update the po header: use the whole defined local: e.g. de_DE
                 u_prefix_longest_all _only_locale "${_locale}" ".UTF-8"
@@ -160,6 +165,33 @@ l_generate_po_files() {
         done
     done
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+l_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        l_export
+        l_generate_po_files
+        l_generate_pot_file
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+l_export
 
 
 #******************************************************************************************************************************

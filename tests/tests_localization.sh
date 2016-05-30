@@ -10,6 +10,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="localization.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -17,6 +18,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
@@ -143,11 +145,59 @@ tsl__l_generate_po_files() {
 tsl__l_generate_po_files
 
 
+#******************************************************************************************************************************
+# TEST: l_export()
+#******************************************************************************************************************************
+tsi__l_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "l_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((l_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((l_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        l_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx l_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx l_export'."
+
+        _BF_EXPORT_ALL="no"
+        l_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f l_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f l_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__l_export
+
+
 
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 21
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

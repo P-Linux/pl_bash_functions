@@ -58,9 +58,9 @@ e_got_extract_prog_exit() {
 #       e_extract_src SCRMTX "BUILD_SRCDIR" "$KEEP_BUILD_SRCDIR"
 #******************************************************************************************************************************
 e_extract_src() {
-    (( ${#} < 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
-    [[ -n $2 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '2' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
+    i_exit_empty_arg ${LINENO} "${2}" 2
     local -n _in_ex_scrmtx=${1}
     local _srcdir=${2}
     local _rm_build_dir=${3:-"yes"}
@@ -95,8 +95,8 @@ e_extract_src() {
 #       `_rm_build_dir`: yes/no    if "yes" the '_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 e_extract_copy() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] ||  i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_c=${2}
     local _srcdir=${3}
@@ -111,8 +111,10 @@ e_extract_copy() {
     i_more "$(_g "To work-path: <%s>")" "${_finalpath}"
 
     cp -f "${_destpath}" "${_finalpath}"
-    (( ${?} )) && i_exit_remove_path ${?} ${LINENO} "${_rm_build_dir}" "${_srcdir}" \
-                    "$(_g "Failure while copying <%s> to <%s>")" "${_destpath}" "${_finalpath}"
+    if (( ${?} )); then
+        i_exit_remove_path ${?} ${LINENO} "${_rm_build_dir}" "${_srcdir}" "$(_g "Failure while copying <%s> to <%s>")" \
+            "${_destpath}" "${_finalpath}"
+        fi
 }
 
 
@@ -128,8 +130,8 @@ e_extract_copy() {
 #       `_rm_build_dir`: yes/no    if "yes" the '_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 e_extract_file() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_f=${2}
     local _srcdir=${3}
@@ -222,8 +224,8 @@ e_extract_file() {
 #       `_rm_build_dir`: yes/no    if "yes" the '_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 e_extract_git() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_g=${2}
     local _srcdir=${3}
@@ -294,8 +296,8 @@ e_extract_git() {
 #       `_rm_build_dir`: yes/no    if "yes" the '_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 e_extract_svn() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_s=${2}
     local _srcdir=${3}
@@ -330,8 +332,8 @@ e_extract_svn() {
 #       `_rm_build_dir`: yes/no    if "yes" the '_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 e_extract_hg() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    [i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_h=${2}
     local _srcdir=${3}
@@ -387,8 +389,8 @@ e_extract_hg() {
 #       `_rm_build_dir`: yes/no    if "yes" the '_srcdir' is removed in case of an error/aborting. Default: "yes"
 #******************************************************************************************************************************
 e_extract_bzr() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' argument. Got '%s'")" "${#}"
-    [[ -n $1 ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_ex_scrmtx_b=${2}
     local _srcdir=${3}
@@ -430,6 +432,39 @@ e_extract_bzr() {
 
     popd &> /dev/null
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+e_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        e_export
+        e_extract_bzr
+        e_extract_copy
+        e_extract_file
+        e_extract_git
+        e_extract_hg
+        e_extract_src
+        e_extract_svn
+        e_got_extract_prog_exit
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+e_export
 
 
 #******************************************************************************************************************************

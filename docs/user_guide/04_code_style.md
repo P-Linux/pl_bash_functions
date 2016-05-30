@@ -237,12 +237,9 @@ In general this syntax is used: TEST if FAILED: `(( ${?} ))`
 ```bash
 [[ "a" == "b" ]]
 _ret=${?}
-(( ${_ret} )) && printf "%s\n" "COMMAND FAILED"
-
-# multiple statements (be careful with the `front/end spaces` and end `;`).
-_ret=${?}
-(( ${_ret} )) && { printf "%s\n" "COMMAND FAILED"; exit 1; }
-```
+if (( ${_ret} )); then
+    printf "%s\n" "COMMAND FAILED"
+fi
 
 ```bash
 _check_failed=${?}
@@ -310,13 +307,17 @@ local _result; function_1 _result "argument1"
     Only for demonstartion: this does not work: traditional usage
 
         _tmp_uri=$(u_prefix_shortest_all "${_entry}" "#")
-        (( ${_num_prefix_sep} > 0 )) && _tmp_uri=$(u_postfix_shortest_empty "${_tmp_uri}" "::")
+        if (( ${_num_prefix_sep} > 0 )); then
+            _tmp_uri=$(u_postfix_shortest_empty "${_tmp_uri}" "::")
+        fi
         _uri=$(u_postfix_longest_all "${_tmp_uri}" "+")
 
     Speed improved usage
 
         u_prefix_shortest_all _tmp_uri "${_entry}" "#"
-        (( ${_num_prefix_sep} > 0 )) && u_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+        if (( ${_num_prefix_sep} > 0 )); then
+            u_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+        fi
         u_postfix_longest_all _uri "${_tmp_uri}" "+"
 
 
@@ -332,3 +333,42 @@ For examples see: `tests/example_usage__function_return_values.sh`
 
 
 ## Diverse
+
+
+### String Empty/Not Empty Tests
+
+In general it is prefered to use: `-n` to test for none empty as well as empty strings.
+
+```bash
+# YES
+if [[ ! -n ${_dl_prog_opts} ]]; then
+    
+
+# NO
+if [[ -z ${_dl_prog_opts} ]]; then
+```
+
+### Commands List AND/OR With ERR Trap
+
+If one uses error traps: `i_trap_err` one must pay special attention if one uses *Commands Lists*.
+
+EXAMPLE: 
+
+```bash
+CM_DOWNLOAD="no"
+
+# This will trigger an ERR trap because the first part returns none 0.
+[[ ${CM_DOWNLOAD} == "yes" ]] && echo "Do something"
+
+# This works as expected: but double negation is not the best
+[[ ${CM_DOWNLOAD} != "yes" ]] || echo "Do something"
+
+# Best to use an if in this case
+if [[ ${CM_DOWNLOAD} == "yes" ]]; then echo "Do something"; fi
+```
+ 
+!!! warning
+
+    Do not use `commands lists with &&` together with `ERR trap`
+
+

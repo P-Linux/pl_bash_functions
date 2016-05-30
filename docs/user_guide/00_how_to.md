@@ -128,7 +128,7 @@ portable scripts, this feature will be removed in a future release of grep, and 
 * `set +o histexpand`   +o: e.g. needed  to allow !! strings in double quotes.
 * `set +o noclobber`    +o: is required by some functions.
 * `set -o nounset`      -o: using this stricter setting for code robustness.
-* `set -o pipefail`     -o: using this stricter setting for code robustness.
+* `set +o pipefail`     +o: e.g. current version of: u_count_substr needs it.
 * `set +o posix`        +o: e.g. needed otherwise tests_all.sh aborts on: readonly variable
 
 
@@ -150,3 +150,25 @@ See the `tests` folder for examples.
 !!! note
 
     Some functions require functions from other files in this package, there is some dependency order
+
+!!! warning
+
+    In case of errors and exit the reported
+    Line-Number or File or Command is not always correct.
+    It seems to have to do with Bash itself (checked version 4.3.42(1)-release)
+    or maybe because we source multiple files.
+
+    Not sure!! But it outputs still helpful info one can search for.
+    
+    
+### Set Variable: _BF_EXPORT_ALL
+
+This variable must be set before source the `init_conf.sh`.
+
+If set to `yes` all sourced 'pl_bash_functions package' functions and global variables are exported.
+
+!!! warning
+
+    Remember that Bash (checked version 4.3.42(1)-release) does not export arrays to subprocesses.
+    
+    e.g: serialise them and source/eval `_serialized_arrays=$(declare -p array1 array2)`

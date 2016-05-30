@@ -78,7 +78,7 @@ pk_unset_official_pkgfile_var() {
 #       echo "<${#COLLECTION_LOOKUP[@]}>"
 #******************************************************************************************************************************
 pk_get_collections_lookup() {
-    (( ${#} != 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 3 ${#}
     local -n _ret_col_ports_lookup=${1}
     local _ref_pkgfile_name=${2}
     local -n _in_reg_collections_l=${3}
@@ -90,7 +90,7 @@ pk_get_collections_lookup() {
             "${_ref_pkgfile_name}"
     fi
 
-    u_ref_associative_array_exit "_ret_col_ports_lookup"
+    u_ref_associative_array_exit "_ret_col_ports_lookup" "$(_g "Pkgfile name: '%s'")" "${_ref_pkgfile_name}"
 
     # always reset the _ret_col_ports_lookup
     _ret_col_ports_lookup=()
@@ -187,7 +187,7 @@ pk_get_collections_lookup() {
 #       pk_get_pkgfiles_to_process PKGFILES_TO_PROCESS "${CM_PKGFILE_NAME}" CM_PORTSLIST CM_REGISTERED_COLLECTIONS
 #******************************************************************************************************************************
 pk_get_pkgfiles_to_process() {
-    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_pkgfiles_to_process=${1}
     local _ref_pkgfile_name=${2}
     local -n _in_portslist=${3}
@@ -239,7 +239,7 @@ pk_get_pkgfiles_to_process() {
 #       pk_check_pkgvers "1.3.5" "${CM_PKGFILE_PATH}"
 #******************************************************************************************************************************
 pk_check_pkgvers() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 2 ${#}
     local _pkgvers=${1}
     # skip assignment: _pkgfile=${2}
 
@@ -250,35 +250,6 @@ pk_check_pkgvers() {
     else
         i_exit 1 ${LINENO} "$(_g "Variable 'pkgvers' MUST NOT be empty: <%s>")" "${2}"
     fi
-}
-
-
-#******************************************************************************************************************************
-# Return Pkgfile / Port Version: Checks only the version syntax
-#
-#   ARGUMENTS
-#       `$1 (_pkgfile)`: absolute path to the pkgfile
-#
-#   USAGE:
-#       pk_get_only_pkgvers_exit "${CM_PKGFILE_PATH}"
-#
-#   NOTE: Keept this as an subshell
-#******************************************************************************************************************************
-pk_get_only_pkgvers_exit() {
-    (
-        (( ${#} != 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '1' argument. Got '%s'")" "${#}"
-        [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-        # skip assignment: _pkgfile=${1}
-
-        # unset all official related variable
-        pk_unset_official_pkgfile_var
-
-        i_source_safe_exit "${1}"
-
-        [[ -v pkgvers ]] || i_exit 1 ${LINENO} "$(_g "Could not find variable 'pkgvers': <%s>")" "${1}"
-        pk_check_pkgvers "${pkgvers}" "${1}"
-        printf "%s\n" "${pkgvers}"
-    )
 }
 
 
@@ -296,7 +267,7 @@ pk_get_only_pkgvers_exit() {
 #       pk_make_pkgmd5sums NEW_PKGMD5SUMS SCRMTX
 #******************************************************************************************************************************
 pk_make_pkgmd5sums() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 2 ${#}
     local -n _ret_pkgmd5sums=${1}
     local -n _in_pkgp_scrmtx=${2}
     declare -i _n
@@ -367,9 +338,9 @@ pk_make_pkgmd5sums() {
 #       pk_check_pkgfile_port_path_name "${CM_PKGFILE_PATH}" "${CM_PKGFILE_NAME}"
 #******************************************************************************************************************************
 pk_check_pkgfile_port_path_name() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' arguments. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
-    [[ -n ${2} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 2 MUST NOT be empty.")"
+    i_exact_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
+    i_exit_empty_arg ${LINENO} "${2}" 2
     local _pkgfile=${1}
     local _ref_pkgfile_name=${2}
     local _portpath; u_dirname _portpath "${_pkgfile}"
@@ -387,9 +358,10 @@ pk_check_pkgfile_port_path_name() {
         i_exit 1 ${LINENO} "$(_g "PORTNAME MUST have at least 2 and maximum 50 chars. Got: '%s' PATH: <%s>")" \
             "${_portname_size}" "${_pkgfile}"
     fi
-    [[ ${_portname} == *[![:alnum:]-_+]* ]] && i_exit 1 ${LINENO} \
-                                                "$(_g "PORTNAME contains invalid chars: '%s' PATH: <%s>")" \
-                                                "${_portname//[[:alnum:]-_+]}" "${_pkgfile}"
+    if [[ ${_portname} == *[![:alnum:]-_+]* ]]; then
+        i_exit 1 ${LINENO}  "$(_g "PORTNAME contains invalid chars: '%s' PATH: <%s>")" "${_portname//[[:alnum:]-_+]}" \
+            "${_pkgfile}"
+    fi
     if [[ ${_portname} == [![:alnum:]]* ]]; then
         i_exit 1 ${LINENO} "$(_g "PORTNAME MUST start with an alphanumeric character. Got: '%s' PATH: <%s>")" \
             "${_portname:0:1}" "${_pkgfile}"
@@ -432,10 +404,10 @@ pk_check_pkgfile_port_path_name() {
 #
 #   ARGUMENTS
 #       `_pkgfile`: absolute path to the pkgfile: for test purpose it is not required that the path exists
-#       `_in_cm_required_function_names`: a reference var: An index array with the required `Pkgfile` function names
-#       `_in__cm_groups_default_function_names`: a reference var: An associative array with the default `CM_GROUP` function
+#       `_in_cm_req_func_names`: a reference var: An index array with the required `Pkgfile` function names
+#       `_in__cm_groups_default_func_names`: a reference var: An associative array with the default `CM_GROUP` function
 #           names as keys.
-#           e.g. declare -A _cm_groups_default_function_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
+#           e.g. declare -A _in__cm_groups_default_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
 #
 #   OPTIONAL ARGS:
 #       `_in_cm_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile:
@@ -445,35 +417,37 @@ pk_check_pkgfile_port_path_name() {
 #       pk_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CM_GROUPS
 #******************************************************************************************************************************
 pk_source_validate_pkgfile() {
-    (( ${#} < 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '3' arguments. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 1 MUST NOT be empty.")"
+    i_min_args_exit ${LINENO} 3 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     local _pkgfile=${1}
-    local -n _in_cm_required_function_names=${2}
-    local -n _in__cm_groups_default_function_names=${3}
-    local _check_cm_groups="no"
-    if (( ${#} > 3 )); then
-        local -n _in_cm_groups=${4}
-        (( ${#_in_cm_groups[@]} > 0 )) && _check_cm_groups="yes"
+    local _got_cm_req_func_names="no"
+    if [[ -v ${2}[@] ]]; then                           # Check var 2 has elements
+        local -n _in_cm_req_func_names=${2}
+        _got_cm_req_func_names="yes"
     fi
-    declare -i _cm_rfn_size=${#_in_cm_required_function_names[@]}
-    declare -i _cm_gdfn_size=${#_in__cm_groups_default_function_names[@]}
+    local -n _in__cm_groups_default_func_names=${3}
+    local _check_cm_groups="no"
+    if (( ${#} > 3 )) && [[ -v ${4}[@] ]]; then         # Check var 4 is set and has elements
+        local -n _in_cm_groups=${4}
+        _check_cm_groups="yes"
+    fi
     declare -i _pkgdesc_size
     local _func
 
     ##### unset all official related variable
     pk_unset_official_pkgfile_var
-    if (( ${_cm_rfn_size} > 0 )); then
-        for _func in "${_in_cm_required_function_names[@]}"; do
+    if [[ ${_got_cm_req_func_names} == "yes" ]]; then
+        for _func in "${_in_cm_req_func_names[@]}"; do
             unset -f ${_func}
         done
     fi
-    if (( ${_cm_gdfn_size} > 0 )); then
-        for _func in "${!_in__cm_groups_default_function_names[@]}"; do # associative array
+    if [[ -v _in__cm_groups_default_func_names[@] ]]; then
+        for _func in "${!_in__cm_groups_default_func_names[@]}"; do # associative array
             unset -f ${_func}
         done
     fi
 
-    ### 
+    ###
     i_source_safe_exit "${_pkgfile}"
 
     ##### Pkgfile-Header
@@ -523,19 +497,51 @@ pk_source_validate_pkgfile() {
     #### Check CM_GROUPS function exist
     if [[ ${_check_cm_groups} == "yes" ]]; then
         for _func in "${_in_cm_groups[@]}"; do
-            if ! u_got_function "${_func}" && [[ ! -v _in__cm_groups_default_function_names[${_func}] ]]; then
+            if ! u_got_function "${_func}" && [[ ! -v _in__cm_groups_default_func_names[${_func}] ]]; then
                 i_exit 1 ${LINENO} "$(_g "CM_GROUPS Function '%s' not specified in File: <%s>")" "${_func}" "${_pkgfile}"
             fi
         done
     fi
     ### Check required Pkgfile functions exist
-    if (( ${_cm_rfn_size} > 0 )); then
-        for _func in "${_in_cm_required_function_names[@]}"; do
+    if [[ ${_got_cm_req_func_names} == "yes" ]]; then
+        for _func in "${_in_cm_req_func_names[@]}"; do
             u_got_function "${_func}" || i_exit 1 ${LINENO} "$(_g "Required Function '%s' not specified in File: <%s>")" \
                                             "${_func}" "${_pkgfile}"
         done
     fi
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+pk_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        pk_check_pkgfile_port_path_name
+        pk_check_pkgvers
+        pk_export
+        pk_get_collections_lookup
+        pk_get_pkgfiles_to_process
+        pk_make_pkgmd5sums
+        pk_source_validate_pkgfile
+        pk_unset_official_pkgfile_var
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+pk_export
 
 
 #******************************************************************************************************************************

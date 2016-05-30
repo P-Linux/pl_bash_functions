@@ -35,7 +35,7 @@ i_general_opt
 #           3. `URI`        (required): MAY ONLY contain 1 (+) to prefixing the URL with a VCS type,
 #                                       MAY ONLY contain 1 (#) to postfix the URL with a VCS fragment.
 #               * Online FILES: A fully-qualified URL (supported are: ftp://, http://, https://)
-#               * Local FILES:  A local file path: file must reside in the same directory as the Pkgfile `_pkgfile_path`
+#               * Local FILES:  A local file path: file must reside in the same directory as the Pkgfile `_pkgfile`
 #                               A local source file path MUST NOT contain any slash `/`.
 #                               e.g. (mylocal.patch)
 #               * VCS SOURCES:  A Version control source: URL to the VCS repository (supported are: git, svn, hg, bzr)
@@ -50,12 +50,12 @@ i_general_opt
 #                   * `hg`:  tag, branch, revision
 #                   * `svn`: revision
 #
-#   ARGUMENTS: for test purpose: `_pkgfile_path` and `_srcdst_dir` do not need to point to existing paths.
+#   ARGUMENTS: for test purpose: `_pkgfile` and `_srcdst_dir` do not need to point to existing paths.
 #
 #       `_retmatrix`: a reference var: an associative array which will be updated with the resulting data fields
 #       `_in_entries`: a reference var: an indexed array of valid source entries
 #       `_in_checksums`: a reference var: an indexed array of corresponding source checksums
-#       `_pkgfile_path`: absolute path to the pkgfile: for test purpose it is not required that the path exists
+#       `_pkgfile`: absolute path to the pkgfile: for test purpose it is not required that the path exists
 #       `_srcdst_dir`:       Optional: absolute path to keep all downloaded sources in a central location.
 #                                If not set: downloaded sources will be stored in the directory of the specified pkgfile
 #
@@ -162,25 +162,24 @@ i_general_opt
 #       s_get_src_matrix _SCRMTX _SOURCES_3 _CHECKSUMS_3 "${_PKGFILE_FULLPATH}_3" "${_SRCDEST_DIR}_3"
 #******************************************************************************************************************************
 s_get_src_matrix() {
-    local _fn="s_get_src_matrix"
-    (( ${#} < 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' argument. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 4 ${#}
     local -n _retmatrix=${1}
     local -n _in_entries=${2}
     local -n _in_checksums=${3}
-    local _pkgfile_path=${4}
+    local _pkgfile=${4}
     # use an associative array which is faster for lookups
     declare -A _supported_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0 ["local"]=0)
     declare -A _supported_vclplus_schemes=(["http"]=0 ["https"]=0 ["lp"]=0)
     if (( ${#} > 4 )); then
-        [[ -n ${5} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 5 '_srcdst_dir' MUST NOT be empty.")"
+        i_exit_empty_arg ${LINENO} "${5}" 5
         local _srcdst_dir=${5}
     else
-        local _srcdst_dir; u_dirname _srcdst_dir "${_pkgfile_path}"
+        local _srcdst_dir; u_dirname _srcdst_dir "${_pkgfile}"
     fi
     declare -i _in_entries_size=${#_in_entries[@]}
     declare -i _in_checksums_size=${#_in_checksums[@]}
     local _ent _chksum _noextract _prefix _uri _fragment _protocol _destname _destpath
-    local  _total_prefix _num_prefix_sep _vclplus_schemes _tmp_uri
+    local _total_prefix _num_prefix_sep _vclplus_schemes _tmp_uri
     declare -i _next_idx _n _diff
 
     u_ref_associative_array_exit "_retmatrix"
@@ -192,7 +191,7 @@ s_get_src_matrix() {
         i_more_i "$(_g "Added temporarily checksum entries SKIP.")"
         _diff=${_in_entries_size}-${_in_checksums_size}
         for (( _n=0; _n < ${_diff}; _n++ )); do
-            
+
             _in_checksums+=("SKIP")
         done
         _in_checksums_size=${#_in_checksums[@]}
@@ -203,11 +202,11 @@ s_get_src_matrix() {
 
     for (( _n=0; _n < ${_in_entries_size}; _n++ )); do
         _chksum=${_in_checksums[${_n}]}
-        if [[ -z ${_chksum} ]]; then
+        if [[ ! -n ${_chksum} ]]; then
             _in_checksums[${_n}]="SKIP"
         elif [[ (( ${#_chksum} != 32 )) && ${_chksum} != "SKIP" ]]; then
             i_more "$(_g "CHECKSUM [%s]: '%s' MUST be 'SKIP' or 32 chars. Got: '%s'. Pkgfile: <%s>")" $((_n + 1)) \
-                "${_chksum}" ${#_chksum} "${_pkgfile_path}"
+                "${_chksum}" ${#_chksum} "${_pkgfile}"
             _in_checksums[${_n}]="SKIP"
             i_more_i "$(_g "Replaced the checksum temporarily with SKIP.")"
         fi
@@ -220,7 +219,7 @@ s_get_src_matrix() {
 
     # need to start from 0: '_n=0'
     for (( _n=0; _n < ${_in_entries_size}; _n++ )); do
-        (( _next_idx++ ))
+        _next_idx+=1
 
         _ent=${_in_entries[${_n}]}
         if (( $(u_count_substr ":::" "${_ent}") != 0 )); then
@@ -233,9 +232,9 @@ s_get_src_matrix() {
                 "${_ent}"
         fi
 
-        (( $(u_count_substr "+" "${_ent}") > 1 )) && i_exit 1 ${LINENO} \
-                                                        "$(_g "Entry MUST NOT contain more than 1 plus (+): <%s>")" "${_ent}"
-
+        if (( $(u_count_substr "+" "${_ent}") > 1 )); then
+            i_exit 1 ${LINENO} "$(_g "Entry MUST NOT contain more than 1 plus (+): <%s>")" "${_ent}"
+        fi
         if (( $(u_count_substr "#" "${_ent}") > 1 )); then
             i_exit 1 ${LINENO} "$(_g "Entry MUST NOT contain more than 1 number sign (#): <%s>")" "${_ent}"
         fi
@@ -244,7 +243,9 @@ s_get_src_matrix() {
 
         ### DO URI
         u_prefix_shortest_all _tmp_uri "${_ent}" "#"
-        (( ${_num_prefix_sep} > 0 )) && u_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+        if (( ${_num_prefix_sep} > 0 )); then
+            u_postfix_shortest_empty _tmp_uri "${_tmp_uri}" "::"
+        fi
         u_postfix_longest_all _uri "${_tmp_uri}" "+"
         if [[ ${_tmp_uri} == *"+"* ]]; then
             u_prefix_shortest_all _vclplus_schemes "${_uri}" ":"
@@ -257,7 +258,9 @@ s_get_src_matrix() {
         ### DO PROTOCOL
         u_prefix_shortest_all _protocol "${_tmp_uri}" "://"
         u_prefix_shortest_all _protocol "${_protocol}" "+"
-        [[ ${_protocol} == ${_tmp_uri} ]] && _protocol="local"
+        if [[ ${_protocol} == ${_tmp_uri} ]]; then
+            _protocol="local"
+        fi
 
         [[ -v _supported_protocols[${_protocol}] ]] || i_exit 1 ${LINENO} "$(_g "The protocol: '%s' is not supported: <%s>")" \
                                                         "${_protocol}" "${_ent}"
@@ -289,20 +292,29 @@ s_get_src_matrix() {
         fi
         case "${_protocol}" in
             local)
-                [[ ${_ent} == *"/"* ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT contain any slash: <%s>")" "${_ent}"
-                [[ -n ${_noextract} ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a 'NOEXTRACT': <%s>")" "${_ent}"
-                [[ -n ${_prefix} ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a prefix: '%s': <%s>")" "${_prefix}" \
-                                        "${_ent}"
-                [[ -n ${_fragment} ]] && i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a fragment: '%s': <%s>")" \
-                                            "${_fragment}" "${_ent}"
+                if [[ ${_ent} == *"/"* ]]; then
+                    i_exit 1 ${LINENO} "$(_g "Local source MUST NOT contain any slash: <%s>")" "${_ent}"
+                fi
+                if [[ -n ${_noextract} ]]; then
+                    i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a 'NOEXTRACT': <%s>")" "${_ent}"
+                fi
+                if [[ -n ${_prefix} ]]; then
+                    i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a prefix: '%s': <%s>")" "${_prefix}" "${_ent}"
+                fi
+                if [[ -n ${_fragment} ]]; then
+                    i_exit 1 ${LINENO} "$(_g "Local source MUST NOT have a fragment: '%s': <%s>")" "${_fragment}" "${_ent}"
+                fi
                 ;;
             ftp|http|https)
-                [[ -n ${_fragment} ]] && i_exit 1 ${LINENO} "$(_g "ftp|http|https source MUST NOT have a fragment: '%s': <%s>")" \
-                                            "${_fragment}" "${_ent}"
+                if [[ -n ${_fragment} ]]; then
+                    i_exit 1 ${LINENO} "$(_g "ftp|http|https source MUST NOT have a fragment: '%s': <%s>")" "${_fragment}" \
+                        "${_ent}"
+                    fi
                 ;;
             git|svn|hg|bzr)
-                [[ -n ${_noextract} ]] && i_exit 1 ${LINENO} "$(_g "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT: <%s>")" \
-                                            "${_ent}"
+                if [[ -n ${_noextract} ]]; then
+                    i_exit 1 ${LINENO} "$(_g "'git|svn|hg|bzr source MUST NOT have a NOEXTRACT: <%s>")" "${_ent}"
+                fi
                 if [[ ${_retmatrix[${_next_idx}:CHKSUM]} != "SKIP" ]]; then
                     i_exit 1 ${LINENO} "$(_g "'git|svn|hg|bzr source MUST NOT have a checksum: '%s': <%s>")" \
                         "${_retmatrix[${_next_idx}:CHKSUM]}" "${_ent}"
@@ -321,8 +333,12 @@ s_get_src_matrix() {
                     u_prefix_longest_all _destname "${_ent}" "#"    # strip any fragment
                     u_strip_end_slahes _destname "${_destname}"
                     u_basename _destname "${_destname}"
-                    [[ ${_protocol} == "bzr" ]] && u_postfix_longest_all _destname "${_destname}" "lp:"
-                    [[ ${_protocol} == "git" ]] && u_prefix_shortest_all _destname "${_destname}" ".git"
+                    if [[ ${_protocol} == "bzr" ]]; then
+                        u_postfix_longest_all _destname "${_destname}" "lp:"
+                    fi
+                    if [[ ${_protocol} == "git" ]]; then
+                        u_prefix_shortest_all _destname "${_destname}" ".git"
+                    fi
                     ;;
             esac
         fi
@@ -335,7 +351,7 @@ s_get_src_matrix() {
                 _destpath="${_destpath}/${_destname}"
                 ;;
             local)
-                u_dirname _destpath "${_pkgfile_path}}"
+                u_dirname _destpath "${_pkgfile}}"
                 _destpath="${_destpath}/${_destname}"
                 ;;
         esac
@@ -345,6 +361,32 @@ s_get_src_matrix() {
     # Save the _next_idx
     _retmatrix[NUM_IDX]=${_next_idx}
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+s_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        s_export
+        s_get_src_matrix
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+s_export
 
 
 #******************************************************************************************************************************

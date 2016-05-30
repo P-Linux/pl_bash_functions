@@ -3,10 +3,21 @@
 
 ---
 
+## v0.9.6 (xxxx-xx-xx)
 
-## v0.9.5 (xxxx-xx-xx)
 
-*
+## v0.9.5 (2016-05-30)
+
+* util.sh improved error feedback for some functions
+* small improvement to tests.sh: checks now if we have got the number of expected tests
+* replaces command lists && with other code to allow ERR traps
+* improvement error feedback for required function arguments
+* improvement error feedback for reuired none empty function arguments
+* Number of Tests: 700
+* adds option to export all functions and global variables: 
+    Note: arrays need some extra work in bash
+* adds function: i_trap_exit
+* removes function: pk_get_only_pkgvers_exit
 
 
 ## v0.9.4 (2016-05-26)

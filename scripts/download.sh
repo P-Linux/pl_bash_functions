@@ -28,7 +28,7 @@ i_general_opt
 #   USAGE: d_exit_diff_origin "${URI}" "${ORIGIN_URI}" "${DESTPATH}" "${ENTRY}"
 #******************************************************************************************************************************
 d_exit_diff_origin() {
-    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local _uri=${1}
     local _origin_uri=${2}
     local _dest=${3}
@@ -92,7 +92,7 @@ d_got_download_prog_exit() {
 #       d_download_src SCRMTX "$VERIFY_CHKSUM" DOWNLOAD_MIRRORS "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
 #******************************************************************************************************************************
 d_download_src() {
-    (( ${#} < 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '1' argument. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 1 ${#}
     local -n _in_do_scrmtx=${1}
     local _verify=${2:-"no"}
     if (( ${#} > 3 )); then
@@ -116,9 +116,13 @@ d_download_src() {
             local)
                 if [[ -f ${_destpath} ]]; then
                     i_more_i "$(_g "Found local source file: <%s>")" "${_destpath}"
-                    [[ ${_verify} != "yes" || ${_in_do_scrmtx[${_n}:CHKSUM]} == "SKIP" ]] && return 0
+                    if [[ ${_verify} != "yes" || ${_in_do_scrmtx[${_n}:CHKSUM]} == "SKIP" ]]; then
+                        return 0
+                    fi
                     u_get_file_md5sum _file_checksum "${_destpath}"
-                    [[ ${_file_checksum} == ${_in_do_scrmtx[${_n}:CHKSUM]} ]] && return 0
+                    if [[ ${_file_checksum} == ${_in_do_scrmtx[${_n}:CHKSUM]} ]]; then
+                        return 0
+                    fi
                     i_exit 1 ${LINENO} "$(_g "Failed verifying checksum: local source file: <%s>")" "${_destpath}"
                 else
                     i_exit 1 ${LINENO} "$(_g "Could not find local source file: <%s>")" "${_destpath}"
@@ -170,10 +174,14 @@ d_download_file() {
     _verify_checksum() {
         local __file_chksum
 
-        [[ ${_verify} != "yes" || ${_chksum} == "SKIP" ]] && return 0
+        if [[ ${_verify} != "yes" || ${_chksum} == "SKIP" ]]; then
+            return 0
+        fi
 
         u_get_file_md5sum __file_chksum "${_destpath}"
-        [[ ${__file_chksum} == ${_chksum} ]] && return 0
+        if [[ ${__file_chksum} == ${_chksum} ]]; then
+            return 0
+        fi
         i_warn2 "$(_g "Failed verifying checksum for existing ftp|http|https source file: <%s>")" "${_destpath}"
         i_more_i "$(_g "ORIG-CHECKSUM: '%s' Downloaded FILE-CHECKSUM: : <%s>")" "${_chksum}" "${__file_chksum}"
 
@@ -182,15 +190,17 @@ d_download_file() {
         return 1
     }
 
-    (( ${#} < 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' argument. Got '%s'")" "${#}"
-    [[ -n ${1} ]] ||  i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_min_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_do_scrmtx_f=${2}
     local _verify=${3:-"no"}
     local _got_dl_mirrors="no"
     if (( ${#} > 3 )); then
         local -n _in_dl_mirrors_f=${4}
-        (( ${#_in_dl_mirrors_f[@]} > 0 )) && _got_dl_mirrors="yes"
+        if (( ${#_in_dl_mirrors_f[@]} > 0 )); then
+            _got_dl_mirrors="yes"
+        fi
     fi
     local _dl_prog=${5:-"wget"}
     local _dl_prog_opts=${6:-""}
@@ -219,7 +229,7 @@ d_download_file() {
     case "${_dl_prog}" in
         curl)
             _resume_opts="-C -"
-            if [[ -z ${_dl_prog_opts} ]]; then
+            if [[ ! -n ${_dl_prog_opts} ]]; then
                 # NOTE: -q   Disable .curlrc (must be first parameter)
                 _download_opts+=" -q"
                 case "${_proto}" in
@@ -232,7 +242,7 @@ d_download_file() {
             ;;
         wget)
             _resume_opts="-c"
-            if [[ -z ${_dl_prog_opts} ]]; then
+            if [[ ! -n ${_dl_prog_opts} ]]; then
                 case "${_proto}" in
                     https) _download_opts+=" --no-check-certificate" ;;
                 esac
@@ -289,8 +299,8 @@ d_download_file() {
 #       d_download_git $NUM_IDX SCRMTX
 #******************************************************************************************************************************
 d_download_git() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' argument. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_exact_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_do_scrmtx_g=${2}
     local _uri=${_in_do_scrmtx_g[${1}:URI]}
@@ -300,7 +310,7 @@ d_download_git() {
     local _ent=${_in_do_scrmtx_g[${1}:ENTRY]}
     local _origin_uri=""
 
-    [[ ${_proto} != "git" ]] && i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
+    [[ ${_proto} == "git" ]] || i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
 
     i_msg "$(_g "Downloading git URI: <%s>\n      to destpath: <%s>\n")" "${_uri}" "${_destpath}"
 
@@ -332,8 +342,8 @@ d_download_git() {
 #       d_download_git $NUM_IDX SCRMTX
 #******************************************************************************************************************************
 d_download_svn() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' argument. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_exact_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_do_scrmtx_s=${2}
     local _uri=${_in_do_scrmtx_s[${1}:URI]}
@@ -344,7 +354,7 @@ d_download_svn() {
     local _origin_uri=""
     local _var
 
-    [[ ${_proto} != "svn" ]] && i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
+    [[ ${_proto} == "svn" ]] || i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
 
     i_msg "$(_g "Downloading svn URI: <%s>\n      to destpath: <%s>\n")" "${_uri}" "${_destpath}"
 
@@ -386,8 +396,8 @@ d_download_svn() {
 #       d_download_hg $NUM_IDX SCRMTX
 #******************************************************************************************************************************
 d_download_hg() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' argument. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_exact_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_do_scrmtx_h=${2}
     local _uri=${_in_do_scrmtx_h[${1}:URI]}
@@ -396,7 +406,7 @@ d_download_hg() {
     local _ent=${_in_do_scrmtx_h[${1}:ENTRY]}
     local _origin_uri=""
 
-    [[ ${_proto} != "hg" ]] && i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
+    [[ ${_proto} == "hg" ]] || i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
 
     i_msg "$(_g "Downloading hg URI: <%s>\n      to destpath: <%s>\n")" "${_uri}" "${_destpath}"
 
@@ -428,8 +438,8 @@ d_download_hg() {
 #       d_download_bzr $NUM_IDX SCRMTX
 #******************************************************************************************************************************
 d_download_bzr() {
-    (( ${#} != 2 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '2' argument. Got '%s'")" "${#}"
-    [[ -n ${1} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument '1' MUST NOT be empty")"
+    i_exact_args_exit ${LINENO} 2 ${#}
+    i_exit_empty_arg ${LINENO} "${1}" 1
     # skip assignment: declare -i _idx=${1}
     local -n _in_do_scrmtx_b=${2}
     local _uri=${_in_do_scrmtx_b[${1}:URI]}
@@ -438,7 +448,7 @@ d_download_bzr() {
     local _ent=${_in_do_scrmtx_b[${1}:ENTRY]}
     local _origin_uri=""
 
-    [[ ${_proto} != "bzr" ]] && i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
+    [[ ${_proto} == "bzr" ]] || i_exit 1 ${LINENO} "$(_g "Unsupported protocol: '%s'. ENTRY: '%s'")" "${_proto}" "${_ent}"
 
     i_msg "$(_g "Downloading bzr URI: <%s>\n      to destpath: <%s>\n")" "${_uri}" "${_destpath}"
 
@@ -470,7 +480,7 @@ d_download_bzr() {
 #   OPTIONAL ARGS:
 #       `_verify`: yes/no if "yes" and a CHKSUM is specified for an entry the file will be checked: Default: "no"
 #       `_in_dl_mirrors`: reference var: Array of mirror sites which will be checked first to download ftp|http|https sources
-#       `_in_filter_protocols`: a reference var: An associative array with `PROTOCOL` names as keys.
+#       `_in_proto_filter`: a reference var: An associative array with `PROTOCOL` names as keys.
 #           Only these protocols sources will be deleted:
 #           DEFAULTS TO: declare -A FILTER=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
 #       `_dl_prog`:       The download agent used to fetch ftp|http|https source files: `curl` or `wget`
@@ -483,7 +493,7 @@ d_download_bzr() {
 #       d_downloadable_src SCRMTX "$VERIFY_CHKSUM" DOWNLOAD_MIRRORS FILTER "$DOWNLOAD_PROG" "$DOWNLOAD_PROG_OPTS"
 #******************************************************************************************************************************
 d_downloadable_src() {
-    (( ${#} < 1 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires AT LEAST '1' argument. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 1 ${#}
     local -n _in_do_scrmtx=${1}
     local _verify=${2:-"no"}
     if (( ${#} > 2 )); then
@@ -492,17 +502,17 @@ d_downloadable_src() {
         local _in_dl_mirrors=()
     fi
     if (( ${#} > 3 )) && [[ -v ${4}[@] ]]; then         # Check var 4 is set and has elements
-        local -n _in_filter_protocols=${4}
+        local -n _in_proto_filter=${4}
     else
-        declare -A _in_filter_protocols=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
+        declare -A _in_proto_filter=(["ftp"]=0 ["http"]=0 ["https"]=0 ["git"]=0 ["svn"]=0 ["hg"]=0 ["bzr"]=0)
     fi
     local _dl_prog=${5:-"wget"}
     local _dl_prog_opts=${6:-""}
     declare -i _n
     local _tmp _proto
 
-    if [[ -v _in_filter_protocols["local"] ]]; then
-        _tmp=${!_in_filter_protocols[@]}        # _in_filter_protocols_keys_str
+    if [[ -v _in_proto_filter[local] ]]; then
+        _tmp=${!_in_proto_filter[@]}        # _in_proto_filter_keys_str
         i_exit 1 ${LINENO} "$(_g "Protocol 'local' MUST NOT be in the '_in_filter_protocol array keys': <%s>")" "${_tmp}"
     fi
 
@@ -512,7 +522,7 @@ d_downloadable_src() {
 
     for (( _n=1; _n <= ${_in_do_scrmtx[NUM_IDX]}; _n++ )); do
         _proto=${_in_do_scrmtx[${_n}:PROTOCOL]}
-        if [[ -v _in_filter_protocols[${_proto}] ]]; then
+        if [[ -v _in_proto_filter[${_proto}] ]]; then
             case "${_proto}" in
                 ftp|http|https) d_download_file ${_n} _in_do_scrmtx "${_verify}" _in_dl_mirrors "${_dl_prog}" \
                                 "${_dl_prog_opts}" ;;
@@ -520,13 +530,47 @@ d_downloadable_src() {
                 svn) d_download_svn ${_n} _in_do_scrmtx ;;
                 hg)  d_download_hg ${_n} _in_do_scrmtx  ;;
                 bzr) d_download_bzr ${_n} _in_do_scrmtx ;;
-                *) _tmp=${!_in_filter_protocols[@]}
+                *) _tmp=${!_in_proto_filter[@]}
                     i_exit 1 ${LINENO} "$(_g "The protocol: '%s' is not in the '_in_filter_protocol array keys': <%s>")" \
                         "${_proto}" "${_tmp}"
             esac
         fi
     done
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+d_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        d_download_bzr
+        d_download_file
+        d_download_git
+        d_download_hg
+        d_download_src
+        d_download_svn
+        d_downloadable_src
+        d_exit_diff_origin
+        d_export
+        d_got_download_prog_exit
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+d_export
 
 
 #******************************************************************************************************************************

@@ -10,6 +10,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="util.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -17,6 +18,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
@@ -39,35 +41,29 @@ tsu__u_is_yes_no_var_exit() {
     te_print_function_msg "u_is_yes_no_var_exit()"
     local _test_var _output
 
-    _test_var="yes"
-    _output=$((u_is_yes_no_var_exit "${_test_var}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '2' argument. Got '1'"
+    _output=$((u_is_yes_no_var_exit) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'u_is_yes_no_var_exit()' Requires AT LEAST '1' argument. Got '0'"
 
     _test_var=""
-    _output=$((u_is_yes_no_var_exit "${_test_var}" "_test_var") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 1 MUST NOT be empty."
-
-    _test_var="yes"
-    _output=$((u_is_yes_no_var_exit "${_test_var}" "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 2 MUST NOT be empty."
+    _output=$((u_is_yes_no_var_exit "_test_var") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_test_var' MUST be: 'yes/no'. Got: '' Called From"
 
     _test_var="wrong"
-    _output=$((u_is_yes_no_var_exit "${_test_var}" "_test_var") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "FUNCTION Argument '1' (_var: '_test_var') MUST be set to: 'yes' or 'no'. Got: 'wrong'"
-
-    _test_var="false"
-    _output=$((u_is_yes_no_var_exit "${_test_var}" "_test_var" "Some info") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "FUNCTION Argument '1' (_var: '_test_var') MUST be set to: 'yes' or 'no'. Got: 'false' INFO: Some info"
+    _output=$((u_is_yes_no_var_exit "_test_var") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_test_var' MUST be: 'yes/no'. Got: 'wrong' Called From"
 
     _test_var="yes"
-    (u_is_yes_no_var_exit "${_test_var}" "_test_var")
+    (u_is_yes_no_var_exit "_test_var")
     te_retcode_0 _COK _CFAIL ${?} "Test Variable yes."
 
     _test_var="no"
-    (u_is_yes_no_var_exit "${_test_var}" "_test_var" "Some Extra error info")
+    (u_is_yes_no_var_exit "_test_var")
     te_retcode_0 _COK _CFAIL ${?} "Test Variable no."
+
+    _test_var="false"
+    _output=$((u_is_yes_no_var_exit "_test_var" "Some info") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Variable '_test_var' MUST be: 'yes/no'. Got: 'false' Called From: 'tsu__u_is_yes_no_var_exit()' INFO: Some info"
 
     ###
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
@@ -205,30 +201,35 @@ tsu__u_is_str_var_exit() {
     local _array=(a b)
     local _output
 
-    _output=$((u_is_str_var_exit "_assigned_int"  "JUST Some INFO") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared string variable: '_assigned_int' INFO: JUST Some INFO" \
-        "Test optional arg: <_extra_info>"
-
     _output=$((u_is_str_var_exit) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'u_is_str_var_exit()' Requires AT LEAST '1' argument. Got '0'"
 
     _output=$((u_is_str_var_exit "not_a_declared__variable") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared string variable: 'not_a_declared__variable'"
+    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared string variable: 'not_a_declared__variable' Called From"
 
-    _output=$((u_is_str_var_exit "_array") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared string variable: '_array'"
-
-    (u_is_str_var_exit "_not_assigned")
+    (u_is_str_var_exit "_not_assigned") &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test variable <_not_assigned>."
 
-    (u_is_str_var_exit "_assigned_empty")
+    (u_is_str_var_exit "_assigned_empty") &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test variable <_assigned_empty>."
 
-    (u_is_str_var_exit "_assigned_none_empty")
+    (u_is_str_var_exit "_assigned_none_empty") &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test variable <_assigned_none_empty>."
 
-    (u_is_str_var_exit "_option_rl_not_assigned")
+    (u_is_str_var_exit "_option_rl_not_assigned") &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test variable <_option_rl_not_assigned>."
+
+    (u_is_str_var_exit "_assigned_int") &> /dev/null
+    te_retcode_1 _COK _CFAIL ${?} "Test variable <_assigned_int>."
+
+    _output=$((u_is_str_var_exit "_array") 2>&1)
+    te_retcode_1 _COK _CFAIL ${?} "Test variable <_array>."
+    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared string variable: '_array' Called From: 'tsu__u_is_str_var_exit()'"
+
+    _output=$((u_is_str_var_exit "_assigned_int"  "JUST Some INFO") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Not a declared string variable: '_assigned_int' Called From: 'tsu__u_is_str_var_exit()' INFO: JUST Some INFO" \
+        "Test <_assigned_int> with optional arg"
 
     ###
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
@@ -305,10 +306,11 @@ tsu__u_is_idx_array_exit() {
     local _output
 
     _output=$((u_is_idx_array_exit "_assigned_int" "JUST Some INFO") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared index array variable: '_assigned_int' INFO: JUST Some INFO"
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Not a declared index array variable: '_assigned_int' Called From: 'tsu__u_is_idx_array_exit()' INFO: JUST Some INFO"
 
     _output=$((u_is_idx_array_exit) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'u_is_idx_array_exit()' Requires AT LEAST '1' argument. Got '0'"
 
     _output=$((u_is_idx_array_exit "_not_assigned_anything") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "Not a declared index array variable: '_not_assigned_anything'"
@@ -411,10 +413,10 @@ tsu__u_ref_associative_array_exit() {
     declare _output
 
     _output=$((u_ref_associative_array_exit) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Requires EXACT '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "Requires AT LEAST '1' argument. Got '0'"
 
     _output=$((u_ref_associative_array_exit "_ref_index_array") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a referenced associative array: '_ref_index_array'"
+    te_find_err_msg _COK _CFAIL "${_output}" "Not a referenced associative array: '_ref_index_array' Called From"
 
     (u_ref_associative_array_exit "_ref_assigned_array") &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test variable <_ref_assigned_array>."
@@ -442,6 +444,10 @@ tsu__u_ref_associative_array_exit() {
 
     (u_ref_associative_array_exit "_ref__empty_array_set_ref_to_readonly") &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test variable <_ref__empty_array_set_ref_to_readonly>."
+
+    _output=$((u_ref_associative_array_exit "_ref_index_array" "Info") 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Not a referenced associative array: '_ref_index_array' Called From: 'tsu__u_ref_associative_array_exit()' INFO: Info"
 
     ###
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
@@ -755,41 +761,44 @@ tsu__u_get_cmd_arg_values_array() {
     local _array_with_long_3_values_at_end=(-v --version -i --install --config-file value1 value2 value3)
     local _output _tmp_str
     declare -a _result
+    declare -i _n
 
     _result=()
     _output=$((u_get_cmd_arg_values_array _result) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '3' arguments. Got '1'"
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "FUNCTION: 'u_get_cmd_arg_values_array()' Requires AT LEAST '3' arguments. Got '1'"
 
     _result=()
     _output=$((u_get_cmd_arg_values_array _result "" _array_with_short_option) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 2 '_idx' MUST NOT be empty"
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "FUNCTION: u_get_cmd_arg_values_array()' Argument '2' MUST be as integer declared and greater than '-1'."
 
     _result=()
     _n=4
     _output=$((u_get_cmd_arg_values_array _result _n _array_with_long_option_wrong_startchar) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '--config-file' value: '-/home/long_option/cmk.conf' MUST NOT start with a hyphen-minus" \
+        "Cmd option: '--config-file' value: '-/home/long_option/cmk.conf' MUST NOT start with a hyphen-minus" \
         "Test INPUT: <_array_with_long_option_wrong_startchar>"
 
     _result=()
     _n=4
     _output=$((u_get_cmd_arg_values_array _result _n _array_with_short_option_no_value) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '-cf' requires an value. All Arguments: <-v --v" \
+        "Cmd option: '-cf' requires an value. All Arguments: <-v --v" \
         "Test INPUT: <_array_with_short_option_no_value>."
 
     _result=()
     _n=4
     _output=$((u_get_cmd_arg_values_array _result _n _array_with_short_option_empty_value) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '-cf' value: '' MUST NOT be empty: All Argument" \
+        "Cmd option: '-cf' value: '' MUST NOT be empty: All Argument" \
         "Test INPUT: <_array_with_short_option_empty_value>."
 
     _result=()
     _n=4
     _output=$((u_get_cmd_arg_values_array _result _n _array_with_short_3_values 0) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Argument '_max_expected_values' MUST NOT be 0" \
-        "Test Argument _max_expected_values MUST NOT be 0"
+    te_find_err_msg _COK _CFAIL "${_output}" "Argument '_max_exp_val' MUST NOT be 0" \
+        "Test Argument _max_exp_val MUST NOT be 0"
 
     _result=()
     _n=4
@@ -820,8 +829,7 @@ tsu__u_get_cmd_arg_values_array() {
     _tmp_str=${_result[@]}
     te_same_val _COK _CFAIL "${_tmp_str}" "value1 value2 value3" \
         "Test maximum expected values: 5. Found 3. INPUT: <_array_with_long_3_values_at_end>"
-    te_same_val _COK _CFAIL "${_n}" "7" \
-        "Test index value was incremented. Found 3. INPUT: <_array_with_long_3_values_at_end>"
+    te_same_val _COK _CFAIL "${_n}" "7" "Test index value was incremented. Found 3. INPUT: <_array_with_long_3_values_at_end>"
 
     ###
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
@@ -845,8 +853,7 @@ tsu__u_get_cmd_arg_single_value_string() {
     local _output _result
 
     _output=$((u_get_cmd_arg_single_value_string _result 4 _array_with_short_option "wrong") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "4. VARIBLE: '_exit_if_no_value' MUST be set to: 'yes' or 'no'. Got: 'wrong'"
+    te_find_err_msg _COK _CFAIL "${_output}" "4. VARIBLE: '_exit_if_no_val' MUST be set to: 'yes/no'. Got: 'wrong'"
 
     u_get_cmd_arg_single_value_string _result 4 _array_with_short_option
     te_same_val _COK _CFAIL "${_result}" "/home/short_option/cmk.conf" "Test INPUT: <_array_with_short_option>"
@@ -855,17 +862,17 @@ tsu__u_get_cmd_arg_single_value_string() {
     te_same_val _COK _CFAIL "${_result}" "/home/long_option/cmk.conf" "Test INPUT: <_array_with_long_option>"
 
     _output=$((u_get_cmd_arg_single_value_string _result 4 _array_with_short_option_no_value) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Command-Line option: '-cf' requires an value. All Arguments" \
+    te_find_err_msg _COK _CFAIL "${_output}" "Cmd option: '-cf' requires an value. All Arguments" \
         "Test INPUT: <_array_with_short_option_no_value>."
 
     _output=$((u_get_cmd_arg_single_value_string _result 4 _array_with_short_option_empty_value) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '-cf' argument value MUST NOT be empty: All Arg" \
+        "Cmd option: '-cf' argument value MUST NOT be empty: All Arg" \
         "Test INPUT: <_array_with_short_option_empty_value>."
 
     _output=$((u_get_cmd_arg_single_value_string _result 4 _array_with_long_option_in_middle_no_value "yes") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '--config-file' requires an value. All Argument" \
+        "Cmd option: '--config-file' requires an value. All Argument" \
         "Test _abort_if_no_value=yes: <_array_with_long_option_in_middle_no_value>. "
 
     u_get_cmd_arg_single_value_string _result 4 _array_with_long_option_in_middle_no_value "no"
@@ -904,7 +911,7 @@ tsu__u_search_cmd_arg_values_string() {
 
     _output=$((u_search_cmd_arg_values_string _result "-cf" "--config-file" _array_with_long_option_wrong_startchar) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '-"*"'-/home/long_option/cmk.conf' MUST NOT start with a hyphen-minus" \
+        "Cmd option: '-"*"'-/home/long_option/cmk.conf' MUST NOT start with a hyphen-minus" \
         "Test INPUT: <_array_with_long_option_wrong_startchar>."
 
     _output=$((u_search_cmd_arg_values_string _result "-" "--config-file" _array_with_short_option) 2>&1)
@@ -945,23 +952,23 @@ tsu__u_search_cmd_arg_values_string() {
 
     _output=$((u_search_cmd_arg_values_string _result "-cf" "--config-file" _array_with_short_option_no_value) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '-cf' requires at least 1 value. All ARGS: <-v --version -i --install" \
+        "Cmd option: '-cf' requires at least 1 value. All ARGS: <-v --version -i --install" \
         "Test INPUT: <_array_with_short_option_no_value>"
 
     _output=$((u_search_cmd_arg_values_string _result "-cf" "--config-file" _array_with_short_option_empty_value) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '-cf' value: '' MUST NOT be empty: All Arguments: <-v --version -i --i" \
+        "Cmd option: '-cf' value: '' MUST NOT be empty: All Arguments: <-v --version -i --i" \
         "Test INPUT: <_array_with_short_option_empty_value>."
 
     u_search_cmd_arg_values_string _result "-v" "--version" _array_empty 1
     te_empty_val _COK _CFAIL "${_result}" "Test INPUT: <_array_empty>."
 
     _output=$((u_search_cmd_arg_values_string _result "-cf" "--config-file" _array_with_short_3_values 0) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Argument '_max_expected_values' MUST NOT be 0"
+    te_find_err_msg _COK _CFAIL "${_output}" "Argument '_max_exp_val' MUST NOT be 0"
 
     _output=$((u_search_cmd_arg_values_string _result "-cf" "--config-file" _array_with_long_3_values_at_end 2) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "Command-Line option: '--config-file' maximum expected values: '2'. Found '3' All ARGS: <-v" \
+        "Cmd option: '--config-file' maximum expected values: '2'. Found '3' All ARGS: <-v" \
         "Test maximum expected values: 2"
 
     u_search_cmd_arg_values_string _result "-cf" "--config-file" _array_with_short_3_values 3
@@ -1154,7 +1161,7 @@ tsu__u_cd_safe_exit() {
     local _output
 
     _output=$((u_cd_safe_exit "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 1 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'u_cd_safe_exit()' Argument '1' MUST NOT be empty."
 
     ((u_cd_safe_exit "${_tmp_dir}") &> /dev/null)
     te_retcode_0 _COK _CFAIL ${?} "Test CD to existing dir."
@@ -1265,7 +1272,7 @@ tsu__u_in_array() {
     local _output
 
     _output=$((u_in_array _test_array) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '2' arguments. Got '1'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'u_in_array()' Requires EXACT '2' arguments. Got '1'"
 
     (u_in_array "NOT VALID ITEM" _test_array) &> /dev/null
     te_retcode_1 _COK _CFAIL ${?} "Test NOT VALID item in array."
@@ -1365,7 +1372,7 @@ tsu__u_no_command_exit() {
     local _output
 
     _output=$((u_no_command_exit) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'u_no_command_exit()' Requires EXACT '1' argument. Got '0'"
 
     _output=$((u_no_command_exit "missing_command") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "Missing command: 'missing_command'" "Test got command <missing_command>."
@@ -1501,9 +1508,58 @@ tsu__u_is_hg_uri_accessible
 
 
 #******************************************************************************************************************************
+# TEST: u_export()
+#******************************************************************************************************************************
+tsi__u_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "u_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((u_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((u_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        u_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx u_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx u_export'."
+
+        _BF_EXPORT_ALL="no"
+        u_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f u_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f u_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__u_export
+
+
+
+#******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 198
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

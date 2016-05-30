@@ -10,6 +10,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="testing.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -17,6 +18,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 # do not use `i_source_safe_exit` in this case because it was not yet testet
 source "${_FUNCTIONS_DIR}/testing.sh"
@@ -70,15 +72,15 @@ tste__te_find_err_msg() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_err_msg _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_find_err_msg()' Requires AT LEAST '4' arguments. Got '2'"
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_err_msg _dummy_ok _dummy_fail "" "dummy") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 3 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_find_err_msg()' Argument '3' MUST NOT be empty."
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_err_msg _dummy_ok _dummy_fail "dummy" "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 4 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_find_err_msg()' Argument '4' MUST NOT be empty."
 
     _output="Other output: Find error message: Test expected to pass. other output"
     te_find_info_msg _COK _CFAIL "${_output}" "Find error message: Test expected to pass."
@@ -110,15 +112,15 @@ tste__te_find_info_msg() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_info_msg _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_find_info_msg()' Requires AT LEAST '4' arguments. Got '2'"
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_info_msg _dummy_ok _dummy_fail "" "dummy") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 3 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_find_info_msg()' Argument '3' MUST NOT be empty."
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_find_info_msg _dummy_ok _dummy_fail "dummy" "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 4 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_find_info_msg()' Argument '4' MUST NOT be empty."
 
     _output="Other output: Find info message: Test expected to pass. other output"
     te_find_info_msg _COK _CFAIL "${_output}" "Find info message: Test expected to pass."
@@ -155,7 +157,7 @@ tste__te_same_val() {
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_same_val _dummy_ok _dummy_fail) 2>&1)
     # NOTE: Use here the previously tested te_find_err_msg
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_same_val()' Requires AT LEAST '4' arguments. Got '2'"
 
     _ref_val="/home/test"
     _output="Other output: Find error message: Test expected to pass: other output"
@@ -185,7 +187,7 @@ tste__te_empty_val() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_empty_val _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_empty_val()' Requires EXACT '4' arguments. Got '2'"
 
     te_empty_val _COK _CFAIL "" "Testing empty string value."
 
@@ -212,7 +214,7 @@ tste__te_not_empty_val() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_not_empty_val _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_not_empty_val()' Requires EXACT '4' arguments. Got '2'"
 
     te_not_empty_val _COK _CFAIL "not empty" "Testing not empty string value."
 
@@ -239,7 +241,7 @@ tste__te_retcode_0() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_retcode_0 _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_retcode_0()' Requires EXACT '4' arguments. Got '2'"
 
     te_retcode_0 _COK _CFAIL 0 "Testing expected (0) return value."
 
@@ -266,7 +268,7 @@ tste__te_retcode_1() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_retcode_1 _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_retcode_1()' Requires EXACT '4' arguments. Got '2'"
 
     te_retcode_1 _COK _CFAIL 1 "Testing expected (1) return value."
 
@@ -293,7 +295,7 @@ tste__te_retcode_same() {
 
     # use the dummy counter to avoid counting the subshell as failed
     _output=$((te_retcode_same _dummy_ok _dummy_fail) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '5' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'te_retcode_same()' Requires EXACT '5' arguments. Got '2'"
 
     te_retcode_same _COK _CFAIL 18 18 "Testing expected (18) return value."
 
@@ -309,9 +311,58 @@ tste__te_retcode_same
 
 
 #******************************************************************************************************************************
+# TEST: te_export()
+#******************************************************************************************************************************
+tsi__te_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "te_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((te_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((te_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        te_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx te_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx te_export'."
+
+        _BF_EXPORT_ALL="no"
+        te_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f te_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f te_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__te_export
+
+
+
+#******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 36
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

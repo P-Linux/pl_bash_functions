@@ -14,6 +14,7 @@ _TEST_SCRIPT_DIR_ALL=$(dirname "${_THIS_SCRIPT_PATH_ALL}")
 _FUNCTIONS_DIR_ALL="$(dirname "${_TEST_SCRIPT_DIR_ALL}")/scripts"
 declare -r _TESTFILE_ALL="ALL"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR_ALL}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -21,6 +22,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_ask_continue
 
@@ -97,7 +99,7 @@ source "${_TEST_SCRIPT_DIR_ALL}/tests_process_ports.sh"
 
 #******************************************************************************************************************************
 
-te_print_final_result "${_TESTFILE_ALL}" "${_COK_ALL}" "${_CFAIL_ALL}"
+te_print_final_result "${_TESTFILE_ALL}" "${_COK_ALL}" "${_CFAIL_ALL}" 700
 
 #******************************************************************************************************************************
 # End of file

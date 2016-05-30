@@ -42,7 +42,7 @@ i_general_opt
 #       a_list_pkgarchives TARGETS "${CM_PORTNAME}" "${CM_PORT_PATH}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_list_pkgarchives() {
-    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 5 ${#}
     local -n _ret_list=${1}
     local _name=${2}
     local _path=${3}
@@ -81,16 +81,14 @@ a_list_pkgarchives() {
 #       a_rm_pkgarchives "${PORTNAME}" "${PORT_PATH}" "${CM_ARCH}" "${CM_PKG_EXT}" "${PKGARCHIVE_BACKUP_DIR}"
 #******************************************************************************************************************************
 a_rm_pkgarchives() {
-    local _fn="a_rm_pkgarchives"
-    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 5 ${#}
+    i_exit_empty_arg ${LINENO} "${5}" 5
     local _name=${1}
     local _path=${2}
     local _sysarch=${3}
     local _ref_ext=${4}
     local _backup_dir=${5}
     local _f
-
-    [[ -n ${_backup_dir} ]] || i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 5 (_backup_dir) MUST NOT be empty.")"
 
     if [[ ${_backup_dir} == "NONE" ]]; then
         i_more_i "$(_g "Removing any existing pkgarchive files for Port <%s>")" "${_path}"
@@ -121,7 +119,7 @@ a_rm_pkgarchives() {
 #       a_get_archive_ext EXTENTION "${PKGARCHIVE}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_ext() {
-    (( ${#} != 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 3 ${#}
     local -n _ret_ext_e=${1}
     local _path=${2}
     local _ref_ext=${3}
@@ -151,7 +149,7 @@ a_get_archive_ext() {
 #       a_get_archive_name NAME "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_name() {
-    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_name_n=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -188,7 +186,7 @@ a_get_archive_name() {
 #       a_get_archive_buildvers BUILDVERS "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_buildvers() {
-    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_buildvers_b=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -228,7 +226,7 @@ a_get_archive_buildvers() {
 #       a_get_archive_arch ARCH "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_arch() {
-    (( ${#} != 4 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_arch_a=${1}
     local _path=${2}
     local _sysarch=${3}
@@ -264,7 +262,7 @@ a_get_archive_arch() {
 #       a_get_archive_parts NAME BUILDVERS ARCH EXT "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_parts() {
-    (( ${#} != 7 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '7' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 7 ${#}
     local -n _ret_name_parts=${1}
     local -n _ret_buildvers_parts=${2}
     local -n _ret_arch_parts=${3}
@@ -330,7 +328,7 @@ a_get_archive_parts() {
 #       a_get_archive_name_arch NAME ARCH "${PKGARCHIVE}" "${CM_ARCH}" "${CM_PKG_EXT}"
 #******************************************************************************************************************************
 a_get_archive_name_arch() {
-    (( ${#} != 5 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'")" "${#}"
+    i_exact_args_exit ${LINENO} 5 ${#}
     local -n _ret_name_na=${1}
     local -n _ret_arch_na=${2}
     local _path=${3}
@@ -371,7 +369,7 @@ a_get_archive_name_arch() {
 # Returns 'yes' if the pkgarchive is up-to-date otherwise 'no'
 #
 #   ARGUMENTS
-#       `_retres`: a reference var: an empty string which will be updated with the result.
+#       `_ret`: a reference var: an empty string which will be updated with the result.
 #       `_pkgfile`: absolute path to the ports pkgfile
 #       `_archive`: the full path of a pkgarchive to check
 #
@@ -380,18 +378,54 @@ a_get_archive_name_arch() {
 #       a_is_archive_uptodate PKGARCHIVE_IS_UP_TO_DATE "${PKGFILE_PATH}" "${PKGARCHIVE_PATH}"
 #******************************************************************************************************************************
 a_is_archive_uptodate() {
-    (( ${#} != 3 )) && i_exit 1 ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'")" "${#}"
-    local -n _retres=${1}
+    i_exact_args_exit ${LINENO} 3 ${#}
+    local -n _ret=${1}
     local _pkgfile=${2}
     local _archive=${3}
 
-    _retres="no"
+    _ret="no"
     if [[ -f ${_archive} ]]; then
-        _retres="yes"
+        _ret="yes"
         [[ -f ${_pkgfile} ]] || i_exit 1 ${LINENO} "$(_g "Corresponding Pkgfile does not exist. Path: <%s>")" "${_pkgfile}"
-        [[ ${_pkgfile} -nt ${_archive} ]] && _retres="no"
+        if [[ ${_pkgfile} -nt ${_archive} ]]; then
+            _ret="no"
+        fi
     fi
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+a_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        a_export
+        a_get_archive_arch
+        a_get_archive_buildvers
+        a_get_archive_ext
+        a_get_archive_name
+        a_get_archive_name_arch
+        a_get_archive_parts
+        a_is_archive_uptodate
+        a_list_pkgarchives
+        a_rm_pkgarchives
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+a_export
 
 
 #******************************************************************************************************************************

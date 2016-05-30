@@ -11,6 +11,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="src_matrix.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -18,6 +19,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
@@ -56,7 +58,7 @@ tspk__pk_get_collections_lookup() {
 
     _reg_collections=()
     _output=$((pk_get_collections_lookup _collection_lookup_not_empty "Pkgfile") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '3' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_get_collections_lookup()' Requires EXACT '3' arguments. Got '2'"
 
     _reg_collections=()
     _output=$((pk_get_collections_lookup _collection_lookup "Pkgfile/" _reg_collections) 2>&1)
@@ -173,7 +175,7 @@ tspk__pk_get_pkgfiles_to_process() {
 
     _pkgfiles_to_process=()
     _output=$((pk_get_pkgfiles_to_process _pkgfiles_to_process "Pkgfile") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '2'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_get_pkgfiles_to_process()' Requires EXACT '4' arguments. Got '2'"
 
     _portslist=()
     _reg_collections=(
@@ -297,7 +299,7 @@ tspk__pk_check_pkgvers() {
     local _output
 
     _output=$((pk_check_pkgvers "0.1.0.r1.2f12e1a") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '2' arguments. Got '1'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_check_pkgvers()' Requires EXACT '2' arguments. Got '1'"
 
 
     (pk_check_pkgvers "0.1.0.r1.2f12e1a" "Pkgfile")
@@ -314,40 +316,6 @@ tspk__pk_check_pkgvers() {
     )
 }
 tspk__pk_check_pkgvers
-
-
-#******************************************************************************************************************************
-# TEST: pk_get_only_pkgvers_exit()
-#******************************************************************************************************************************
-tspk__pk_get_only_pkgvers_exit() {
-    (source "${_EXCHANGE_LOG}"
-
-    te_print_function_msg "pk_get_only_pkgvers_exit()"
-    local _testdir="${_TEST_SCRIPT_DIR}"
-    local _output
-
-    _output=$((pk_get_only_pkgvers_exit) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '1' argument. Got '0'"
-
-    _output=$(pk_get_only_pkgvers_exit "${_testdir}/files/Pkgfile")
-    te_same_val _COK _CFAIL "${_output}" "0.1.0.r1.2f12e1a" "Test <Pkgfile> pkgversion."
-
-    _output=$(pk_get_only_pkgvers_exit "${_testdir}/files/Pkgfile_minimum_info")
-    te_same_val _COK _CFAIL "${_output}" 0.1.0"" "Test <Pkgfile_minimum_info> pkgversion."
-
-    _output=$((pk_get_only_pkgvers_exit "${_testdir}/files/Pkgfile_missing_var_pkgvers") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Could not find variable 'pkgvers':" \
-        "Test <Pkgfile_missing_var_pkgvers> pkgversion."
-
-    _output=$((pk_get_only_pkgvers_exit "${_testdir}/files/Pkgfile_version_wrong_char") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "'pkgvers' contains invalid chars: '+'" \
-        "Test <Pkgfile_version_wrong_char> pkgversion."
-
-    ###
-    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
-    )
-}
-tspk__pk_get_only_pkgvers_exit
 
 
 #******************************************************************************************************************************
@@ -373,7 +341,7 @@ tspk__pk_make_pkgmd5sums() {
     source "${_pkgfile_path}"
 
     _output=$((pk_make_pkgmd5sums) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '2' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_make_pkgmd5sums()' Requires EXACT '2' arguments. Got '0'"
 
     _scrmtx=()
     _new_pkgmd5sums=()
@@ -428,13 +396,14 @@ tspk__pk_check_pkgfile_port_path_name() {
     mkdir -p "${_tmp_dir}"
 
     _output=$((pk_check_pkgfile_port_path_name) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '2' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "FUNCTION: 'pk_check_pkgfile_port_path_name()' Requires EXACT '2' arguments. Got '0'"
 
     _output=$((pk_check_pkgfile_port_path_name "" "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 1 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_check_pkgfile_port_path_name()' Argument '1' MUST NOT be empty."
 
     _output=$((pk_check_pkgfile_port_path_name "${_pkgfile_path}" "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 2 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_check_pkgfile_port_path_name()' Argument '2' MUST NOT be empty."
 
     _output=$((pk_check_pkgfile_port_path_name "files/example_collection1/acl" "Pkgfile") 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "COLLECTION_PATH An absolute directory path MUST start with a slash: <files>"
@@ -496,7 +465,8 @@ tspk__pk_source_validate_pkgfile() {
     declare -a _cm_groups
 
     _output=$((pk_source_validate_pkgfile) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '3' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "FUNCTION: 'pk_source_validate_pkgfile()' Requires AT LEAST '3' arguments. Got '0'"
 
     _cm_groups=()
     _pkgfile="${_testdir}/files/none_existing_Pkgfile"
@@ -505,7 +475,7 @@ tspk__pk_source_validate_pkgfile() {
 
     _cm_groups=()
     _output=$((pk_source_validate_pkgfile "" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 1 MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_source_validate_pkgfile()' Argument '1' MUST NOT be empty."
 
     _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_minimum_info"
@@ -615,9 +585,10 @@ tspk__pk_source_validate_pkgfile() {
         _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "Could not find variable 'pkgurl'." "Test <Pkgfile_missing_var_pkgurl>."
 
-    _output=$((pk_source_validate_pkgfile "${_testdir}/files/Pkgfile_missing_var_pkgdeps" _required_func_names \
-        _cm_groups_func_names) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared index array variable: 'pkgdeps' INFO"
+    _pkgfile="${_testdir}/files/Pkgfile_missing_var_pkgdeps"
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Not a declared index array variable: 'pkgdeps' Called From: 'pk_source_validate_pkgfile()' INFO: ${_pkgfile}"
 
     _output=$((pk_source_validate_pkgfile "${_testdir}/files/Pkgfile_missing_var_pkgvers" _required_func_names \
         _cm_groups_func_names) 2>&1)
@@ -627,13 +598,15 @@ tspk__pk_source_validate_pkgfile() {
         _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "Could not find variable 'pkgrel'."
 
-    _output=$((pk_source_validate_pkgfile "${_testdir}/files/Pkgfile_missing_var_pkgsources" _required_func_names \
-        _cm_groups_func_names) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared index array variable: 'pkgsources' INFO"
+    _pkgfile="${_testdir}/files/Pkgfile_missing_var_pkgsources"
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Not a declared index array variable: 'pkgsources' Called From: 'pk_source_validate_pkgfile()' INFO: ${_pkgfile}"
 
-    _output=$((pk_source_validate_pkgfile "${_testdir}/files/Pkgfile_missing_var_pkgmd5sums" _required_func_names \
-        _cm_groups_func_names) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "Not a declared index array variable: 'pkgmd5sums' INFO"
+    _pkgfile="${_testdir}/files/Pkgfile_missing_var_pkgmd5sums"
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "Not a declared index array variable: 'pkgmd5sums' Called From: 'pk_source_validate_pkgfile()' INFO: ${_pkgfile}"
 
     ###
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
@@ -642,11 +615,59 @@ tspk__pk_source_validate_pkgfile() {
 tspk__pk_source_validate_pkgfile
 
 
+#******************************************************************************************************************************
+# TEST: pk_export()
+#******************************************************************************************************************************
+tsi__pk_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "pk_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((pk_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((pk_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        pk_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx pk_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx pk_export'."
+
+        _BF_EXPORT_ALL="no"
+        pk_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f pk_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f pk_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__pk_export
+
+
 
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 80
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

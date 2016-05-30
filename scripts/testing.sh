@@ -4,6 +4,7 @@
 #
 #       For more info and example usage: SEE: the 'pl_bash_functions' package *documentation and the tests folder*.
 #
+#   NOTE: Don't use ERR Trap with testing.
 #******************************************************************************************************************************
 
 #=============================================================================================================================#
@@ -32,12 +33,12 @@ i_general_opt
 #       te_print_header "testing.sh"
 #******************************************************************************************************************************
 te_print_header() {
-    local _file=${1}
+    # skip assignment:  local _file=${1}
 
     printf "${_BF_GREEN}\n" >&1
     printf "#===========================================================================#\n" >&1
     printf "#\n" >&1
-    printf "$(_g "# EXAMPLES/TESTS for: '%s'\n")" "${_file}" >&1
+    printf "$(_g "# EXAMPLES/TESTS for: '%s'\n")" "${1}" >&1
     printf "#\n" >&1
     printf "#===========================================================================#\n" >&1
     printf "${_BF_OFF}\n" >&1
@@ -51,17 +52,20 @@ te_print_header() {
 #       `_filename`: name of the file/testscript
 #       `_cok`: Counter of OK Tests
 #       `_cfail`: Counter of FAILED Tests
+#       `_num_exp_tests`: integer of number of expected tests: prints an error if: _COK + _CFAIL is different.
 #
 #   USAGE
 #       declare -i _COK=0
 #       declare -i _CFAIL=0
-#       te_print_final_result _COK _CFAIL
+#       te_print_final_result _COK _CFAIL 15
 #******************************************************************************************************************************
 te_print_final_result() {
-    (( ${#} != 3 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '3' arguments. Got '%s'\n\n")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local _filename=${1}
     local _cok=${2}
     local _cfail=${3}
+    declare -i _num_exp_tests=${4}
+    declare -i _all_tests=${_cok}+${_cfail}
 
     echo
     echo
@@ -76,6 +80,13 @@ te_print_final_result() {
     if (( ${_cfail} > 0 )); then
         printf "${_BF_BOLD}${_BF_YELLOW}\n" >&1
         printf "$(_g "    There are FAILED TEST RESULTS (%s): Check the terminal output.")" "${_cfail}" >&1
+        printf "${_BF_OFF}\n" >&1
+    fi
+
+    if (( ${_all_tests} != ${_num_exp_tests} )); then
+        printf "${_BF_BOLD}${_BF_MAGENTA}\n" >&1
+        printf "$(_g "    ERROR: Number of expected tests: '%s' but we got a total of: '%s'")" ${_num_exp_tests} \
+            ${_all_tests} >&1
         printf "${_BF_OFF}\n" >&1
     fi
 }
@@ -102,23 +113,23 @@ te_print_function_msg() {
 #******************************************************************************************************************************
 te_abort() {
     if (( ${#} < 2 )); then
-        te_abort ${LINENO} "$(_g "FUNCTION  Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
+        te_abort ${LINENO} "$(_g "FUNCTION  Requires AT LEAST '2' arguments. Got '%s'")" ${#}
     fi
-    local _lineno=${1}
+    declare -i _lno=${1}
     local _msg=${2}; shift
     local _m1=$(_g "ABORTING....from:")
     local _m2=$(_g "Line:")
     local _m3=$(_g "Function:")
     local _m4=$(_g "File:")
     local _m5=$(_g "CAN NOT CONINUE TESTING.")
-    local _fbasename=${BASH_SOURCE[1]}
+    local _exc_f=${BASH_SOURCE[1]}
 
-    _fbasename=${_fbasename%%+(/)}
-    _fbasename=${_fbasename##*/}
+    _exc_f=${_exc_f%%+(/)}
+    _exc_f=${_exc_f##*/}
 
     printf "${_BF_MAGENTA}\n\n=======> ${_m1}${_BF_OFF}${_BF_BLUE} <${FUNCNAME[0]}> ${_BF_OFF}\n" >&2
-    printf "${_BF_RED}    -> ${_m2} '${_BF_BOLD}${_lineno}${_BF_OFF}' ${_m3} '${_BF_BOLD}${FUNCNAME[1]}${_BF_OFF}' "
-    printf "${_m4} '${_BF_BOLD}${_fbasename}${_BF_OFF}'\n\n\n" >&2
+    printf "${_BF_RED}    -> ${_m2} '${_BF_BOLD}${_lno}${_BF_OFF}' ${_m3} '${_BF_BOLD}${FUNCNAME[1]}${_BF_OFF}' "
+    printf "${_m4} '${_BF_BOLD}${_exc_f}${_BF_OFF}'\n\n\n" >&2
 
     printf "${_BF_YELLOW}    -> MESSAGE !!${_BF_OFF}${_BF_BOLD} ${_msg}${_BF_OFF}\n\n\n" "${@:2}" >&2
 
@@ -133,7 +144,7 @@ te_abort() {
 #   USAGE: te_warn "${FUNCNAME[0]}" "This Test needs working internet."
 #******************************************************************************************************************************
 te_warn() {
-    (( ${#} < 2 )) && te_abort ${LINENO} "${FUNCNAME[0]}" "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'")" "${#}"
+    i_min_args_exit ${LINENO} 2 ${#}
     local _from=${1}
     local _m=${2}; shift
     printf "${_BF_RED}  >>> WARNING: <${_from}>  ${_m}${_BF_OFF}\n" "${@:2}" >&2
@@ -154,7 +165,7 @@ te_warn() {
 #       fi
 #******************************************************************************************************************************
 te_ms_ok() {
-    (( ${#} < 2 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'\n\n")" "${#}"
+    i_min_args_exit ${LINENO} 2 ${#}
     local -n _ret_cok=${1}
     local _m=${2}; shift
     local _m_prefix=$(_g "Testing:")
@@ -177,7 +188,7 @@ te_ms_ok() {
 #       fi
 #******************************************************************************************************************************
 te_ms_failed() {
-    (( ${#} < 2 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '2' arguments. Got '%s'\n\n")" "${#}"
+    i_min_args_exit ${LINENO} 2 ${#}
     local -n _ret_cfail=${1}
     local _m=${2}; shift
     local _m_prefix=$(_g "Testing:")
@@ -212,9 +223,9 @@ te_ms_failed() {
 #       te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: Requires AT LEAST '7' arguments. Got '8'" "EXTRA"
 #******************************************************************************************************************************
 te_find_err_msg() {
-    (( ${#} < 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'\n\n")" "${#}"
-    [[ -n $3 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 3 MUST NOT be empty.\n\n")"
-    [[ -n $4 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 4 MUST NOT be empty.\n\n")"
+    i_min_args_exit ${LINENO} 4 ${#}
+    i_exit_empty_arg ${LINENO} "${3}" 3
+    i_exit_empty_arg ${LINENO} "${4}" 4
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
     local _func_output=${3}
@@ -222,7 +233,9 @@ te_find_err_msg() {
     local _inf=${5:-""}
     local _m=$(_g "Find err-msg:")
 
-    [[ -n ${_inf} ]] && _inf=" ${_inf}"
+    if [[ -n ${_inf} ]]; then
+        _inf=" ${_inf}"
+    fi
     if [[ ${_func_output} == *${_find_err_msg}* ]]; then
         printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_err_msg}${_BF_OFF}${_inf}\n" >&1
         _ret_cok+=1
@@ -230,9 +243,6 @@ te_find_err_msg() {
         printf "${_BF_BOLD}${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_err_msg}${_BF_OFF}${_inf}\n" >&1
         _ret_cfail+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
@@ -256,9 +266,9 @@ te_find_err_msg() {
 #       te_find_info_msg _COK _CFAIL "${_output}" "FUNCTION 'xxx()': Download success but." "EXTRA Optional Info"
 #******************************************************************************************************************************
 te_find_info_msg() {
-    (( ${#} < 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'\n\n")" "${#}"
-    [[ -n $3 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 3 MUST NOT be empty.\n\n")"
-    [[ -n $4 ]] || te_abort ${LINENO} "$(_g "FUNCTION Argument 4 MUST NOT be empty.\n\n")"
+    i_min_args_exit ${LINENO} 4 ${#}
+    i_exit_empty_arg ${LINENO} "${3}" 3
+    i_exit_empty_arg ${LINENO} "${4}" 4
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
     local _func_output=${3}
@@ -266,7 +276,9 @@ te_find_info_msg() {
     local _inf=${5:-""}
     local _m=$(_g "Find info-msg:")
 
-    [[ -n ${_inf} ]] && _inf=" ${_inf}"
+    if [[ -n ${_inf} ]]; then
+        _inf=" ${_inf}"
+    fi
     if [[ ${_func_output} == *${_find_inf_msg}* ]]; then
         printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_inf_msg}${_BF_OFF}${_inf}\n" >&1
         _ret_cok+=1
@@ -274,9 +286,6 @@ te_find_info_msg() {
         printf "${_BF_BOLD}${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_inf_msg}${_BF_OFF}${_inf}\n" >&1
         _ret_cfail+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
@@ -310,10 +319,10 @@ te_find_info_msg() {
 #       te_same_val _COK _CFAIL "${_tmp_str}" "value1 value2 value3"
 #******************************************************************************************************************************
 te_same_val() {
-    (( ${#} < 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires AT LEAST '4' arguments. Got '%s'\n\n")" "${#}"
+    i_min_args_exit ${LINENO} 4 ${#}
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    local _in_str=${3}
+    local _str=${3}
     local _ref_str=${4}
     local _inf=${5:-""}
     local _m=$(_g "Expected value: <")
@@ -321,27 +330,26 @@ te_same_val() {
     local _off=${_BF_OFF}  # shorten the var name: so we keep the line char limit
     local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
-    [[ -n ${_inf} ]] && _inf=" ${_inf}"
-    if [[ ${_in_str} == ${_ref_str} ]]; then
-        printf "${_b}${_BF_GREEN}    [  OK  ] ${_off}${_m}${_b}${_ref_str}${_off}${_m1} <${_b}${_in_str}${_off}>${_inf}\n" >&1
+    if [[ -n ${_inf} ]]; then
+        _inf=" ${_inf}"
+    fi
+    if [[ ${_str} == ${_ref_str} ]]; then
+        printf "${_b}${_BF_GREEN}    [  OK  ] ${_off}${_m}${_b}${_ref_str}${_off}${_m1} <${_b}${_str}${_off}>${_inf}\n" >&1
         _ret_cok+=1
     else
-        printf "${_b}${_BF_RED}    [FAILED] ${_off}${_m}${_b}${_ref_str}${_off}${_m1} <${_b}${_in_str}${_off}>${_inf}\n" >&1
+        printf "${_b}${_BF_RED}    [FAILED] ${_off}${_m}${_b}${_ref_str}${_off}${_m1} <${_b}${_str}${_off}>${_inf}\n" >&1
         _ret_cfail+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
 #******************************************************************************************************************************
-# Reports OK: if the `_in_str` is empty. [[ -z _in_str ]]
+# Reports OK: if the `_str` is empty. [[ ! -n _str ]]
 #
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `_in_str`: value to check
+#       `_str`: value to check
 #       `_inf`: info message
 #
 #   USAGE
@@ -351,34 +359,31 @@ te_same_val() {
 #       te_empty_val _COK _CFAIL "none_empty" "Testing something - expected an empty string"
 #******************************************************************************************************************************
 te_empty_val() {
-    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    local _in_str=${3}
+    local _str=${3}
     local _inf=${4}
     local _m=$(_g "Expected empty <>. Got:")
     local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
-    if [[ -z ${_in_str} ]]; then
-        printf "${_b}${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+    if [[ ! -n ${_str} ]]; then
+        printf "${_b}${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m} <${_b}${_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
         _ret_cok+=1
     else
-        printf "${_b}${_BF_RED}    [FAILED] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+        printf "${_b}${_BF_RED}    [FAILED] ${_BF_OFF}${_m} <${_b}${_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
         _ret_cfail+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
 #******************************************************************************************************************************
-# Reports OK: if the `_in_str` is not empty. [[ -n _in_str ]]
+# Reports OK: if the `_str` is not empty. [[ -n _str ]]
 #
 #   ARGUMENTS
 #       `_ret_cok`: a reference var: Counter for OK Tests - will be updated
 #       `_ret_cfail`: a reference var: Counter for FAILED Tests - will be updated
-#       `_in_str`: value to check
+#       `_str`: value to check
 #       `_inf`: info message
 #
 #   USAGE
@@ -388,24 +393,21 @@ te_empty_val() {
 #       te_not_empty_val _COK _CFAIL "" "Testing something - expected an none empty string"
 #******************************************************************************************************************************
 te_not_empty_val() {
-    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
-    local _in_str=${3}
+    local _str=${3}
     local _inf=${4}
     local _m=$(_g "Expected not empty. Got:")
     local _b=${_BF_BOLD}  # shorten the var name: so we keep the line char limit
 
-    if [[ -n ${_in_str} ]]; then
-        printf "${_b}${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+    if [[ -n ${_str} ]]; then
+        printf "${_b}${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m} <${_b}${_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
         _ret_cok+=1
     else
-        printf "${_b}${_BF_RED}    [FAILED] ${_BF_OFF}${_m} <${_b}${_in_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
+        printf "${_b}${_BF_RED}    [FAILED] ${_BF_OFF}${_m} <${_b}${_str}${_BF_OFF}>${_b} ${_inf}${_BF_OFF}\n" >&1
         _ret_cfail+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
@@ -427,7 +429,7 @@ te_not_empty_val() {
 #       te_retcode_0 _COK _CFAIL ${?} "${_info_msg}"
 #******************************************************************************************************************************
 te_retcode_0() {
-    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
     declare -i _func_ret=${3}
@@ -443,9 +445,6 @@ te_retcode_0() {
         printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_b}0${_BF_OFF}${_m1} (${_b}${_func_ret}${_BF_OFF}) ${_inf}\n" >&1
         _ret_cok+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
@@ -467,7 +466,7 @@ te_retcode_0() {
 #       te_retcode_1 _COK _CFAIL ${?} "${_info_msg}"
 #******************************************************************************************************************************
 te_retcode_1() {
-    (( ${#} != 4 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '4' arguments. Got '%s'\n\n")" "${#}"
+    i_exact_args_exit ${LINENO} 4 ${#}
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
     declare -i _func_ret=${3}
@@ -483,9 +482,6 @@ te_retcode_1() {
         printf "${_BF_RED}    [FAILED] ${_BF_OFF}${_m}${_b}1${_BF_OFF}${_m1} (${_b}${_func_ret}${_BF_OFF}) ${_inf}\n" >&1
         _ret_cfail+=1
     fi
-
-    # Avoid: ABORTING....from: <ERR Trap>
-    return 0
 }
 
 
@@ -506,7 +502,7 @@ te_retcode_1() {
 #       te_retcode_same _COK _CFAIL ${?} 18 "${_info_msg}"
 #******************************************************************************************************************************
 te_retcode_same() {
-    (( ${#} != 5 )) && te_abort ${LINENO} "$(_g "FUNCTION Requires EXACT '5' arguments. Got '%s'\n\n")" "${#}"
+    i_exact_args_exit ${LINENO} 5 ${#}
     local -n _ret_cok=${1}
     local -n _ret_cfail=${2}
     declare -i _func_ret=${3}
@@ -528,6 +524,46 @@ te_retcode_same() {
     # Avoid: catched by a trap
     return 0
 }
+
+
+#******************************************************************************************************************************
+# TODO: UPDATE THIS if there are functions/variables added or removed.
+#
+# EXPORT:
+#   helpful command to get function names: `declare -F` or `compgen -A function`
+#******************************************************************************************************************************
+te_export() {
+    local _func_names _var_names
+
+    _func_names=(
+        te_abort
+        te_empty_val
+        te_export
+        te_find_err_msg
+        te_find_info_msg
+        te_ms_failed
+        te_ms_ok
+        te_not_empty_val
+        te_print_final_result
+        te_print_function_msg
+        te_print_header
+        te_retcode_0
+        te_retcode_1
+        te_retcode_same
+        te_same_val
+        te_warn
+    )
+
+    [[ -v _BF_EXPORT_ALL ]] || i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'.")"
+    if [[ ${_BF_EXPORT_ALL} == "yes" ]]; then
+        export -f "${_func_names[@]}"
+    elif [[ ${_BF_EXPORT_ALL} == "no" ]]; then
+        export -nf "${_func_names[@]}"
+    else
+        i_exit 1 ${LINENO} "$(_g "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: '%s'.")" "${_BF_EXPORT_ALL}"
+    fi
+}
+te_export
 
 
 #******************************************************************************************************************************

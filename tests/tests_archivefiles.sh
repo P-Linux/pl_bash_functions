@@ -11,6 +11,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="archivefiles.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -18,6 +19,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
@@ -111,11 +113,11 @@ tsa__a_rm_pkgarchives() {
     mkdir -p "${_portpath1}/subfolder"
 
     _output=$((a_rm_pkgarchives "${_portname1}" "${_portpath1}" "${_arch}" "${_pkg_ext}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '5' arguments. Got '4'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_rm_pkgarchives()' Requires EXACT '5' arguments. Got '4'"
 
     _archive_backup_dir=""
     _output=$((a_rm_pkgarchives "${_portname1}" "${_portpath1}" "${_arch}" "${_pkg_ext}" "${_archive_backup_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument 5 (_backup_dir) MUST NOT be empty."
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_rm_pkgarchives()' Argument '5' MUST NOT be empty."
 
     _archive_backup_dir="${_portpath1}/pkgarchive_backup"
     _output=$((a_rm_pkgarchives "${_portname1}" "${_portpath1}" "${_arch}" "${_pkg_ext}" "${_archive_backup_dir}") 2>&1)
@@ -228,7 +230,7 @@ tsa__a_get_archive_ext() {
     local _output _ext _pkgarchive
 
     _output=$((a_get_archive_ext) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '3' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_get_archive_ext()' Requires EXACT '3' arguments. Got '0'"
 
     _pkgarchive="/home/test/attr.man1462570367any.wrong.tar.xz"
     _output=$((a_get_archive_ext _ext "${_pkgarchive}" "${_ref_ext}") 2>&1)
@@ -267,7 +269,7 @@ tsa__a_get_archive_name() {
 
     _pkgarchive="/home/test/attr.man1462570367any.cards.tar.xz"
     _output=$((a_get_archive_name _name_x "${_pkgarchive}" "${_sysarch}" "${_ref_ext}" "too_many_args") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '5'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_get_archive_name()' Requires EXACT '4' arguments. Got '5'"
 
     _pkgarchive="/home/test/attr.man1462570367wrong.cards.tar.xz"
     _output=$((a_get_archive_name _name_x "${_pkgarchive}" "${_sysarch}" "${_ref_ext}") 2>&1)
@@ -305,7 +307,7 @@ tsa__a_get_archive_buildvers() {
     local _output _buildvers _pkgarchive
 
     _output=$((a_get_archive_buildvers) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_get_archive_buildvers()' Requires EXACT '4' arguments. Got '0'"
 
     _pkgarchive="/home/test/attr.man1462570367wrong.cards.tar.xz"
     _output=$((a_get_archive_buildvers _buildvers "${_pkgarchive}" "${_sysarch}" "${_ref_ext}") 2>&1)
@@ -344,7 +346,7 @@ tsa__a_get_archive_arch() {
     local _output _arch _pkgarchive
 
     _output=$((a_get_archive_arch) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_get_archive_arch()' Requires EXACT '4' arguments. Got '0'"
 
     _pkgarchive="/home/test/attr.man1462570367wrong.cards.tar.xz"
     _output=$((a_get_archive_arch _arch "${_pkgarchive}" "${_sysarch}" "${_ref_ext}") 2>&1)
@@ -382,7 +384,7 @@ tsa__a_get_archive_parts(){
     local _output _name_x _buildvers _arch _ext _pkgarchive
 
     _output=$((a_get_archive_parts _name_x) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '7' arguments. Got '1'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_get_archive_parts()' Requires EXACT '7' arguments. Got '1'"
 
     _pkgarchive="/home/test/attr.man1462570367any.wrong.tar.xz"
     _output=$((a_get_archive_parts _name_x _buildvers _arch _ext "${_pkgarchive}" "${_sysarch}" "${_ref_ext}") 2>&1)
@@ -436,7 +438,7 @@ tsa__a_get_archive_name_arch() {
     local _output _name_x _arch _pkgarchive
 
     _output=$((a_get_archive_name_arch _name_x) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '5' arguments. Got '1'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_get_archive_name_arch()' Requires EXACT '5' arguments. Got '1'"
 
     _pkgarchive="/home/test/attr.man1462570367any.wrong.tar.xz"
     _output=$((a_get_archive_name_arch _name_x _arch "${_pkgarchive}" "${_sysarch}" "${_ref_ext}") 2>&1)
@@ -485,7 +487,7 @@ tsa__a_is_archive_uptodate() {
     mkdir -p "${_portpath1}"
 
     _output=$((a_is_archive_uptodate) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '3' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'a_is_archive_uptodate()' Requires EXACT '3' arguments. Got '0'"
 
     _pkgarchive_path_older="${_portpath1}/attr0000000000x86_64.cards.tar.xz"
     _pkgfile_path="${_portpath1}/Pkgfile"
@@ -532,11 +534,59 @@ tsa__a_is_archive_uptodate() {
 tsa__a_is_archive_uptodate
 
 
+#******************************************************************************************************************************
+# TEST: a_export()
+#******************************************************************************************************************************
+tsi__a_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "a_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((a_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((a_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        a_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx a_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx a_export'."
+
+        _BF_EXPORT_ALL="no"
+        a_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f a_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f a_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__a_export
+
+
 
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 75
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

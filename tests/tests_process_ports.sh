@@ -11,6 +11,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="process_ports.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -18,6 +19,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
@@ -47,11 +49,11 @@ tsp__p_make_pkg_build_dir() {
 
     unset -v pkgdir srcdir
     _output=$((p_make_pkg_build_dir) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_make_pkg_build_dir()' Requires EXACT '1' argument. Got '0'"
 
     unset -v pkgdir srcdir
     _output=$((p_make_pkg_build_dir "") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument '1' MUST NOT be empty"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_make_pkg_build_dir()' Argument '1' MUST NOT be empty."
 
     unset -v pkgdir srcdir
     _pkg_build_dir="${_tmp_dir}/test1"
@@ -110,7 +112,7 @@ tsp__p_remove_downloaded_src() {
     cp -rf "${_TEST_SCRIPT_DIR}/files/example_port" "${_ports_dir}"
 
     _output=$((p_remove_downloaded_src) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_remove_downloaded_src()' Requires AT LEAST '1' argument. Got '0'"
 
     _filter=(["ftp"]=0 ["local"]=0)
     _output=$((p_remove_downloaded_src _scrmtx _filter) 2>&1)
@@ -176,7 +178,7 @@ tsp__p_remove_pkgfile_backup() {
     local _backup_pkgfile_path="${_pkgfile_path}.bak"
 
     _output=$((p_remove_pkgfile_backup) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '1' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_remove_pkgfile_backup()' Requires EXACT '1' argument. Got '0'"
 
     # Make files
     touch "${_pkgfile_path}"
@@ -229,7 +231,7 @@ tsp__p_update_pkgfile_pkgmd5sums() {
     fi
 
     _output=$((p_update_pkgfile_pkgmd5sums) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '2' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_update_pkgfile_pkgmd5sums()' Requires EXACT '2' arguments. Got '0'"
 
     rm -f "${_backup_pkgfile_path}"
     _new_pkgmd5sums=("123456789" "SKIP" 987654321)
@@ -297,8 +299,8 @@ tsp__p_update_port_repo_file() {
     # Make files
     cp -rf "${_TEST_SCRIPT_DIR}/files/example_collection1" "${_collectionpath}"
 
-    #_output=$((p_update_port_repo_file) 2>&1)
-    #te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '6' arguments. Got '0'"
+    _output=$((p_update_port_repo_file) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_update_port_repo_file()' Requires EXACT '6' arguments. Got '0'"
 
     _pkgfile_path="${_acl_portpath}/Pkgfile"
     _portname="acl"
@@ -404,7 +406,7 @@ tsp__p_update_collection_repo_file() {
     rm -f "${_collection_repofile_path}"
 
     _output=$((p_update_collection_repo_file) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '4' arguments. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_update_collection_repo_file()' Requires EXACT '4' arguments. Got '0'"
 
     _portname="acl"
     _portpath="${_acl_portpath}"
@@ -455,10 +457,10 @@ tsp__p_strip_files() {
     te_print_function_msg "p_strip_files()"
     local _tmp_dir=$(mktemp -d)
     local _output
-    
+
     _output=$((p_strip_files) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires EXACT '1' arguments. Got '0'"
-    
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'p_strip_files()' Requires EXACT '1' argument. Got '0'"
+
     # Create test files/folders
     bsdtar -p -C "${_tmp_dir}/" -xf "${_TEST_SCRIPT_DIR}/files/example_to_strip.tar.xz"
 
@@ -495,11 +497,59 @@ echo "TODO: TEST ARE MISSING FOR: pr_compress_man_info_pages()"
 echo "TODO: TEST ARE MISSING FOR: p_build_archives()"
 
 
+#******************************************************************************************************************************
+# TEST: p_export()
+#******************************************************************************************************************************
+tsi__p_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "p_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((p_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((p_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        p_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx p_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx p_export'."
+
+        _BF_EXPORT_ALL="no"
+        p_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f p_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f p_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__p_export
+
+
 
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 49
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

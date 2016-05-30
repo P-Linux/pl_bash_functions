@@ -11,6 +11,7 @@ _TEST_SCRIPT_DIR=$(dirname "${_THIS_SCRIPT_PATH}")
 _FUNCTIONS_DIR="$(dirname "${_TEST_SCRIPT_DIR}")/scripts"
 _TESTFILE="extract.sh"
 
+_BF_EXPORT_ALL="yes"
 source "${_FUNCTIONS_DIR}/init_conf.sh"
 _BF_ON_ERROR_KILL_PROCESS=0     # Set the sleep seconds before killing all related processes or to less than 1 to skip it
 
@@ -18,6 +19,7 @@ for _signal in TERM HUP QUIT; do trap 'i_trap_s ${?} "${_signal}"' "${_signal}";
 trap 'i_trap_i ${?}' INT
 # For testing don't use error traps: as we expect failed tests - otherwise we would need to adjust all
 #trap 'i_trap_err ${?} "${BASH_COMMAND}" ${LINENO}' ERR
+trap 'i_trap_exit ${?} "${BASH_COMMAND}"' EXIT
 
 i_source_safe_exit "${_FUNCTIONS_DIR}/testing.sh"
 te_print_header "${_TESTFILE}"
@@ -63,13 +65,13 @@ tse__e_extract_src_files_abort() {
     cp "${_TEST_SCRIPT_DIR}/files/corrupt_archive.tar.xz" "${_srcdst_dir}/corrupt_archive.tar.xz"
 
     _output=$((e_extract_src) 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Requires AT LEAST '2' argument. Got '0'"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'e_extract_src()' Requires AT LEAST '2' arguments. Got '0'"
 
     _scrmtx=()
     _sources=("http://dummy_uri.existing.files/bridge-utils_1.5-9.deb")
     _checksums=("SKIP")
     _output=$((e_extract_src _scrmtx "" "${_rm_build_dir}") 2>&1)
-    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION Argument '2' MUST NOT be empty"
+    te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'e_extract_src()' Argument '2' MUST NOT be empty."
 
     _scrmtx=()
     _sources=("http://dummy_uri.existing.files/bridge-utils_1.5-9.deb")
@@ -604,11 +606,59 @@ tse__e_extract_src_bzr() {
 tse__e_extract_src_bzr
 
 
+#******************************************************************************************************************************
+# TEST: e_export()
+#******************************************************************************************************************************
+tsi__e_export() {
+    (source "${_EXCHANGE_LOG}"
+
+    te_print_function_msg "e_export()"
+    local _output
+
+    unset _BF_EXPORT_ALL
+
+    _output=$((e_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be set to: 'yes/no'."
+
+    _BF_EXPORT_ALL="wrong"
+    _output=$((e_export) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" "Variable '_BF_EXPORT_ALL' MUST be: 'yes/no'. Got: 'wrong'."
+
+    (
+        _BF_EXPORT_ALL="yes"
+        e_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes'."
+
+        [[ $(declare -F) == *"declare -fx e_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'yes' - find exported function: 'declare -fx e_export'."
+
+        _BF_EXPORT_ALL="no"
+        e_export &> /dev/null
+        te_retcode_0 _COK _CFAIL ${?} "Test _BF_EXPORT_ALL set to 'no'."
+
+        [[ $(declare -F) == *"declare -f e_export"* ]]
+        te_retcode_0 _COK _CFAIL ${?} \
+            "Test _BF_EXPORT_ALL set to 'yes' - find NOT exported function: 'declare -f e_export'."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+
+    ###
+    echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+}
+tsi__e_export
+
+
 
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}"
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 52
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************
