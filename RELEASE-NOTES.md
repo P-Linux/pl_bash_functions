@@ -3,7 +3,11 @@
 
 ---
 
+
 ## v0.9.6 (xxxx-xx-xx)
+
+* adjust function: u_repeat_failed_command to not trigger ERR traps on exit if command failed
+    and retrieve the actual commands exit code
 
 
 ## v0.9.5 (2016-05-30)

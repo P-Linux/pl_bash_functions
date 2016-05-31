@@ -1236,25 +1236,52 @@ tsu__u_repeat_failed_command() {
     (source "${_EXCHANGE_LOG}"
 
     te_print_function_msg "u_repeat_failed_command()"
-    local _output
+    local _output _command
+    declare -i _ret
 
-    _output=$((u_repeat_failed_command 0 1 true) 2>&1)
+    _output=$((u_repeat_failed_command _ret) 2>&1)
+    te_find_err_msg _COK _CFAIL "${_output}" \
+        "FUNCTION: 'u_repeat_failed_command()' Requires AT LEAST '4' arguments. Got '1'"
+
+    _output=$((u_repeat_failed_command _ret 0 1 true) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "'_max_tries': must be greater than 0. Got: '0'" \
-        "Test INPUT: <u_repeat_failed_command 0 1 true>"
+        "Test INPUT: <u_repeat_failed_command _ret 0 1 true>"
 
-    _output=$((u_repeat_failed_command 1 -1 true) 2>&1)
+    _output=$((u_repeat_failed_command _ret 1 -1 true) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "'_delay_sec': must be greater than -1. Got: '-1'" \
-        "Test INPUT: <u_repeat_failed_command 1 -1 true> _DELAY_SEC: must be greater than -1."
+        "Test INPUT: <u_repeat_failed_command _ret 1 -1 true> _DELAY_SEC: must be greater than -1."
 
-    _output=$((u_repeat_failed_command 1 1 true) 2>&1)
-    te_retcode_0 _COK _CFAIL ${?} "Test INPUT: <u_repeat_failed_command 1 1 true>."
-    te_empty_val _COK _CFAIL "${_output}" "Test INPUT: <u_repeat_failed_command 1 1 true> Check no warn message."
+    _output=$((u_repeat_failed_command _ret 1 1 true) 2>&1)
+    te_retcode_0 _COK _CFAIL ${?} \
+        "Test INPUT: <u_repeat_failed_command 1 1 true>. Return code should always be 0 for this function"
+    te_empty_val _COK _CFAIL "${_output}" "Test INPUT: <u_repeat_failed_command _ret 1 1 true> Check no warn message."
 
-    _output=$((u_repeat_failed_command 2 1 false) 2>&1)
+    _output=$((u_repeat_failed_command _ret 2 1 false) 2>&1)
+    te_retcode_0 _COK _CFAIL ${?} \
+        "Test INPUT: <u_repeat_failed_command _ret 2 1 false>. Return code should always be 0 for this function"
     te_find_info_msg _COK _CFAIL "${_output}" "WARNING: Command failed: '2' times" \
         "Test INPUT: <u_repeat_failed_command 2 1 false> Find failed: 2 times WARNING message."
 
-    ###
+    (
+        _ret=-1
+        u_repeat_failed_command _ret 2 1 false &> /dev/null
+        te_same_val _COK _CFAIL  "${_ret}" "1" \
+            "Test actual comman status code: _ret INPUT: <u_repeat_failed_command _ret 2 1 false>."
+
+        _ret=-1
+        _command="wget"
+        [[ $(type -p "${_command}") ]] || te_warn "${FUNCNAME[0]}" "Command '%s' is REQUIRED for this test." "${_command}"
+        u_repeat_failed_command _ret 2 1 ${_command} "wrong_uri" &> /dev/null
+        te_same_val _COK _CFAIL  "${_ret}" "4" \
+            "Test actual comman status code: _ret INPUT: <u_repeat_failed_command _ret 2 1 false>."
+
+        # need to write the results from the subshell
+        echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
+    )
+    # need to resource the results from the subshell
+    source "${_EXCHANGE_LOG}"
+
+    ####
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
@@ -1559,7 +1586,7 @@ tsi__u_export
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 198
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 202
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

@@ -999,7 +999,6 @@ u_get_unix_timestamp() {
 #
 #   Note: 64-bit bash integers limits: -9223372036854775808 to 9223372036854775807
 #
-#
 #   OPTIONAL ARGUMENTS:
 #       `_greater_than`: (defaults to 0)
 #
@@ -1026,22 +1025,48 @@ u_is_integer_greater() {
 
 
 #******************************************************************************************************************************
-# Repeats a failed command for a '_max_tries' times with '_delay_sec between' breaks as soon as commands returns: 0
+# Repeats a failed command for a '_max_tries' times with '_delay_sec between' breaks as soon as commands succeeded
 #
-#   Note: 64-bit bash integers limits: -9223372036854775808 to 9223372036854775807
+#   Important: if the command failed finally this function returns 0: so that ERR traps are not triggered
+#       To get the final exit result use the: _ret_status_code_rfc
+#
+#   ARGUMENTS:
+#       `_ret_status_code_rfc`: a reference var: an integer will be updated with the commands exit code
+#       `_max_tries`: (defaults to 0)
+#       `_delay_sec`: (defaults to 0)
+#       `_command`: command and any optional command arguments
 #
 #   USAGE:
-#       u_repeat_failed_command 3 4 echo "hello" | tr 'l' 'L'
-#       u_repeat_failed_command 3 4 wget "not found"
+#       declare -i _ret; u_repeat_failed_command _ret 3 4 true
+#       declare -i _ret; u_repeat_failed_command _ret 3 4 false
+#       declare -i _ret; u_repeat_failed_command _ret 3 4 wget "not found"
+#       if (( ${_ret} )); then echo "FINAL FAILURE to execute command"; fi
+#
+#   POSSIBLE PROBLEM EXAMPLE: This will raise an Error: _ret: unbound variable Trap EXIT
+#
+#       declare -i _ret; u_repeat_failed_command _ret 3 4 echo "hello" | tr 'l' 'L'
+#       if (( ${_ret} )); then echo "FINAL FAILURE to execute command"; fi
+#
+#    SOLUTION: in this case do not use `u_repeat_failed_command() or put the command in a function
+#
+#       this_workd() {
+#           echo "hello" | tr 'l' 'L'
+#       }
+#
+#       declare -i _ret; u_repeat_failed_command _ret 3 4 this_workd
+#       if (( ${_ret} )); then echo "FINAL FAILURE to execute command"; fi
 #******************************************************************************************************************************
 u_repeat_failed_command() {
-    i_exit_empty_arg ${LINENO} "${1}" 1
+    i_min_args_exit ${LINENO} 4 ${#}
     i_exit_empty_arg ${LINENO} "${2}" 2
     i_exit_empty_arg ${LINENO} "${3}" 3
-    declare -i _max_tries=${1}
-    declare -i _delay_sec=${2}; shift
+    i_exit_empty_arg ${LINENO} "${4}" 4
+    local -n _ret_status_code_rfc=${1}
+    declare -i _max_tries=${2}
+    declare -i _delay_sec=${3}; shift
     declare -i _n
 
+    _ret_status_code_rfc=1
     if ! u_is_integer_greater ${_max_tries} 0; then
         i_exit 1 ${LINENO} "$(_g "'_max_tries': must be greater than 0. Got: '%s'")" "${_max_tries}"
     elif ! u_is_integer_greater ${_delay_sec} -1; then
@@ -1049,8 +1074,11 @@ u_repeat_failed_command() {
     fi
 
     for (( _n=1; _n <= ${_max_tries}; _n++ )); do
-        if "${@:2}"; then
+        if "${@:3}"; then
+            _ret_status_code_rfc=${?}
             return 0
+        else
+            _ret_status_code_rfc=${?}
         fi
         if (( _n < ${_max_tries} )); then
             sleep ${_delay_sec}
@@ -1058,14 +1086,12 @@ u_repeat_failed_command() {
         fi
     done
     i_color "${_BF_YELLOW}" "$(_g "    ====> WARNING: Command failed: '%s' times")"  $((_n - 1))
-    return 1  # Do not exit on this one
+    return 0
 }
 
 
 #******************************************************************************************************************************
 # Returns 0 if '_find' is in  '_array' else 1
-#
-#   Note: 64-bit bash integers limits: -9223372036854775808 to 9223372036854775807
 #
 #   ARGUMENTS
 #       `$1 (_find)`: item to search for

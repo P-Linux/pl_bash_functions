@@ -213,6 +213,7 @@ d_download_file() {
     local _uri_name; u_basename _uri_name "${_uri}"
     local _dl_tmp_path="${_destpath}.partial"
     local _mirror
+    declare -i _ret
 
     if [[ -f ${_destpath} ]]; then
         i_more_i "$(_g "Found ftp|http|https source file: <%s>")" "${_destpath}"
@@ -259,29 +260,29 @@ d_download_file() {
         for _mirror in "${_in_dl_mirrors_f[@]}"; do
             u_strip_end_slahes _mirror "${_mirror}"
             i_more_i "$(_g "Downloading WITH RESUME option - MIRROR URI: <%s>")" "${_mirror}/${_uri_name}"
-            u_repeat_failed_command 2 2 _download_move "${_mirror}/${_uri_name}" "${_resume_opts}"
-            if (( ! ${?} )); then
+            u_repeat_failed_command _ret 2 2 _download_move "${_mirror}/${_uri_name}" "${_resume_opts}"
+            if (( ! ${_ret} )); then
                 _verify_checksum; (( ${?} )) || return 0
             fi
 
             i_more_i "$(_g "Retrying WITHOUT RESUME option - MIRROR URI: <%s>")" "${_mirror}/${_uri_name}"
-            u_repeat_failed_command 2 2 _download_move "${_mirror}/${_uri_name}"
-            if (( ! ${?} )); then
+            u_repeat_failed_command _ret 2 2 _download_move "${_mirror}/${_uri_name}"
+            if (( ! ${_ret} )); then
                 _verify_checksum; (( ${?} )) || return 0
             fi
         done
     fi
 
     i_more_i "$(_g "Downloading WITH RESUME option - ORIGINAL URI: <%s>")" "${_uri}"
-    u_repeat_failed_command 2 3 _download_move "${_uri}" "${_resume_opts}"
-    if (( ! ${?} )); then
+    u_repeat_failed_command _ret 2 3 _download_move "${_uri}" "${_resume_opts}"
+    if (( ! ${_ret} )); then
         _verify_checksum; (( ${?} )) || return 0
     fi
 
     i_bold "$(_g "Retrying WITHOUT RESUME option - ORIGINAL URI: <%s>")" "${_uri}"
     rm -f -- "${_dl_tmp_path}"
-    u_repeat_failed_command 2 3 _download_move "${_uri}"
-    if (( ! ${?} )); then
+    u_repeat_failed_command _ret 2 3 _download_move "${_uri}"
+    if (( ! ${_ret} )); then
         _verify_checksum; (( ${?} )) || return 0
     fi
     i_exit 1 ${LINENO} "$(_g "Failure while downloading file. ENTRY: <%s>")" "${_ent}"
