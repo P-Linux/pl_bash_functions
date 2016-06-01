@@ -414,14 +414,12 @@ p_strip_files() {
 #******************************************************************************************************************************
 p_compress_man_info_pages() {
     # skip assignment:  _in_dir_path=${1}
-    local _pattern=${_pattern}
+    local _pattern=${2}
     local _f _link_target _link_target_dir
 
     pushd "${1}" &> /dev/null
     find . -type f -path "${_pattern}" | while read -r _f ; do
-        if [[ ${_f} != *".gz" ]]; then
-            gzip -9 "${_f}"
-        fi
+        [[ ${_f} == *".gz" ]] || gzip -9 "${_f}"
     done
 
     find . -type l -path "${_pattern}" | while read _f; do
@@ -474,87 +472,118 @@ p_build_archives() {
 
     #**************************************************************************************************************************
     #   ARGUMENTS
-    #       `__complete_name_part`: 'port-name'
+    #       `__portname`: port name
     #                               'port-name.group-name': (only if it is a group pkgarchive.)
     #                               'port-name.locale-name': (only if it is a locale pkgarchive.)
-    #       `__arch`:  final used pkgarchive name architecture: any or system-architecture
-    #       `__is_main_archive`: yes (for main pkgarchive), no (for group or locale pkgarchive)
+    #       `__sysarch`: architecture e.g.: "$(uname -m)"
+    #       `__archive_type`: "main", "locale" or "group"
+    #
+    #   OPTIONAL ARGUMENTS
+    #       `__type_info`: extra info used for locale or group types.
+    #                       locale: a locale to process e.g: "de"
+    #                       group: the group to process e.g: "devel"
+    #                       main: does not use it: defaults to ""
     #**************************************************************************************************************************
     _create_pkgarchive() {
-        local __complete_name_part=${1}
-        local __arch=${2}
-        local __is_main_archive=${3}
-        local __archive_path="${_portpath}/${__complete_name_part}${_buildvers}${__arch}.${_ref_ext}"
+        local __portname=${1}
+        local __sysarch=${2}
+        local __archive_type=${3}
+        local __type_info=${4:-""}
         local __meta_str=""
-        local __size __path
+        local __size __path __archive_path __final_arch __loc __dir
 
-        if [[ ${__is_main_archive} == "yes" ]]; then
+        if [[ ${__archive_type} == "main" ]]; then
+            __final_arch=${__sysarch}
+            __archive_path="${_portpath}/${__portname}${_buildvers}${__final_arch}.${_ref_ext}"
+
             # remove any left locale
             rm -rf "${_build_pkgdir}/usr/share/locale" "${_build_pkgdir}/opt/*/share/locale"
             u_dir_has_content_exit "${_build_pkgdir}"
 
             ### Copy & rename meta file
-            __path="${_portpath}/${__complete_name_part}.README"
+            __path="${_portpath}/${__portname}.README"
             if [[ -f ${__path} ]]; then
                 cp -f "${__path}" "${_build_pkgdir}/.README"
             fi
-            __path="${_portpath}/${__complete_name_part}.pre-install"
+            __path="${_portpath}/${__portname}.pre-install"
             if [[ -f ${__path} ]]; then
                 cp -f "${__path}" "${_build_pkgdir}/.PRE"
             fi
-            __path="${_portpath}/${__complete_name_part}.post-install"
+            __path="${_portpath}/${__portname}.post-install"
             if [[ -f ${__path} ]]; then
                 cp -f "${__path}" "${_build_pkgdir}/.POST"
             fi
 
+            ### Create the Archive
+            i_more_i "$(_g "Taring pkgarchive: '%s'")" "${__portname}"
+            [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
+
+            LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" *
+        elif [[ ${__archive_type} == "locale" ]]; then
+            __loc=${__type_info}
+            __final_arch="any"
+            __archive_path="${_portpath}/${__portname}.${__loc}${_buildvers}${__final_arch}.${_ref_ext}"
+
+            ### Create the Archive
+            i_more_i "$(_g "Taring pkgarchive: '%s'")" "${__portname}.${__loc}"
+            [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
+
+            # PATH: usr/share/locale AND opt/*/share/locale
+            for __dir in "usr/share/locale/${__loc}" "opt/*/share/locale/${__loc}"; do
+                __path="${_build_pkgdir}/${__dir}"
+                if [[ -d ${__path} ]]; then
+                    LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
+                fi
+                rm -rf "${__path}"
+            done
+
+        elif [[ ${__archive_type} == "group" ]]; then
+            echo "=====================_create_pkgarchive(): TODO: GROUP"
         else
-            echo "_create_pkgarchive(): TODO: GROUP, LOCALE NOT YET DONE"
+            i_exit 1 ${LINENO} "$(_g "FUNCTION: p_build_archives()_create_pkgarchive(): CODE-ERROR")"
         fi
 
-        ### Create the Archive
-        i_more_i "$(_g "Taring pkgarchive...")"
-        LANG=C bsdtar -C "${_build_pkgdir}" -cf "${__archive_path}" *
+        ##### ONLY DO THIS IF WE GOT AN ARCHIVE: e.g. if the locale was not found there will be no archive
+        if [[ -f ${__archive_path} ]]; then
+            ### Generate .META file
+            i_more_i  "$(_g "Adding meta data to pkgarchive: '%s'")" "${__portname}"
+            __meta_str+="N${__portname}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
 
-        ### Generate .META file
-        i_more_i  "$(_g "Adding meta data to pkgarchive: '%s'")" "${__complete_name_part}"
-        __meta_str+="N${__complete_name_part}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
+            __size=$(du -b "${__archive_path}")
+            # NOTE Can not use: u_prefix_shortest_empty __size because the input is treated as a string
+            __size=${__size%%[[:blank:]]*}
+            [[ -n ${__size} ]] || i_exit 1 ${LINENO} "$(_g "Could not get the Size of the new pkgarchive: <%s>")" \
+                                    "${__archive_path}"
 
-        __size=$(du -b "${__archive_path}")
-        # NOTE Can not use for this: u_prefix_shortest_empty __size because the inpput is treated as a string
-        __size=${__size%%[[:blank:]]*}
-        [[ -n ${__size} ]] || i_exit 1 ${LINENO} \
-                "$(_g "Could not get the Size of the new pkgarchive: <%s>")" "${__archive_path}"
-
-        __meta_str+="S${__size}\nV${pkgvers}\nr${pkgrel}\nB${_buildvers}\na${__arch}"
-        # TODO: Add the runtime dependencies to the .META file
-        if [[ ${_got_pkginfo} == "yes" ]]; then
-            if [[ ${_ignore_runtimedeps} == "no" ]]; then
-                echo "_create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
-            elif [[ ${_ignore_runtimedeps} != "yes" ]]; then
-                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
-                    "${_ignore_runtimedeps}"
+            __meta_str+="S${__size}\nV${pkgvers}\nr${pkgrel}\nB${_buildvers}\na${__final_arch}"
+            # TODO: Add the runtime dependencies to the .META file
+            if [[ ${_got_pkginfo} == "yes" ]]; then
+                if [[ ${_ignore_runtimedeps} == "no" ]]; then
+                    echo "_create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
+                elif [[ ${_ignore_runtimedeps} != "yes" ]]; then
+                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
+                        "${_ignore_runtimedeps}"
+                fi
+            elif [[ ${_got_pkginfo} != "no" ]]; then
+                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 14 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" "${_got_pkginfo}"
             fi
-        elif [[ ${_got_pkginfo} != "no" ]]; then
-            i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 14 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" \
-                "${_got_pkginfo}"
-        fi
 
-        echo -e "${__meta_str}" > .META || exit 1
+            echo -e "${__meta_str}" > .META || exit 1
 
-        ### Generate .MTREE file
-        bsdtar -tf "${__archive_path}" > .MTREE || exit 1
+            ### Generate .MTREE file
+            bsdtar -tf "${__archive_path}" > .MTREE || exit 1
 
-        ### Add the .MTREE .META file
-        LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" ".META" ".MTREE" || exit 1
+            ### Add the .MTREE .META file
+            LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" ".META" ".MTREE" || exit 1
 
-        ### Compress if needed
-        if [[ ${_use_comp} == "yes" ]]; then
-            i_more_i "$(_g "Compressing pkgarchive with xz...")"
-            # NOTE _comp_opts should not be in double quotes
-            xz -z ${_comp_opts} "${__archive_path}"
-        elif [[ ${_use_comp} != "no" ]]; then
-            i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 7 (_use_comp) MUST be 'yes' or 'no'. Got: '%s'")" \
-                "${_use_comp}"
+            ### Compress if needed
+            if [[ ${_use_comp} == "yes" ]]; then
+                i_more_i "$(_g "Compressing pkgarchive with xz...")"
+                # NOTE _comp_opts should not be in double quotes
+                xz -z ${_comp_opts} "${__archive_path}"
+            elif [[ ${_use_comp} != "no" ]]; then
+                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 7 (_use_comp) MUST be 'yes' or 'no'. Got: '%s'")" "${_use_comp}"
+            fi
         fi
     }
 
@@ -574,7 +603,7 @@ p_build_archives() {
     local _build_pkgdir=${13}
     local _got_pkginfo=${14}
     local _ignore_runtimedeps=${15}
-    local _group _archive_path
+    local _group _archive_path _cm_locale
 
     i_msg "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
 
@@ -601,23 +630,30 @@ p_build_archives() {
 
         echo "TODO: REMOVE THIS LATER: CM_GROUPS=()"
         #CM_GROUPS=()
-        ## Process any groups
-        #for _group in "${CM_GROUPS[@]}"; do
-            #if u_got_function "${_group}"; then
-                #(set -e -x; "${group}")
-                if (( ${?} )); then
-                    i_exit 1 ${LINENO} "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
-                fi
-            #else
-                #echo "TODO: PACK/REMOVE GROUPS"
-            #fi
-        #done
+        ### Process any groups
+        #if [[ -v CM_GROUPS[@] ]]; then
+            #echo "NOT IMPLEMENTED YET: GROUPS"
+            ##for _group in "${CM_GROUPS[@]}"; do
+                ##if u_got_function "${_group}"; then
+                    ##(set -e -x; "${group}")
+                    ##if (( ${?} )); then
+                        ##i_exit 1 ${LINENO} "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
+                    ##fi
+                ##else
+                    ##echo "TODO: PACK/REMOVE GROUPS"
+                ##fi
+            ##done
+        #fi
 
         ### Process any locale
-        echo "TODO: Process any locale"
+        if [[ -v CM_LOCALES[@] ]]; then
+            for _cm_locale in "${CM_LOCALES[@]}"; do
+                _create_pkgarchive "${_portname}" "${_sysarch}" "locale" "${_cm_locale}"
+            done
+        fi
 
-        ### Create the main pkgarchive
-        _create_pkgarchive "${_portname}" "${_sysarch}" "yes"
+        ## Create the main pkgarchive
+        _create_pkgarchive "${_portname}" "${_sysarch}" "main"
 
     fi
 
@@ -636,6 +672,7 @@ p_export() {
 
     _func_names=(
         p_build_archives
+  #      p_compress_locale
         p_compress_man_info_pages
         p_export
         p_make_pkg_build_dir

@@ -1093,12 +1093,15 @@ u_repeat_failed_command() {
 #******************************************************************************************************************************
 # Returns 0 if '_find' is in  '_array' else 1
 #
+#   SPEED NOTE: depending on what one does with the result it might be better to do the loop directly in the code
+#               without using this function.
+#
 #   ARGUMENTS
 #       `$1 (_find)`: item to search for
 #       `_in_array`: a reference var
 #
 #   USAGE:
-#       _TEST_ARRAY=("yes" 1 45 "VALID ITEMs" "" "test")
+#       _TEST_ARRAY=("yes" 1 45 "VALID ITEM" "" "test")
 #       if u_in_array "VALID ITEM" _TEST_ARRAY; then
 #           echo "FOUND"
 #       else
@@ -1112,7 +1115,8 @@ u_in_array() {
     # skip assignment:  local _find=${1}
     local -n _in_array=${2}
     local _element
-
+    [[ -v _in_array[@] ]] || return 1
+    
     for _element in "${_in_array[@]}"; do
         if [[ ${_element} == ${1} ]]; then
             return 0
