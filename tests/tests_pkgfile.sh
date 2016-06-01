@@ -462,90 +462,59 @@ tspk__pk_source_validate_pkgfile() {
     local  _required_func_names=("build")
     declare -A _cm_groups_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
     local _output _pkgfile
-    declare -a _cm_groups
 
     _output=$((pk_source_validate_pkgfile) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
-        "FUNCTION: 'pk_source_validate_pkgfile()' Requires AT LEAST '3' arguments. Got '0'"
+        "FUNCTION: 'pk_source_validate_pkgfile()' Requires EXACT '3' arguments. Got '0'"
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/none_existing_Pkgfile"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "Could not source file: <${_pkgfile}>"
 
-    _cm_groups=()
-    _output=$((pk_source_validate_pkgfile "" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "FUNCTION: 'pk_source_validate_pkgfile()' Argument '1' MUST NOT be empty."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_minimum_info"
-    (pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups)
+    (pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names)
     te_retcode_0 _COK _CFAIL ${?} "Test <Pkgfile_minimum_info> OK."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile"
-    (pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups)
+    (pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names)
     te_retcode_0 _COK _CFAIL ${?} "Test <Pkgfile> OK."
 
-    _cm_groups=(lib devel doc man service)
-    _pkgfile="${_testdir}/files/Pkgfile_minimum_info"
-    (pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups)
-    te_retcode_0 _COK _CFAIL ${?} "Test _cm_groups only defaults OK."
-
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_missing_var_pkgdeps"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
         "Not a declared index array variable: 'pkgdeps'" \
         "Test Pkgfile_missing_var_pkgdeps."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_too_long_description"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
         "'pkgdesc' MUST have at least 10 and a maximum of 110 chars. Got: '115'" "Test Pkgfile_too_long_description."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_too_short_description"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" \
         "'pkgdesc' MUST have at least 10 and a maximum of 110 chars. Got: '5'" "Test Pkgfile_too_short_description."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_version_wrong_char"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "'pkgvers' contains invalid chars: '+' File" \
         "Test Pkgfile_version_wrong_char."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_release_wrong_char"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "'pkgrel' MUST NOT be empty and only contain digits and not: 'a'" \
         "Test Pkgfile_release_wrong_char."
 
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_release_too_high_number"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "'pkgrel' MUST be greater than 0 and less than 100000000." \
         "Test Pkgfile_release_too_high_number."
 
-    _cm_groups=(customary_group_function doc man service)
-    _pkgfile="${_testdir}/files/Pkgfile_minimum_info"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
-    te_retcode_1 _COK _CFAIL ${?} "Test _cm_groups not existing customary_group_function."
-
-    te_find_err_msg _COK _CFAIL "${_output}" \
-        "CM_GROUPS Function 'customary_group_function' not specified in File" \
-        "Test _cm_groups not existing customary_group_function."
-
-    _cm_groups=(customary_group_function lib devel doc man service)
-    _pkgfile="${_testdir}/files/Pkgfile_source_customary_group_function_in_file"
-    (pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups)
-    te_retcode_0 _COK _CFAIL ${?} "Test _cm_groups existing customary_group_function."
-
-    _cm_groups=()
     _pkgfile="${_testdir}/files/Pkgfile_source_missing_required_function"
-    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names _cm_groups) 2>&1)
+    _output=$((pk_source_validate_pkgfile "${_pkgfile}" _required_func_names _cm_groups_func_names) 2>&1)
     te_find_err_msg _COK _CFAIL "${_output}" "Required Function 'build' not specified in File" \
         "Test Pkgfile_source_missing_required_function"
 
@@ -667,7 +636,7 @@ tsi__pk_export
 #******************************************************************************************************************************
 
 source "${_EXCHANGE_LOG}"
-te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 80
+te_print_final_result "${_TESTFILE}" "${_COK}" "${_CFAIL}" 76
 rm -f "${_EXCHANGE_LOG}"
 
 #******************************************************************************************************************************

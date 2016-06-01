@@ -452,6 +452,9 @@ p_compress_man_info_pages() {
 #       `_use_comp`: yes or no use cmopression
 #       `_comp_opts`: empty or options to be passed to the *xz* command to compress final produced pkgarchives.
 #       `_in_cm_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile
+#       `_in__cm_groups_default_func_names`: a reference var: An associative array with the default `CM_GROUP` function
+#           names as keys.
+#           e.g. declare -A _in__cm_groups_default_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
 #       `_in_cm_locales`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile
 #       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
 #       `_build_srcdir`: Path to a directory where the sources where extracted to.
@@ -465,8 +468,9 @@ p_compress_man_info_pages() {
 #       CM_PORTNAME="hwinfo"
 #       CM_PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       p_build_archives "${CM_PKGFILE_PATH}" "${CM_PORTNAME}" "${CM_PORT_PATH}" "${CM_BUILDVERS}" "${CM_ARCH}" \
-#           "${CM_PKG_EXT}" "${CM_COMPRESS_PKG}" "${CM_COMPRESS_OPTS}" "${CM_STRIP}" CM_GROUPS CM_LOCALES \
-#           "${srcdir}" "${pkgdir}" "${CM_GOT_COMMAND_PKGINFO}" "${CM_IGNORE_RUNTIMEDEPS}
+#           "${CM_PKG_EXT}" "${CM_COMPRESS_PKG}" "${CM_COMPRESS_OPTS}" "${CM_STRIP}" CM_GROUPS \
+#           CM_GROUPS_DEFAULT_FUNCTION_NAMES CM_LOCALES "${srcdir}" "${pkgdir}" "${CM_GOT_COMMAND_PKGINFO}" \
+#           "${CM_IGNORE_RUNTIMEDEPS}
 #******************************************************************************************************************************
 p_build_archives() {
 
@@ -490,7 +494,7 @@ p_build_archives() {
         local __archive_type=${3}
         local __type_info=${4:-""}
         local __meta_str=""
-        local __size __path __archive_path __final_arch __loc __dir
+        local __size __path __archive_path __final_arch __loc __group __dir
 
         if [[ ${__archive_type} == "main" ]]; then
             __final_arch=${__sysarch}
@@ -536,9 +540,28 @@ p_build_archives() {
                 fi
                 rm -rf "${__path}"
             done
-
         elif [[ ${__archive_type} == "group" ]]; then
             echo "=====================_create_pkgarchive(): TODO: GROUP"
+            __group=${__type_info}
+            
+            
+            
+            
+            
+            
+            __final_arch="any"
+            __archive_path="${_portpath}/${__portname}.${__group}${_buildvers}${__final_arch}.${_ref_ext}"
+
+            
+                ##if u_got_function "${_group}"; then
+                    ##(set -e -x; "${group}")
+                    ##if (( ${?} )); then
+                        ##i_exit 1 ${LINENO} "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
+                    ##fi
+                ##else
+                    ##echo "TODO: PACK/REMOVE GROUPS"
+                ##fi
+            
         else
             i_exit 1 ${LINENO} "$(_g "FUNCTION: p_build_archives()_create_pkgarchive(): CODE-ERROR")"
         fi
@@ -561,11 +584,11 @@ p_build_archives() {
                 if [[ ${_ignore_runtimedeps} == "no" ]]; then
                     echo "_create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
                 elif [[ ${_ignore_runtimedeps} != "yes" ]]; then
-                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
+                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 16 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
                         "${_ignore_runtimedeps}"
                 fi
             elif [[ ${_got_pkginfo} != "no" ]]; then
-                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 14 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" "${_got_pkginfo}"
+                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" "${_got_pkginfo}"
             fi
 
             echo -e "${__meta_str}" > .META || exit 1
@@ -587,7 +610,7 @@ p_build_archives() {
         fi
     }
 
-    i_exact_args_exit ${LINENO} 15 ${#}
+    i_exact_args_exit ${LINENO} 16 ${#}
     local _pkgfile=${1}
     local _portname=${2}
     local _portpath=${3}
@@ -598,11 +621,12 @@ p_build_archives() {
     local _comp_opts=${8}
     local _strip_files=${9}
     local -n _in_cm_groups=${10}
-    local -n _in_cm_locales=${11}
-    local _build_srcdir=${12}
-    local _build_pkgdir=${13}
-    local _got_pkginfo=${14}
-    local _ignore_runtimedeps=${15}
+    local -n _in__cm_groups_default_func_names=${11}
+    local -n _in_cm_locales=${12}
+    local _build_srcdir=${13}
+    local _build_pkgdir=${14}
+    local _got_pkginfo=${15}
+    local _ignore_runtimedeps=${16}
     local _group _archive_path _cm_locale
 
     i_msg "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
@@ -628,32 +652,24 @@ p_build_archives() {
         ## Compress infopages
         p_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
 
-        echo "TODO: REMOVE THIS LATER: CM_GROUPS=()"
-        #CM_GROUPS=()
+        echo "TODO: REMOVE THIS LATER: _in_cm_groups=()"
+        #_in_cm_groups=(man)
         ### Process any groups
-        #if [[ -v CM_GROUPS[@] ]]; then
-            #echo "NOT IMPLEMENTED YET: GROUPS"
-            ##for _group in "${CM_GROUPS[@]}"; do
-                ##if u_got_function "${_group}"; then
-                    ##(set -e -x; "${group}")
-                    ##if (( ${?} )); then
-                        ##i_exit 1 ${LINENO} "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
-                    ##fi
-                ##else
-                    ##echo "TODO: PACK/REMOVE GROUPS"
-                ##fi
-            ##done
-        #fi
-
-        ### Process any locale
-        if [[ -v CM_LOCALES[@] ]]; then
-            for _cm_locale in "${CM_LOCALES[@]}"; do
-                _create_pkgarchive "${_portname}" "${_sysarch}" "locale" "${_cm_locale}"
+        if [[ -v _in_cm_groups[@] ]]; then
+            for _group in "${_in_cm_groups[@]}"; do
+                _create_pkgarchive "${_portname}" "${_sysarch}" "group" "${_group}"
             done
         fi
 
-        ## Create the main pkgarchive
-        _create_pkgarchive "${_portname}" "${_sysarch}" "main"
+        #### Process any locale
+        #if [[ -v _in_cm_locales[@] ]]; then
+            #for _cm_locale in "${_in_cm_locales[@]}"; do
+                #_create_pkgarchive "${_portname}" "${_sysarch}" "locale" "${_cm_locale}"
+            #done
+        #fi
+
+        ### Create the main pkgarchive
+        #_create_pkgarchive "${_portname}" "${_sysarch}" "main"
 
     fi
 

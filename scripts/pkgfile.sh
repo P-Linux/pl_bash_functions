@@ -409,15 +409,11 @@ pk_check_pkgfile_port_path_name() {
 #           names as keys.
 #           e.g. declare -A _in__cm_groups_default_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
 #
-#   OPTIONAL ARGS:
-#       `_in_cm_groups`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile:
-#                         will be validated
-#
 #   USAGE:
-#       pk_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES CM_GROUPS
+#       pk_source_validate_pkgfile "${PKGFILE_PATH}" REQUIRED_FUNCTION_NAMES GROUPS_DEFAULT_FUNCTION_NAMES
 #******************************************************************************************************************************
 pk_source_validate_pkgfile() {
-    i_min_args_exit ${LINENO} 3 ${#}
+    i_exact_args_exit ${LINENO} 3 ${#}
     i_exit_empty_arg ${LINENO} "${1}" 1
     local _pkgfile=${1}
     local _got_cm_req_func_names="no"
@@ -426,11 +422,6 @@ pk_source_validate_pkgfile() {
         _got_cm_req_func_names="yes"
     fi
     local -n _in__cm_groups_default_func_names=${3}
-    local _check_cm_groups="no"
-    if (( ${#} > 3 )) && [[ -v ${4}[@] ]]; then         # Check var 4 is set and has elements
-        local -n _in_cm_groups=${4}
-        _check_cm_groups="yes"
-    fi
     declare -i _pkgdesc_size
     local _func
 
@@ -494,14 +485,6 @@ pk_source_validate_pkgfile() {
     # pkgmd5sums
     u_is_idx_array_exit "pkgmd5sums" "${_pkgfile}"
 
-    #### Check CM_GROUPS function exist
-    if [[ ${_check_cm_groups} == "yes" ]]; then
-        for _func in "${_in_cm_groups[@]}"; do
-            if ! u_got_function "${_func}" && [[ ! -v _in__cm_groups_default_func_names[${_func}] ]]; then
-                i_exit 1 ${LINENO} "$(_g "CM_GROUPS Function '%s' not specified in File: <%s>")" "${_func}" "${_pkgfile}"
-            fi
-        done
-    fi
     ### Check required Pkgfile functions exist
     if [[ ${_got_cm_req_func_names} == "yes" ]]; then
         for _func in "${_in_cm_req_func_names[@]}"; do

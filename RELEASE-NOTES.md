@@ -8,7 +8,8 @@
 
 * adjust function: u_repeat_failed_command() do not trigger ERR traps on exit if command failed
     and retrieve the actual commands exit code
-* adjust function: u_in_array: do not trigger ERR traps if the array is empty
+* adjust function: u_in_array(): _in_cm_groups
+* removes from function: pk_source_validate_pkgfile() optional arg: `_in_cm_groups`
 
 
 ## v0.9.5 (2016-05-30)

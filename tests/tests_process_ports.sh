@@ -293,7 +293,7 @@ tsp__p_update_port_repo_file() {
     local _arch="$(uname -m)"
     local _pkg_ext="cards.tar"
     local _repo=".PKGREPO"
-    declare -a _cm_groups CM_PORTNAME
+    declare -a _CM_PORTNAME
     local _output _pkgfile_path _portname _portpath  _port_repo_file _repofile_content _ref_repofile_content
 
     # Make files
@@ -311,7 +311,6 @@ tsp__p_update_port_repo_file() {
     te_find_err_msg _COK _CFAIL "${_output}"\
         "Could not get expected Pkgfile variable 'pkgpackager'! Hint: did you forget to source the pkgfile: <${_pkgfile_path}>"
 
-    _cm_groups=()
     _pkgfile_path="${_acl_portpath}/Pkgfile"
     _portname="acl"
     _portpath="${_acl_portpath}"
@@ -321,7 +320,7 @@ tsp__p_update_port_repo_file() {
     if [[ -f ${_port_repo_file} ]]; then
         te_warn "${FUNCNAME[0]}" "Test Error: 'acl' Port-Repo-File should have been removed."
     fi
-    pk_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cm_groups_func_names _cm_groups
+    pk_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cm_groups_func_names
     p_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_portpath}" "${_arch}" "${_pkg_ext}" "${_repo}" &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test p_update_port_repo_file function return value."
 
@@ -332,7 +331,6 @@ tsp__p_update_port_repo_file() {
     [[ ${_repofile_content} == ${_ref_repofile_content} ]]
     te_retcode_0 _COK _CFAIL ${?} "Test new Repo-File content is the same as the Reference Repo-file content."
 
-    _cm_groups=()
     _pkgfile_path="${_cpio_portpath}/Pkgfile"
     _portname="cpio"
     _portpath="${_cpio_portpath}"
@@ -341,7 +339,7 @@ tsp__p_update_port_repo_file() {
     if [[ -f ${_port_repo_file} ]]; then
         te_warn "${FUNCNAME[0]}" "Test Error: 'cpio' Port-Repo-File should have been removed."
     fi
-    pk_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cm_groups_func_names _cm_groups
+    pk_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cm_groups_func_names
     p_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_portpath}" "${_arch}" "${_pkg_ext}" "${_repo}" &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test p_update_port_repo_file function return value."
 
@@ -352,7 +350,6 @@ tsp__p_update_port_repo_file() {
     [[ ${_repofile_content} == ${_ref_repofile_content} ]]
     te_retcode_0 _COK _CFAIL ${?} "Test new Repo-File content is the same as the Reference Repo-file content."
 
-    _cm_groups=()
     _pkgfile_path="${_cpio_portpath}/Pkgfile"
     _portname="cpio"
     _portpath="${_cpio_portpath}"
@@ -362,7 +359,7 @@ tsp__p_update_port_repo_file() {
     rm -f "${_cpio_portpath}/cpio.da1462741466any.cards.tar.xz"
     rm -f "${_cpio_portpath}/cpio.fi1462741466any.cards.tar.xz"
     rm -f "${_cpio_portpath}/cpio.nl1462741466any.cards.tar.xz"
-    pk_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cm_groups_func_names _cm_groups
+    pk_source_validate_pkgfile "${_pkgfile_path}" _required_func_names _cm_groups_func_names
     p_update_port_repo_file "${_pkgfile_path}" "${_portname}" "${_portpath}" "${_arch}" "${_pkg_ext}" "${_repo}" &> /dev/null
     te_retcode_0 _COK _CFAIL ${?} "Test p_update_port_repo_file function return value."
 
