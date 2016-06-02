@@ -467,13 +467,34 @@ p_compress_man_info_pages() {
 #       CM_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo/Pkgfile"
 #       CM_PORTNAME="hwinfo"
 #       CM_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       p_build_archives "${CM_PKGFILE_PATH}" "${CM_PORTNAME}" "${CM_PORT_PATH}" "${CM_BUILDVERS}" "${CM_ARCH}" \
+#       p_build_archives "${CM_PKGFILE_PATH}" "${CM_PORTNAME}" "${CM_PORTPATH}" "${CM_BUILDVERS}" "${CM_ARCH}" \
 #           "${CM_PKG_EXT}" "${CM_COMPRESS_PKG}" "${CM_COMPRESS_OPTS}" "${CM_STRIP}" CM_GROUPS \
 #           CM_GROUPS_DEFAULT_FUNCTION_NAMES CM_LOCALES "${srcdir}" "${pkgdir}" "${CM_GOT_COMMAND_PKGINFO}" \
-#           "${CM_IGNORE_RUNTIMEDEPS}
+#           "${CM_IGNORE_RUNTIMEDEPS}"
 #******************************************************************************************************************************
 p_build_archives() {
 
+    #**************************************************************************************************************************
+    #   ARGUMENTS
+    #       `__group`: name of the group function to run. see also cm_groups 
+    #       `__archive_path`: groups default archive path
+    #
+    #   USAGE
+    #       _run_customary_group_func "${__group}" "${__archive_path}"
+    #**************************************************************************************************************************
+    _run_customary_group_func() {
+        local __group=${1}
+        local __archive_path=${2}
+        declare -i __exc=0
+        
+        (set -e -x; "${__group}" "${__archive_path}")
+        __exc=${?}
+        if (( ${__exc} )); then
+            i_exit 1 ${LINENO} "$(_g "Customary group function: '%s()' Exit-Status-Code: '%s' Port: <%s>")" \
+                "${__group}" ${__exc} "${_portpath}"
+        fi
+    }
+                    
     #**************************************************************************************************************************
     #   ARGUMENTS
     #       `__portname`: port name
@@ -494,7 +515,8 @@ p_build_archives() {
         local __archive_type=${3}
         local __type_info=${4:-""}
         local __meta_str=""
-        local __size __path __archive_path __final_arch __loc __group __dir
+        declare -i __exc=0
+        local __size __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
 
         if [[ ${__archive_type} == "main" ]]; then
             __final_arch=${__sysarch}
@@ -543,25 +565,53 @@ p_build_archives() {
         elif [[ ${__archive_type} == "group" ]]; then
             echo "=====================_create_pkgarchive(): TODO: GROUP"
             __group=${__type_info}
+            # NOTE: because the group path can be changed in a Pkgfile we get it afterwards by checking the created files
+            __grp_refpath_sysarch="${_portpath}/${__portname}.${__group}${_buildvers}${__sysarch}.${_ref_ext}"
+            __grp_refpath_any="${_portpath}/${__portname}.${__group}${_buildvers}any.${_ref_ext}"
             
-            
-            
-            
-            
-            
-            __final_arch="any"
-            __archive_path="${_portpath}/${__portname}.${__group}${_buildvers}${__final_arch}.${_ref_ext}"
-
-            
-                ##if u_got_function "${_group}"; then
-                    ##(set -e -x; "${group}")
-                    ##if (( ${?} )); then
-                        ##i_exit 1 ${LINENO} "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
-                    ##fi
-                ##else
-                    ##echo "TODO: PACK/REMOVE GROUPS"
-                ##fi
-            
+            i_more_i "$(_g "Taring pkgarchive: '%s'")" "${__portname}.${__group}"
+            [[ -f "${__grp_refpath_sysarch}" ]] || rm -f "${__grp_refpath_sysarch}"
+            [[ -f "${__grp_refpath_any}" ]] || rm -f "${__grp_refpath_any}"
+                    
+            if [[  ${__group} == "lib" ]]; then
+                __final_arch=${__sysarch}
+                __archive_path="${__grp_refpath_sysarch}"
+                if u_got_function "${__group}"; then 
+                    _run_customary_group_func "${__group}" "${__archive_path}"
+                    # Check which file was generated: we check only the one which is not the default one 
+                    #   because the other is alredy assigned
+                    if [[ -f ${__grp_refpath_any} ]]; then
+                        __final_arch="any"
+                        __archive_path="${__grp_refpath_any}"
+                    fi
+                else
+                    echo "__group}.lib default not done yet"
+                fi  
+            else
+                # These are using all the same default arch
+                __final_arch="any"
+                __archive_path="${__grp_refpath_any}"
+                if u_got_function "${__group}"; then 
+                    _run_customary_group_func "${__group}" "${__archive_path}"
+                    if [[ -f ${__grp_refpath_sysarch} ]]; then
+                        __final_arch=${__sysarch}
+                        __archive_path="${__grp_refpath_sysarch}"
+                    fi
+                else
+                    if [[  ${__group} == "devel" ]]; then
+                            echo "__group}.devel default not done yet"
+                    elif [[  ${__group} == "doc" ]]; then
+                    
+                            echo "__group}.doc default not done yet"
+                        
+                    elif [[  ${__group} == "man" ]]; then
+                            echo "__group}.man default not done yet"
+                    elif [[  ${__group} == "service" ]]; then
+                    
+                            echo "__group}.service default not done yet"
+                    fi
+                fi
+            fi
         else
             i_exit 1 ${LINENO} "$(_g "FUNCTION: p_build_archives()_create_pkgarchive(): CODE-ERROR")"
         fi
@@ -627,7 +677,7 @@ p_build_archives() {
     local _build_pkgdir=${14}
     local _got_pkginfo=${15}
     local _ignore_runtimedeps=${16}
-    local _group _archive_path _cm_locale
+    local _group _archive_path _cm_locale _tmpstr
 
     i_msg "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
 
@@ -653,23 +703,29 @@ p_build_archives() {
         p_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
 
         echo "TODO: REMOVE THIS LATER: _in_cm_groups=()"
-        #_in_cm_groups=(man)
+        #_in_cm_groups=(devel)
         ### Process any groups
         if [[ -v _in_cm_groups[@] ]]; then
             for _group in "${_in_cm_groups[@]}"; do
+                # Check it is one of the _in__cm_groups_default_func_names
+                if [[ ! -v _in__cm_groups_default_func_names[${_group}] ]]; then
+                    _tmpstr="${!_in__cm_groups_default_func_names[@]}"
+                    i_exit 1 ${LINENO} "$(_g "GROUP '%s' MUST BE one of GROUPS_DEFAULT_FUNCTION_NAMES: <%s> File: <%s>")" \
+                        "${_group}" "${_tmpstr}" "${_pkgfile}"
+                fi
                 _create_pkgarchive "${_portname}" "${_sysarch}" "group" "${_group}"
             done
         fi
 
-        #### Process any locale
-        #if [[ -v _in_cm_locales[@] ]]; then
-            #for _cm_locale in "${_in_cm_locales[@]}"; do
-                #_create_pkgarchive "${_portname}" "${_sysarch}" "locale" "${_cm_locale}"
-            #done
-        #fi
+        ### Process any locale
+        if [[ -v _in_cm_locales[@] ]]; then
+            for _cm_locale in "${_in_cm_locales[@]}"; do
+                _create_pkgarchive "${_portname}" "${_sysarch}" "locale" "${_cm_locale}"
+            done
+        fi
 
-        ### Create the main pkgarchive
-        #_create_pkgarchive "${_portname}" "${_sysarch}" "main"
+        ## Create the main pkgarchive
+        _create_pkgarchive "${_portname}" "${_sysarch}" "main"
 
     fi
 
@@ -688,7 +744,6 @@ p_export() {
 
     _func_names=(
         p_build_archives
-  #      p_compress_locale
         p_compress_man_info_pages
         p_export
         p_make_pkg_build_dir
