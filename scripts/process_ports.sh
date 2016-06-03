@@ -503,33 +503,21 @@ p_build() {
 #******************************************************************************************************************************
 p_pack_archives() {
 
+
     #**************************************************************************************************************************
-    #   ARGUMENTS
-    #       `__group`: name of the group function to run. see also cm_groups
-    #       `__archive_path`: groups default archive path
-    #
-    #   USAGE
-    #       _run_customary_group_func "${__group}" "${__archive_path}"
+    # _run_customary_group_func: Helper function
     #**************************************************************************************************************************
     _run_customary_group_func() {
-        local __group=${1}
-        local __archive_path=${2}
-        declare -i __exc=0
-
         (set -e -x; "${__group}" "${__archive_path}")
         __exc=${?}
         if (( ${__exc} )); then
-            i_exit 1 ${LINENO} "$(_g "Customary group function: '%s()' Exit-Status-Code: '%s' Port: <%s>")" \
-                "${__group}" ${__exc} "${_portpath}"
+            i_exit 1 ${LINENO} "$(_g "Customary group function: '%s()' Exit-Status-Code: '%s' Port: <%s>")" "${__group}" \
+                ${__exc} "${_portpath}"
         fi
     }
 
     #**************************************************************************************************************************
     #   ARGUMENTS
-    #       `__portname`: port name
-    #                               'port-name.group-name': (only if it is a group pkgarchive.)
-    #                               'port-name.locale-name': (only if it is a locale pkgarchive.)
-    #       `__sysarch`: architecture e.g.: "$(uname -m)"
     #       `__archive_type`: "main", "locale" or "group"
     #
     #   OPTIONAL ARGUMENTS
@@ -539,10 +527,8 @@ p_pack_archives() {
     #                       main: does not use it: defaults to ""
     #**************************************************************************************************************************
     _create_pkgarchive() {
-        local __portname=${1}
-        local __sysarch=${2}
-        local __archive_type=${3}
-        local __type_info=${4:-""}
+        local __archive_type=${1}
+        local __type_info=${2:-""}
         local __meta_str=""
         declare -i __exc=0
         local __complete_name __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
@@ -550,8 +536,8 @@ p_pack_archives() {
         local __size
 
         if [[ ${__archive_type} == "main" ]]; then
-            __final_arch=${__sysarch}
-            __complete_name=${__portname}
+            __final_arch=${_sysarch}
+            __complete_name=${_portname}
             __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
             [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
 
@@ -587,15 +573,15 @@ p_pack_archives() {
                 "${_build_pkgdir}/var" &> /dev/null || true
 
             ### Copy & rename meta file
-            __path="${_portpath}/${__portname}.README"
+            __path="${_portpath}/${_portname}.README"
             if [[ -f ${__path} ]]; then
                 cp -f "${__path}" "${_build_pkgdir}/.README"
             fi
-            __path="${_portpath}/${__portname}.pre-install"
+            __path="${_portpath}/${_portname}.pre-install"
             if [[ -f ${__path} ]]; then
                 cp -f "${__path}" "${_build_pkgdir}/.PRE"
             fi
-            __path="${_portpath}/${__portname}.post-install"
+            __path="${_portpath}/${_portname}.post-install"
             if [[ -f ${__path} ]]; then
                 cp -f "${__path}" "${_build_pkgdir}/.POST"
             fi
@@ -604,7 +590,7 @@ p_pack_archives() {
         elif [[ ${__archive_type} == "locale" ]]; then
             __loc=${__type_info}
             __final_arch="any"
-            __complete_name="${__portname}.${__loc}"
+            __complete_name="${_portname}.${__loc}"
             __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
             [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
 
@@ -618,19 +604,19 @@ p_pack_archives() {
             done
         elif [[ ${__archive_type} == "group" ]]; then
             __group=${__type_info}
-            __complete_name="${__portname}.${__group}"
+            __complete_name="${_portname}.${__group}"
             # NOTE: because the group path can be changed in a Pkgfile we get it afterwards by checking the created files
-            __grp_refpath_sysarch="${_portpath}/${__complete_name}${_buildvers}${__sysarch}.${_ref_ext}"
+            __grp_refpath_sysarch="${_portpath}/${__complete_name}${_buildvers}${_sysarch}.${_ref_ext}"
             __grp_refpath_any="${_portpath}/${__complete_name}${_buildvers}any.${_ref_ext}"
 
             [[ -f "${__grp_refpath_sysarch}" ]] || rm -f "${__grp_refpath_sysarch}"
             [[ -f "${__grp_refpath_any}" ]] || rm -f "${__grp_refpath_any}"
 
             if [[  ${__group} == "lib" ]]; then
-                __final_arch=${__sysarch}
+                __final_arch=${_sysarch}
                 __archive_path="${__grp_refpath_sysarch}"
                 if u_got_function "${__group}"; then
-                    _run_customary_group_func "${__group}" "${__archive_path}"
+                    _run_customary_group_func
                     # Check which file was generated: we check only the one which is not the default one
                     #   because the other is alredy assigned
                     if [[ -f ${__grp_refpath_any} ]]; then
@@ -654,9 +640,9 @@ p_pack_archives() {
                 __final_arch="any"
                 __archive_path="${__grp_refpath_any}"
                 if u_got_function "${__group}"; then
-                    _run_customary_group_func "${__group}" "${__archive_path}"
+                    _run_customary_group_func
                     if [[ -f ${__grp_refpath_sysarch} ]]; then
-                        __final_arch=${__sysarch}
+                        __final_arch=${_sysarch}
                         __archive_path="${__grp_refpath_sysarch}"
                     fi
                 else
@@ -704,7 +690,7 @@ p_pack_archives() {
             i_msg_i "$(_g "Created pkgarchive: '%s'")" "${__complete_name}"
             ### Generate .META file
             i_more_i  "$(_g "Adding meta data to pkgarchive: '%s'")" "${__complete_name}"
-            __meta_str+="N${__portname}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
+            __meta_str+="N${_portname}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
 
             __size=$(du -b "${__archive_path}")
             # NOTE Can not use: u_prefix_shortest_empty __size because the input is treated as a string
@@ -713,10 +699,43 @@ p_pack_archives() {
                                     "${__archive_path}"
 
             __meta_str+="S${__size}\nV${pkgvers}\nr${pkgrel}\nB${_buildvers}\na${__final_arch}"
-            # TODO: Add the runtime dependencies to the .META file
             if [[ ${_got_pkginfo} == "yes" ]]; then
                 if [[ ${_ignore_runtimedeps} == "no" ]]; then
-                    echo "============= _create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
+                    echo "============= _create_pkgarchive(): TODO: Add the 'pkginfo runtime dependencies' to the .META file"
+                    # ===== IMPORTANT: REDO THIS WITHOUT Extracting/repacking the archive =====
+
+                    #for _rdep in $(pkginfo --runtimedepfiles ${TAR|grep -v ^[A-Z]); do  # TODO Check if grep is really needed
+                        #echo "R${_rdep}" >> .META
+                    #done
+                    ## We don't want any .devel dependencies here: NOTE: DEVEL Dependencies should be added
+                    #   if not 'devel' group was specified          Check speed for the sed vs. bash only filter
+                    #sed -i '/^R[[a-z0-9]*[-_+]*]*\.devel/d' .META
+                    #if [ ! -z $run ] && [ "$NAME" == "$name" ]; then
+                        #info "Adding runtime deps to Archive $NAME"
+                        #for rd in ${run[@]}; do
+                            #if [ "`pkginfo -b $rd`" == "0" ] || [ "`pkginfo -b $rd`" == "" ]; then
+                                #error "Runtime dependency $rd not found, cannot continue"
+                                #clean
+                                #exit $E_DEPS;
+                            #fi
+                            #echo "R$rd`pkginfo -b $rd`" >> .META
+                        #done
+                    #fi
+                    if [[ -f "${_portpath}/${__complete_name}.run" ]]; then
+                        i_more_i  "$(_g "Adding runtime dependencies from file to pkgarchive: '%s'")" "${__complete_name}"
+                        _savedifs=${IFS}
+                        while IFS= read -r _rdep; do
+                            _tmpstr=$(pkginfo -b "${_rdep}")
+                            if [[ ${_tmpstr} == "0" || ! -n ${_tmpstr} ]]; then
+                                i_err2 "$(_g "Could not find runtime dependency: '%s'")" "${_rdep}"
+                                a_rm_pkgarchives "${_portname}" "${_portpath}" "${_sysarch}" "${_ref_ext}" "NONE"
+                                i_exit 1 ${LINENO} "$(_g "Could not find runtime dependency: '%s'")" "${_rdep}"
+                            fi
+                            # add a new line in front instead of the end
+                            __meta_str+="\nR${_rdep}${_tmpstr}"
+                        done < "${_portpath}/${__complete_name}.run"
+                        IFS=${_savedifs}
+                    fi
                 elif [[ ${_ignore_runtimedeps} != "yes" ]]; then
                     i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
                         "${_ignore_runtimedeps}"
@@ -794,19 +813,19 @@ p_pack_archives() {
                     i_exit 1 ${LINENO} "$(_g "GROUP '%s' MUST BE one of GROUPS_DEFAULT_FUNCTION_NAMES: <%s> File: <%s>")" \
                         "${_group}" "${_tmpstr}" "${_pkgfile}"
                 fi
-                _create_pkgarchive "${_portname}" "${_sysarch}" "group" "${_group}"
+                _create_pkgarchive "group" "${_group}"
             done
         fi
 
         ### Process any locale
         if [[ -v _in_cm_locales[@] ]]; then
             for _cm_locale in "${_in_cm_locales[@]}"; do
-                _create_pkgarchive "${_portname}" "${_sysarch}" "locale" "${_cm_locale}"
+                _create_pkgarchive "locale" "${_cm_locale}"
             done
         fi
 
         ## Create the main pkgarchive
-        _create_pkgarchive "${_portname}" "${_sysarch}" "main"
+        _create_pkgarchive "main"
     fi
 
     echo "UNFINSIHED"
