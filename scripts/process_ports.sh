@@ -439,8 +439,39 @@ p_compress_man_info_pages() {
 
 
 #******************************************************************************************************************************
-# Builds the ports pkgarchives.
+# Only builds the ports. Does not pack any pkgarchives
 #       The ports Pkgfile MUST have been already sourced. See also function: pk_source_validate_pkgfile().
+#
+#   ARGUMENTS
+#       `_portpath`: port absolute path
+#       `_build_srcdir`: Path to a directory where the sources where extracted to.
+#
+#   USAGE
+#       CM_PORT_PATH="/usr/ports/p_diverse/hwinfo"
+#       p_build "${CM_PORTPATH}" "${srcdir}"
+#******************************************************************************************************************************
+p_build() {
+    i_exact_args_exit ${LINENO} 2 ${#}
+    local _portpath=${1}
+    local _build_srcdir=${2}
+
+    i_msg "$(_g "Building Port: <%s>")" "${_portpath}"
+
+    if (( ${EUID} != 0 )); then
+        i_warn2 "$(_g "Ports should be built as root.")"
+    fi
+
+    u_cd_safe_exit "${_build_srcdir}"
+
+    ### RUN BUILD
+    (set -e -x; "build")
+}
+
+
+#******************************************************************************************************************************
+# Packs the ports pkgarchives - performs various required tasks: e.g. strip files, crun CM_GROUPS actions etc..
+#       The ports Pkgfile MUST have been already sourced. See also function: pk_source_validate_pkgfile().
+#       The ports MUST have been already build. See also function: p_build().
 #
 #   ARGUMENTS
 #       `_pkgfile` absolute path to the ports pkgfile
@@ -457,7 +488,6 @@ p_compress_man_info_pages() {
 #           e.g. declare -A _in__cm_groups_default_func_names=(["lib"]=0 ["devel"]=0 ["doc"]=0 ["man"]=0 ["service"]=0)
 #       `_in_cm_locales`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile
 #       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
-#       `_build_srcdir`: Path to a directory where the sources where extracted to.
 #       `_build_pkgdir`: Path to a directory where the build files are temporarly installed/copied to.
 #       `_got_pkginfo`: yes/no if the command `pkginfo` (part of the cards package) is found set it to yes
 #                                  if yes isee option: _ignore_runtimedeps
@@ -467,16 +497,15 @@ p_compress_man_info_pages() {
 #       CM_PKGFILE_PATH="/usr/ports/p_diverse/hwinfo/Pkgfile"
 #       CM_PORTNAME="hwinfo"
 #       CM_PORT_PATH="/usr/ports/p_diverse/hwinfo"
-#       p_build_archives "${CM_PKGFILE_PATH}" "${CM_PORTNAME}" "${CM_PORTPATH}" "${CM_BUILDVERS}" "${CM_ARCH}" \
+#       p_pack_archives "${CM_PKGFILE_PATH}" "${CM_PORTNAME}" "${CM_PORTPATH}" "${CM_BUILDVERS}" "${CM_ARCH}" \
 #           "${CM_PKG_EXT}" "${CM_COMPRESS_PKG}" "${CM_COMPRESS_OPTS}" "${CM_STRIP}" CM_GROUPS \
-#           CM_GROUPS_DEFAULT_FUNCTION_NAMES CM_LOCALES "${srcdir}" "${pkgdir}" "${CM_GOT_COMMAND_PKGINFO}" \
-#           "${CM_IGNORE_RUNTIMEDEPS}"
+#           CM_GROUPS_DEFAULT_FUNCTION_NAMES CM_LOCALES "${pkgdir}" "${CM_GOT_COMMAND_PKGINFO}" "${CM_IGNORE_RUNTIMEDEPS}"
 #******************************************************************************************************************************
-p_build_archives() {
+p_pack_archives() {
 
     #**************************************************************************************************************************
     #   ARGUMENTS
-    #       `__group`: name of the group function to run. see also cm_groups 
+    #       `__group`: name of the group function to run. see also cm_groups
     #       `__archive_path`: groups default archive path
     #
     #   USAGE
@@ -486,7 +515,7 @@ p_build_archives() {
         local __group=${1}
         local __archive_path=${2}
         declare -i __exc=0
-        
+
         (set -e -x; "${__group}" "${__archive_path}")
         __exc=${?}
         if (( ${__exc} )); then
@@ -494,7 +523,7 @@ p_build_archives() {
                 "${__group}" ${__exc} "${_portpath}"
         fi
     }
-                    
+
     #**************************************************************************************************************************
     #   ARGUMENTS
     #       `__portname`: port name
@@ -516,15 +545,46 @@ p_build_archives() {
         local __type_info=${4:-""}
         local __meta_str=""
         declare -i __exc=0
-        local __size __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
+        local __complete_name __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
+        # NOTE: do NOT use an integer for __size: it is treated as string
+        local __size
 
         if [[ ${__archive_type} == "main" ]]; then
             __final_arch=${__sysarch}
-            __archive_path="${_portpath}/${__portname}${_buildvers}${__final_arch}.${_ref_ext}"
+            __complete_name=${__portname}
+            __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
+            [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
 
             # remove any left locale
             rm -rf "${_build_pkgdir}/usr/share/locale" "${_build_pkgdir}/opt/*/share/locale"
             u_dir_has_content_exit "${_build_pkgdir}"
+
+            # remove some dirs if empty also there: always return true as it will fail on none existing folders
+            rmdir --ignore-fail-on-non-empty        \
+                "${_build_pkgdir}/usr/include"      \
+                "${_build_pkgdir}/usr/lib"          \
+                "${_build_pkgdir}/usr/lib64"        \
+                "${_build_pkgdir}/usr/share"        \
+                "${_build_pkgdir}/opt/*/include"    \
+                "${_build_pkgdir}/opt/*/lib"        \
+                "${_build_pkgdir}/opt/*/lib64"      \
+                "${_build_pkgdir}/opt/*/share"      \
+                "${_build_pkgdir}/bin"              \
+                "${_build_pkgdir}/boot"             \
+                "${_build_pkgdir}/dev"              \
+                "${_build_pkgdir}/etc"              \
+                "${_build_pkgdir}/home"             \
+                "${_build_pkgdir}/lib"              \
+                "${_build_pkgdir}/lib64"            \
+                "${_build_pkgdir}/mnt"              \
+                "${_build_pkgdir}/proc"             \
+                "${_build_pkgdir}/run"              \
+                "${_build_pkgdir}/sbin"             \
+                "${_build_pkgdir}/srv"              \
+                "${_build_pkgdir}/sys"              \
+                "${_build_pkgdir}/tmp"              \
+                "${_build_pkgdir}/usr"              \
+                "${_build_pkgdir}/var" &> /dev/null || true
 
             ### Copy & rename meta file
             __path="${_portpath}/${__portname}.README"
@@ -540,18 +600,12 @@ p_build_archives() {
                 cp -f "${__path}" "${_build_pkgdir}/.POST"
             fi
 
-            ### Create the Archive
-            i_more_i "$(_g "Taring pkgarchive: '%s'")" "${__portname}"
-            [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
-
             LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" *
         elif [[ ${__archive_type} == "locale" ]]; then
             __loc=${__type_info}
             __final_arch="any"
-            __archive_path="${_portpath}/${__portname}.${__loc}${_buildvers}${__final_arch}.${_ref_ext}"
-
-            ### Create the Archive
-            i_more_i "$(_g "Taring pkgarchive: '%s'")" "${__portname}.${__loc}"
+            __complete_name="${__portname}.${__loc}"
+            __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
             [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
 
             # PATH: usr/share/locale AND opt/*/share/locale
@@ -563,35 +617,43 @@ p_build_archives() {
                 rm -rf "${__path}"
             done
         elif [[ ${__archive_type} == "group" ]]; then
-            echo "=====================_create_pkgarchive(): TODO: GROUP"
             __group=${__type_info}
+            __complete_name="${__portname}.${__group}"
             # NOTE: because the group path can be changed in a Pkgfile we get it afterwards by checking the created files
-            __grp_refpath_sysarch="${_portpath}/${__portname}.${__group}${_buildvers}${__sysarch}.${_ref_ext}"
-            __grp_refpath_any="${_portpath}/${__portname}.${__group}${_buildvers}any.${_ref_ext}"
-            
-            i_more_i "$(_g "Taring pkgarchive: '%s'")" "${__portname}.${__group}"
+            __grp_refpath_sysarch="${_portpath}/${__complete_name}${_buildvers}${__sysarch}.${_ref_ext}"
+            __grp_refpath_any="${_portpath}/${__complete_name}${_buildvers}any.${_ref_ext}"
+
             [[ -f "${__grp_refpath_sysarch}" ]] || rm -f "${__grp_refpath_sysarch}"
             [[ -f "${__grp_refpath_any}" ]] || rm -f "${__grp_refpath_any}"
-                    
+
             if [[  ${__group} == "lib" ]]; then
                 __final_arch=${__sysarch}
                 __archive_path="${__grp_refpath_sysarch}"
-                if u_got_function "${__group}"; then 
+                if u_got_function "${__group}"; then
                     _run_customary_group_func "${__group}" "${__archive_path}"
-                    # Check which file was generated: we check only the one which is not the default one 
+                    # Check which file was generated: we check only the one which is not the default one
                     #   because the other is alredy assigned
                     if [[ -f ${__grp_refpath_any} ]]; then
                         __final_arch="any"
                         __archive_path="${__grp_refpath_any}"
                     fi
                 else
-                    echo "__group}.lib default not done yet"
-                fi  
+                    # PATH: usr/lib, usr/lib64, opt/*/lib, opt/*/lib64
+                    for __dir in "usr/lib" "usr/lib64" "opt/*/lib" "opt/*/lib64"; do
+                        __path="${_build_pkgdir}/${__dir}"
+                        if [[ -d ${__path} ]]; then
+                            # Note: pkgconfig folders are excluded from group lib
+                            LANG=C bsdtar -C "${_build_pkgdir}" --exclude="${__dir}/pkgconfig" \
+                                -rf "${__archive_path}" "${__dir}"
+                            rm -rf "${__path}/"!("pkgconfig")
+                        fi
+                    done
+                fi
             else
-                # These are using all the same default arch
+                # Alle these are using the same default architecture
                 __final_arch="any"
                 __archive_path="${__grp_refpath_any}"
-                if u_got_function "${__group}"; then 
+                if u_got_function "${__group}"; then
                     _run_customary_group_func "${__group}" "${__archive_path}"
                     if [[ -f ${__grp_refpath_sysarch} ]]; then
                         __final_arch=${__sysarch}
@@ -599,27 +661,49 @@ p_build_archives() {
                     fi
                 else
                     if [[  ${__group} == "devel" ]]; then
-                            echo "__group}.devel default not done yet"
+                        for __dir in "usr/include"   "usr/lib/pkgconfig"   "usr/lib64/pkgconfig" \
+                                     "opt/*/include" "opt/*/lib/pkgconfig" "opt/*/lib64/pkgconfig"; do
+                            __path="${_build_pkgdir}/${__dir}"
+                            if [[ -d ${__path} ]]; then
+                                LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
+                                rm -rf  "${__path}"
+                            fi
+                        done
                     elif [[  ${__group} == "doc" ]]; then
-                    
-                            echo "__group}.doc default not done yet"
-                        
+                        for __dir in "usr/share/doc" "usr/share/gtk-doc" "opt/*/share/doc" "opt/*/share/share/gtk-doc"; do
+                            __path="${_build_pkgdir}/${__dir}"
+                            if [[ -d ${__path} ]]; then
+                                LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
+                                rm -rf  "${__path}/"
+                            fi
+                        done
                     elif [[  ${__group} == "man" ]]; then
-                            echo "__group}.man default not done yet"
+                        for __dir in "usr/share/info" "usr/share/man" "opt/*/share/info" "opt/*/share/share/man"; do
+                            __path="${_build_pkgdir}/${__dir}"
+                            if [[ -d ${__path} ]]; then
+                                LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
+                                rm -rf  "${__path}"
+                            fi
+                        done
                     elif [[  ${__group} == "service" ]]; then
-                    
-                            echo "__group}.service default not done yet"
+                        __dir="etc/rc.d"
+                        __path="${_build_pkgdir}/${__dir}"
+                        if [[ -d ${__path} ]]; then
+                            LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
+                            rm -rf  "${__path}"
+                        fi
                     fi
                 fi
             fi
         else
-            i_exit 1 ${LINENO} "$(_g "FUNCTION: p_build_archives()_create_pkgarchive(): CODE-ERROR")"
+            i_exit 1 ${LINENO} "$(_g "FUNCTION: p_pack_archives()_create_pkgarchive(): CODE-ERROR")"
         fi
 
         ##### ONLY DO THIS IF WE GOT AN ARCHIVE: e.g. if the locale was not found there will be no archive
         if [[ -f ${__archive_path} ]]; then
+            i_msg_i "$(_g "Created pkgarchive: '%s'")" "${__complete_name}"
             ### Generate .META file
-            i_more_i  "$(_g "Adding meta data to pkgarchive: '%s'")" "${__portname}"
+            i_more_i  "$(_g "Adding meta data to pkgarchive: '%s'")" "${__complete_name}"
             __meta_str+="N${__portname}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
 
             __size=$(du -b "${__archive_path}")
@@ -632,13 +716,14 @@ p_build_archives() {
             # TODO: Add the runtime dependencies to the .META file
             if [[ ${_got_pkginfo} == "yes" ]]; then
                 if [[ ${_ignore_runtimedeps} == "no" ]]; then
-                    echo "_create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
+                    echo "============= _create_pkgarchive(): TODO: Add the runtime dependencies to the .META file"
                 elif [[ ${_ignore_runtimedeps} != "yes" ]]; then
-                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 16 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
+                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
                         "${_ignore_runtimedeps}"
                 fi
             elif [[ ${_got_pkginfo} != "no" ]]; then
-                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" "${_got_pkginfo}"
+                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 14 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" \
+                    "${_got_pkginfo}"
             fi
 
             echo -e "${__meta_str}" > .META || exit 1
@@ -660,7 +745,7 @@ p_build_archives() {
         fi
     }
 
-    i_exact_args_exit ${LINENO} 16 ${#}
+    i_exact_args_exit ${LINENO} 15 ${#}
     local _pkgfile=${1}
     local _portname=${2}
     local _portpath=${3}
@@ -673,22 +758,18 @@ p_build_archives() {
     local -n _in_cm_groups=${10}
     local -n _in__cm_groups_default_func_names=${11}
     local -n _in_cm_locales=${12}
-    local _build_srcdir=${13}
-    local _build_pkgdir=${14}
-    local _got_pkginfo=${15}
-    local _ignore_runtimedeps=${16}
+    local _build_pkgdir=${13}
+    local _got_pkginfo=${14}
+    local _ignore_runtimedeps=${15}
     local _group _archive_path _cm_locale _tmpstr
 
-    i_msg "$(_g "Building pkgarchives for Port: <%s>")" "${_portpath}"
+    i_msg "$(_g "Packing pkgarchives for Port: <%s>")" "${_portpath}"
 
     if (( ${EUID} != 0 )); then
-        i_warn2 "$(_g "Pkgarchives should be built as root.")"
+        i_warn2 "$(_g "Pkgarchives should be packed as root.")"
     fi
 
-    u_cd_safe_exit "${_build_srcdir}"
-
     ### RUN BUILD
-    (set -e -x; "build")
     u_dir_has_content_exit "${_build_pkgdir}"
 
     u_cd_safe_exit "${_build_pkgdir}"
@@ -703,7 +784,7 @@ p_build_archives() {
         p_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
 
         echo "TODO: REMOVE THIS LATER: _in_cm_groups=()"
-        #_in_cm_groups=(devel)
+        _in_cm_groups=(lib devel doc man service)
         ### Process any groups
         if [[ -v _in_cm_groups[@] ]]; then
             for _group in "${_in_cm_groups[@]}"; do
@@ -726,7 +807,6 @@ p_build_archives() {
 
         ## Create the main pkgarchive
         _create_pkgarchive "${_portname}" "${_sysarch}" "main"
-
     fi
 
     echo "UNFINSIHED"
@@ -743,10 +823,11 @@ p_export() {
     local _func_names _var_names
 
     _func_names=(
-        p_build_archives
+        p_build
         p_compress_man_info_pages
         p_export
         p_make_pkg_build_dir
+        p_pack_archives
         p_remove_downloaded_src
         p_remove_pkgfile_backup
         p_strip_files

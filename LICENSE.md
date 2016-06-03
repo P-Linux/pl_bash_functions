@@ -30,6 +30,7 @@ The *pl_bash_functions package* includes some code & data derived from the follo
 
 * `pacman`: Copyright (c) 2006-2016 Pacman Development Team <pacman-dev@archlinux.org> [GPL2/later]
 * `pacman`: Copyright (c) 2002-2006 by Judd Vinet <jvinet@zeroflux.org> [GPL2/later]
+* `cards`:  Copyright (c) 2013-2016 NuTyX-Linux Team <https://github.com/NuTyX/cards> [GPL2/later] 
 
 Many thanks to the authors and contributors of those wonderful projects.
 

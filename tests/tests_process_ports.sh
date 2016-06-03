@@ -489,9 +489,8 @@ echo
 echo
 echo
 echo "TODO: TEST ARE MISSING FOR: pr_compress_man_info_pages()"
-
-
-echo "TODO: TEST ARE MISSING FOR: p_build_archives()"
+echo "TODO: TEST ARE MISSING FOR: p_build()"
+echo "TODO: TEST ARE MISSING FOR: p_pack_archives()"
 
 
 #******************************************************************************************************************************

@@ -10,6 +10,7 @@
     and retrieve the actual commands exit code
 * adjust function: u_in_array(): _in_cm_groups
 * removes from function: pk_source_validate_pkgfile() optional arg: `_in_cm_groups`
+* splits function: p_build_archives() into: p_build() and p_pack_archives()
 
 
 ## v0.9.5 (2016-05-30)
@@ -20,7 +21,7 @@
 * improvement error feedback for required function arguments
 * improvement error feedback for reuired none empty function arguments
 * Number of Tests: 700
-* adds option to export all functions and global variables: 
+* adds option to export all functions and global variables:
     Note: arrays need some extra work in bash
 * adds function: i_trap_exit
 * removes function: pk_get_only_pkgvers_exit
