@@ -541,9 +541,18 @@ p_pack_archives() {
             __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
             [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
 
-            # remove any left locale
-            rm -rf "${_build_pkgdir}/usr/share/locale" "${_build_pkgdir}/opt/*/share/locale"
-            u_dir_has_content_exit "${_build_pkgdir}"
+            # remove any left locale, doc, info and man folders
+            rm -rf \
+                "${_build_pkgdir}/usr/share/locale"     \
+                "${_build_pkgdir}/usr/share/doc"        \
+                "${_build_pkgdir}/usr/share/gtk-doc"    \
+                "${_build_pkgdir}/usr/share/info"       \
+                "${_build_pkgdir}/usr/share/man"        \
+                "${_build_pkgdir}/opt/*/share/locale"   \
+                "${_build_pkgdir}/opt/*/share/doc"      \
+                "${_build_pkgdir}/opt/*/share/gtk-doc"  \
+                "${_build_pkgdir}/opt/*/share/info"     \
+                "${_build_pkgdir}/opt/*/share/man"
 
             # remove some dirs if empty also there: always return true as it will fail on none existing folders
             rmdir --ignore-fail-on-non-empty        \
@@ -656,7 +665,7 @@ p_pack_archives() {
                             fi
                         done
                     elif [[  ${__group} == "doc" ]]; then
-                        for __dir in "usr/share/doc" "usr/share/gtk-doc" "opt/*/share/doc" "opt/*/share/share/gtk-doc"; do
+                        for __dir in "usr/share/doc" "usr/share/gtk-doc" "opt/*/share/doc" "opt/*/share/gtk-doc"; do
                             __path="${_build_pkgdir}/${__dir}"
                             if [[ -d ${__path} ]]; then
                                 LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
@@ -664,7 +673,7 @@ p_pack_archives() {
                             fi
                         done
                     elif [[  ${__group} == "man" ]]; then
-                        for __dir in "usr/share/info" "usr/share/man" "opt/*/share/info" "opt/*/share/share/man"; do
+                        for __dir in "usr/share/info" "usr/share/man" "opt/*/share/info" "opt/*/share/man"; do
                             __path="${_build_pkgdir}/${__dir}"
                             if [[ -d ${__path} ]]; then
                                 LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
