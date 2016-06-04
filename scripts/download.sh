@@ -317,7 +317,7 @@ d_download_git() {
 
     u_is_git_uri_accessible "${_uri}" || i_exit 1 ${LINENO} "$(_g "Failed to access the git URI: <%s>")" "${_uri}"
 
-    if u_dir_has_content_exit "${_destpath}"; then
+    if u_has_dir_content "${_destpath}"; then
         u_cd_safe_exit "${_destpath}"
         _origin_uri=$(git config --get remote.origin.url)
         d_exit_diff_origin "${_uri}" "${_origin_uri}" "${_destpath}" "${_ent}"
@@ -368,7 +368,7 @@ d_download_svn() {
     fi
 
     u_is_svn_uri_accessible "${_uri}" || i_exit 1 ${LINENO} "$(_g "Failed to access the svn URI: <%s>")" "${_uri}"
-    if u_dir_has_content_exit "${_destpath}"; then
+    if u_has_dir_content "${_destpath}"; then
         u_cd_safe_exit "${_destpath}"
         u_postfix_shortest_all _origin_uri "$(svn info | grep ^URL)" " "
         d_exit_diff_origin "${_uri}" "${_origin_uri}" "${_destpath}" "${_ent}"
@@ -413,7 +413,7 @@ d_download_hg() {
 
     u_is_hg_uri_accessible "${_uri}" || i_exit 1 ${LINENO} "$(_g "Failed to access the hg URI: <%s>")" "${_uri}"
 
-    if u_dir_has_content_exit "${_destpath}"; then
+    if u_has_dir_content "${_destpath}"; then
         u_cd_safe_exit "${_destpath}"
         _origin_uri=$(hg paths default)
         d_exit_diff_origin "${_uri}" "${_origin_uri}" "${_destpath}" "${_ent}"
@@ -455,7 +455,7 @@ d_download_bzr() {
 
     u_got_internet || i_exit 1 ${LINENO} "$(_g "Seems that there is no internet connection")"
 
-    if u_dir_has_content_exit "${_destpath}"; then
+    if u_has_dir_content "${_destpath}"; then
         u_cd_safe_exit "${_destpath}"
         u_postfix_shortest_all _origin_uri "$(bzr info | grep "parent branch")" " "
         d_exit_diff_origin "${_uri}" "${_origin_uri}" "${_destpath}" "${_ent}"

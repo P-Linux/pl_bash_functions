@@ -11,6 +11,7 @@
 * adjust function: u_in_array(): _in_cm_groups
 * removes from function: pk_source_validate_pkgfile() optional arg: `_in_cm_groups`
 * splits function: p_build_archives() into: p_build() and p_pack_archives()
+* renames function: u_dir_has_content_exit to u_has_dir_content
 
 
 ## v0.9.5 (2016-05-30)

@@ -534,6 +534,13 @@ p_pack_archives() {
         local __complete_name __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
         # NOTE: do NOT use an integer for __size: it is treated as string
         local __size
+        # Create a dedicated dir to pack: copy & tar: is much faster than: to tar, untar and retar
+        #   __packdirname: add the 0 so it will be usually the first dir
+        local __packdirname="00_pkgarchive_packdir_00"
+        local __packdir_path="${_build_pkgdir}/${__packdirname}"
+    
+        mkdir "${__packdir_path}" || i_exit 1 ${LINENO}  "$(_g "Packdir should not exist: <%s> Pkgfile: <%s>")" \
+                                    "${__packdir_path}" "${_pkgfile}"
 
         if [[ ${__archive_type} == "main" ]]; then
             __final_arch=${_sysarch}
@@ -554,7 +561,7 @@ p_pack_archives() {
                 "${_build_pkgdir}/opt/*/share/info"     \
                 "${_build_pkgdir}/opt/*/share/man"
 
-            # remove some dirs if empty also there: always return true as it will fail on none existing folders
+            # remove some dirs if empty also there parents: always return true as it will fail on none existing folders
             rmdir --ignore-fail-on-non-empty        \
                 "${_build_pkgdir}/usr/include"      \
                 "${_build_pkgdir}/usr/lib"          \
@@ -595,7 +602,8 @@ p_pack_archives() {
                 cp -f "${__path}" "${_build_pkgdir}/.POST"
             fi
 
-            LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" *
+            # Move all to the: __packdir_path: so we can use one tar command
+            mv "${_build_pkgdir}/"!("${__packdirname}") "${__packdir_path}"
         elif [[ ${__archive_type} == "locale" ]]; then
             __loc=${__type_info}
             __final_arch="any"
@@ -694,7 +702,9 @@ p_pack_archives() {
             i_exit 1 ${LINENO} "$(_g "FUNCTION: p_pack_archives()_create_pkgarchive(): CODE-ERROR")"
         fi
 
-        ##### ONLY DO THIS IF WE GOT AN ARCHIVE: e.g. if the locale was not found there will be no archive
+        ##### ONLY DO THIS IF WE GOT any content in __packdir_path
+        
+        #LANG=C bsdtar -C "${__packdir_path}" -rf "${__archive_path}" *
         if [[ -f ${__archive_path} ]]; then
             i_msg_i "$(_g "Created pkgarchive: '%s'")" "${__complete_name}"
             ### Generate .META file
@@ -771,6 +781,7 @@ p_pack_archives() {
                 i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 7 (_use_comp) MUST be 'yes' or 'no'. Got: '%s'")" "${_use_comp}"
             fi
         fi
+        rm -rf "${__packdir_path}"
     }
 
     i_exact_args_exit ${LINENO} 15 ${#}
@@ -789,7 +800,7 @@ p_pack_archives() {
     local _build_pkgdir=${13}
     local _got_pkginfo=${14}
     local _ignore_runtimedeps=${15}
-    local _group _archive_path _cm_locale _tmpstr
+    local _group _archive_path _cm_locale _tmpstr 
 
     i_msg "$(_g "Packing pkgarchives for Port: <%s>")" "${_portpath}"
 
@@ -797,10 +808,7 @@ p_pack_archives() {
         i_warn2 "$(_g "Pkgarchives should be packed as root.")"
     fi
 
-    ### RUN BUILD
-    u_dir_has_content_exit "${_build_pkgdir}"
-
-    u_cd_safe_exit "${_build_pkgdir}"
+    u_cd_safe_exit "${_build_pkgdir}"  # TODO: check later if we can remove this
     if (( ${?} == 0 )); then
         if [[ "${_strip_files}" == "yes" ]]; then
             p_strip_files "${_build_pkgdir}"

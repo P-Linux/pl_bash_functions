@@ -1094,12 +1094,12 @@ tsu__u_is_abspath_exit
 
 
 #******************************************************************************************************************************
-# TEST: u_dir_has_content_exit()
+# TEST: u_has_dir_content()
 #******************************************************************************************************************************
-tsu__u_dir_has_content_exit() {
+tsu__u_has_dir_content() {
     (source "${_EXCHANGE_LOG}"
 
-    te_print_function_msg "u_dir_has_content_exit()"
+    te_print_function_msg "u_has_dir_content()"
     local _tmp_dir_empty=$(mktemp -d)
     local _tmp_dir_with_dir=$(mktemp -d)
     local _tmp_dir_with_file=$(mktemp -d)
@@ -1113,25 +1113,25 @@ tsu__u_dir_has_content_exit() {
     touch "${_tmp_dir_with_hiddenfile}/.hidden.txt"
     ln -s "${_tmp_dummy_file}" "${_tmp_dir_with_link}/_dummy_file_link"
 
-    (u_dir_has_content_exit "${_tmp_dir_empty}")
+    (u_has_dir_content "${_tmp_dir_empty}")
     te_retcode_1 _COK _CFAIL ${?} "Test has no content <_tmp_dir_empty>."
 
-    (u_dir_has_content_exit "${_tmp_dir_with_dir}")
+    (u_has_dir_content "${_tmp_dir_with_dir}")
     te_retcode_0 _COK _CFAIL ${?} "Test has content <_tmp_dir_with_dir>."
 
-    if u_dir_has_content_exit "${_none_existing_dir}"; then
+    if u_has_dir_content "${_none_existing_dir}"; then
         te_ms_failed _CFAIL "Common usage example: Test has no content <_none_existing_dir>"
     else
         te_ms_ok _COK "Common usage example: Test has no content <_none_existing_dir>"
     fi
 
-    (u_dir_has_content_exit "${_tmp_dir_with_file}")
+    (u_has_dir_content "${_tmp_dir_with_file}")
     te_retcode_0 _COK _CFAIL ${?} "Test has content <_tmp_dir_with_file>."
 
-    (u_dir_has_content_exit "${_tmp_dir_with_hiddenfile}")
+    (u_has_dir_content "${_tmp_dir_with_hiddenfile}")
     te_retcode_0 _COK _CFAIL ${?} "Test has hidden content <_tmp_dir_with_hiddenfile>."
 
-    (u_dir_has_content_exit "${_tmp_dir_with_link}")
+    (u_has_dir_content "${_tmp_dir_with_link}")
     te_retcode_0 _COK _CFAIL ${?} "Test has content <_tmp_dir_with_link>."
 
 
@@ -1147,7 +1147,7 @@ tsu__u_dir_has_content_exit() {
     echo -e "_COK=${_COK}; _CFAIL=${_CFAIL}" > "${_EXCHANGE_LOG}"
     )
 }
-tsu__u_dir_has_content_exit
+tsu__u_has_dir_content
 
 
 #******************************************************************************************************************************

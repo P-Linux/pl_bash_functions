@@ -852,16 +852,17 @@ u_is_abspath_exit() {
 
 
 #******************************************************************************************************************************
-# Return code: (0) if a directory exists, is readable and has content else (1). Aborts if it exists but is not readable.
+# Return code: (0) if a directory exists, is readable and has content else (the status exit code).
+#                                  Aborts if it exists but is not readable.
 #                                  Remember: You need read permission on the directory, or it will always appear empty.
 #
 #   USAGE:
 #       _dir="/home/test_dir"
-#       if ! u_dir_has_content_exit "${_dir}"; then
+#       if ! u_has_dir_content "${_dir}"; then
 #           echo "do something: dir does not exist or is empty and readable e.g. clone into it"
 #       fi
 #******************************************************************************************************************************
-u_dir_has_content_exit() {
+u_has_dir_content() {
     local _dir=${1}
     declare -i _ret=1
     local _content
@@ -1309,7 +1310,7 @@ u_export() {
         u_basename
         u_cd_safe_exit
         u_count_substr
-        u_dir_has_content_exit
+        u_has_dir_content
         u_dir_is_rwx_exit
         u_dirname
         u_export
