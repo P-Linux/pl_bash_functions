@@ -116,7 +116,7 @@ pk_get_collections_lookup() {
                 i_exit 1 ${LINENO} "$(_g "COLLECTION directory is not executable: <%s>: <%s>")" "${_col_path}" "${_col_ent}"
             fi
             # only get one level down
-            for _col_portpath in "${_col_path}"/*; do
+            for _col_portpath in "${_col_path}/"*; do
                 if [[ -d ${_col_portpath} ]]; then
                     # Just add the first found path
                     _col_pkgfile="${_col_portpath}/${_ref_pkgfile_name}"
@@ -462,7 +462,6 @@ pk_source_validate_pkgfile() {
 
     # pkgdepsrun: Optional
     u_is_idx_array_var "pkgdepsrun" || pkgdepsrun=()
-
 
     #### Pkgfile-Variables
     #pkgvers

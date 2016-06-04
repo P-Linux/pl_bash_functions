@@ -201,7 +201,7 @@ u_ref_associative_array_exit() {
     i_exit_empty_arg ${LINENO} "${1}" 1
     local _ref_name=${1}
     local _inf=${2:-""}
-    local _line="$(declare -p | grep -E "declare -n[lrtux]{0,4} ${_ref_name}=\"[[:alnum:]_]{0,}\"")"
+    local _line=$(declare -p | grep -E "declare -n[lrtux]{0,4} ${_ref_name}=\"[[:alnum:]_]{0,}\"")
     local _v
 
     if [[ ! -n ${_line} ]]; then
@@ -267,7 +267,7 @@ u_count_substr() {
 u_strip_end_slahes() {
     local -n _ret=${1}
     # skip assignment:  _in_string=${2}
-    _ret="${2%%+(/)}"
+    _ret=${2%%+(/)}
 }
 
 
@@ -323,6 +323,8 @@ u_strip_whitespace() {
 #           u_prefix_longest_empty: <>
 #           u_prefix_shortest_all: <https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a>
 #           u_prefix_longest_all: <https://github.com/P-Linux/pl_bash_functions.git#commit=2f12e1a>
+#
+#   NOTE: one can also do something like: u_prefix_shortest_empty __size "1235 Get The Leading Number" [[:blank:]]
 #******************************************************************************************************************************
 
 #******************************************************************************************************************************
@@ -331,7 +333,7 @@ u_strip_whitespace() {
 u_prefix_shortest_empty() {
     local -n _ret=${1}
     _ret=""
-    if [[ ${2} == *"${3}"* ]]; then
+    if [[ ${2} == *${3}* ]]; then
         _ret=${2%%${3}*}
     fi
 }
@@ -343,7 +345,7 @@ u_prefix_shortest_empty() {
 u_prefix_longest_empty() {
     local -n _ret=${1}
     _ret=""
-    if [[ ${2} == *"${3}"* ]]; then
+    if [[ ${2} == *${3}* ]]; then
         _ret=${2%${3}*}
     fi
 }
@@ -354,7 +356,7 @@ u_prefix_longest_empty() {
 #******************************************************************************************************************************
 u_prefix_shortest_all() {
     local -n _ret=${1}
-    _ret="${2%%${3}*}"
+    _ret=${2%%${3}*}
 }
 
 
@@ -363,7 +365,7 @@ u_prefix_shortest_all() {
 #******************************************************************************************************************************
 u_prefix_longest_all() {
     local -n _ret=${1}
-    _ret="${2%${3}*}"
+    _ret=${2%${3}*}
 }
 
 
@@ -410,7 +412,7 @@ u_prefix_longest_all() {
 u_postfix_shortest_empty() {
     local -n _ret=${1}
     _ret=""
-    if [[ ${2} == *"${3}"* ]]; then
+    if [[ ${2} == *${3}* ]]; then
         _ret=${2##*${3}}
     fi
 }
@@ -422,7 +424,7 @@ u_postfix_shortest_empty() {
 u_postfix_longest_empty() {
     local -n _ret=${1}
     _ret=""
-    if [[ ${2} == *"${3}"* ]]; then
+    if [[ ${2} == *${3}* ]]; then
         _ret=${2#*${3}}
     fi
 }
@@ -433,7 +435,7 @@ u_postfix_longest_empty() {
 #******************************************************************************************************************************
 u_postfix_shortest_all() {
     local -n _ret=${1}
-    _ret="${2##*${3}}"
+    _ret=${2##*${3}}
 }
 
 
@@ -442,7 +444,7 @@ u_postfix_shortest_all() {
 #******************************************************************************************************************************
 u_postfix_longest_all() {
     local -n _ret=${1}
-    _ret="${2#*${3}}"
+    _ret=${2#*${3}}
 }
 
 
@@ -747,8 +749,8 @@ u_search_cmd_arg_values_string() {
 #******************************************************************************************************************************
 u_basename() {
     local -n _ret=${1}
-    _ret="${2%%+(/)}"
-    _ret="${_ret##*/}"
+    _ret=${2%%+(/)}
+    _ret=${_ret##*/}
 }
 
 
@@ -798,10 +800,10 @@ u_basename() {
 #******************************************************************************************************************************
 u_dirname() {
     local -n _ret=${1}
-    local _no_end_slash="${2%%+(/)}"
+    local _no_end_slash=${2%%+(/)}
     _ret="."
     if [[ ${_no_end_slash} == *"/"* ]]; then
-        _ret="${_no_end_slash%/*}"
+        _ret=${_no_end_slash%/*}
     fi
     [[ -n ${_ret} ]] || _ret="/"
 }
@@ -852,7 +854,7 @@ u_is_abspath_exit() {
 
 
 #******************************************************************************************************************************
-# Return code: (0) if a directory exists, is readable and has content else (the status exit code).
+# Return code: (0) if a directory exists, is readable and has content else (1 or the status exit code).
 #                                  Aborts if it exists but is not readable.
 #                                  Remember: You need read permission on the directory, or it will always appear empty.
 #
@@ -869,13 +871,9 @@ u_has_dir_content() {
 
     if [[ -d ${_dir} ]]; then
         [[ -r ${_dir} ]] || i_exit 1 ${LINENO} "$(_g "Directory exists but is not readable: <%s>")" "${_dir}"
-        _content=("${_dir}"/*)
-        if (( ${#_content[@]} > 1 )); then
-            _ret=0
-        # Do this much faster checkup instead of 'shopt -s nullglob' in subshell
-        elif [[ ${_content[0]} != "${_dir}/*" ]]; then
-            _ret=0
-        fi
+        _content=("${_dir}/"*)
+        # Do this much faster checkup instead of 'shopt -s nullglob' in subshell: the /* shoudl be within the double quotes
+        [[ ${_content[0]} == "${_dir}/*" ]] || _ret=0
     fi
     return ${_ret}
 }

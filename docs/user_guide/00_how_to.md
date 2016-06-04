@@ -137,6 +137,7 @@ portable scripts, this feature will be removed in a future release of grep, and 
 * `shopt -s dotglob`
 * `shopt -s expand_aliases`: e.g. used for the gettext alias.
 * `shopt -s extglob`
+* `shopt -u globstar`:      : some function enable this internally and set it back to `-u`: e.g. p_pack_archives()
 * `shopt -u nocasematch`
 * `shopt -u nullglob`
 

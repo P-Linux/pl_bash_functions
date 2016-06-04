@@ -236,7 +236,7 @@ te_find_err_msg() {
     if [[ -n ${_inf} ]]; then
         _inf=" ${_inf}"
     fi
-    if [[ ${_func_output} == *${_find_err_msg}* ]]; then
+    if [[ ${_func_output} == *"${_find_err_msg}"* ]]; then
         printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_err_msg}${_BF_OFF}${_inf}\n" >&1
         _ret_cok+=1
     else
@@ -279,7 +279,7 @@ te_find_info_msg() {
     if [[ -n ${_inf} ]]; then
         _inf=" ${_inf}"
     fi
-    if [[ ${_func_output} == *${_find_inf_msg}* ]]; then
+    if [[ ${_func_output} == *"${_find_inf_msg}"* ]]; then
         printf "${_BF_GREEN}    [  OK  ] ${_BF_OFF}${_m}${_BF_BOLD} ${_find_inf_msg}${_BF_OFF}${_inf}\n" >&1
         _ret_cok+=1
     else

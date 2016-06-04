@@ -85,7 +85,7 @@ i_general_opt() {
     shopt -s extquote
     shopt -u failglob
     shopt -s force_fignore
-    shopt -u globstar
+    shopt -u globstar               # -u: needed: some function enable it and set it back to `-u`: e.g. p_pack_archives()
     shopt -u globasciiranges
     shopt -u gnu_errfmt
     shopt -u histappend

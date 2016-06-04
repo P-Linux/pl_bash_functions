@@ -400,42 +400,46 @@ p_strip_files() {
 
 
 #******************************************************************************************************************************
-# Searches for files in `_in_dir_path` and compresses man and info files.
+# Searches for files in `_in_dir_path` and compresses the files sutiable for man and info pages.
 #
 #   ARGUMENTS
 #       `$1 (_in_dir_path)`: absolute directory path: root dir for filesearch.
-#       `_pattern`: pattern to be used in the filesearch.
 #
 #   USAGE
 #       Compress manpages
-#           p_compress_man_info_pages "${_build_pkgdir}" "*/share/man*/*"
+#           p_compress_man_info_pages "${_build_pkgdir}/usr/share/man"
 #       Compress infopages
-#           p_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
+#           p_compress_man_info_pages "${_build_pkgdir}/usr/share/info"
+#           p_compress_man_info_pages "${_build_pkgdir}/opt/"*"/share/info"
 #******************************************************************************************************************************
 p_compress_man_info_pages() {
     # skip assignment:  _in_dir_path=${1}
-    local _pattern=${2}
     local _f _link_target _link_target_dir
 
-    pushd "${1}" &> /dev/null
-    find . -type f -path "${_pattern}" | while read -r _f ; do
-        [[ ${_f} == *".gz" ]] || gzip -9 "${_f}"
-    done
+    shopt -s globstar
 
-    find . -type l -path "${_pattern}" | while read _f; do
-        _link_target=$(readlink -n "${_f}")
-        # TODO recheck if that could be improved
-        _link_target="${_link_target##*/}"
-        _link_target="${_link_target%%.gz}.gz"
-        rm -f "${_f}"
-        _f="${_f%%.gz}.gz"
-        u_dirname _link_target_dir "${_f}"
-        if [[ -e "${_link_target_dir}/${_link_target}" ]]; then
-            ln -sf "${_link_target}" "${_f}"
+    for _f in "${1}/"**; do
+        if [[ -f ${_f} && ! -L ${_f} ]]; then
+           [[ ${_f} == *".gz" ]] || gzip -9 "${_f}"
         fi
     done
-    popd &> /dev/null
+
+    for _f in "${1}/"**; do
+        if [[ -L ${_f} ]]; then
+            _link_target=$(readlink -n "${_f}")
+            _link_target="${_link_target##*/}"
+            _link_target="${_link_target%%.gz}.gz"
+            rm -f "${_f}"
+            _f="${_f%%.gz}.gz"
+            u_dirname _link_target_dir "${_f}"
+            if [[ -e "${_link_target_dir}/${_link_target}" ]]; then
+                ln -sf "${_link_target}" "${_f}"
+            fi
+        fi
+    done
+    shopt -u globstar
 }
+
 
 
 #******************************************************************************************************************************
@@ -489,6 +493,7 @@ p_build() {
 #       `_in_cm_locales`: a reference var: index array typically set in `cmk.conf` and sometimes in a Pkgfile
 #       `_strip_files`: yes or no. If set to "yes" then build executable binaries or libraries will be stripped.
 #       `_build_pkgdir`: Path to a directory where the build files are temporarly installed/copied to.
+#       `_packdir_path`: Path to a directory where the files must be copied to be packed.
 #       `_got_pkginfo`: yes/no if the command `pkginfo` (part of the cards package) is found set it to yes
 #                                  if yes isee option: _ignore_runtimedeps
 #       `_ignore_runtimedeps`: yes/no If set to "no", runtime-dependencies of the newly compiled package are added via the
@@ -499,7 +504,8 @@ p_build() {
 #       CM_PORT_PATH="/usr/ports/p_diverse/hwinfo"
 #       p_pack_archives "${CM_PKGFILE_PATH}" "${CM_PORTNAME}" "${CM_PORTPATH}" "${CM_BUILDVERS}" "${CM_ARCH}" \
 #           "${CM_PKG_EXT}" "${CM_COMPRESS_PKG}" "${CM_COMPRESS_OPTS}" "${CM_STRIP}" CM_GROUPS \
-#           CM_GROUPS_DEFAULT_FUNCTION_NAMES CM_LOCALES "${pkgdir}" "${CM_GOT_COMMAND_PKGINFO}" "${CM_IGNORE_RUNTIMEDEPS}"
+#           CM_GROUPS_DEFAULT_FUNCTION_NAMES CM_LOCALES "${pkgdir}" "${CM_PACK_DIR}" "${CM_GOT_COMMAND_PKGINFO}"
+#           "${CM_IGNORE_RUNTIMEDEPS}"
 #******************************************************************************************************************************
 p_pack_archives() {
 
@@ -508,7 +514,7 @@ p_pack_archives() {
     # _run_customary_group_func: Helper function
     #**************************************************************************************************************************
     _run_customary_group_func() {
-        (set -e -x; "${__group}" "${__archive_path}")
+        "${__group}" __final_arch "${_packdir_path}"
         __exc=${?}
         if (( ${__exc} )); then
             i_exit 1 ${LINENO} "$(_g "Customary group function: '%s()' Exit-Status-Code: '%s' Port: <%s>")" "${__group}" \
@@ -531,46 +537,49 @@ p_pack_archives() {
         local __type_info=${2:-""}
         local __meta_str=""
         declare -i __exc=0
-        local __complete_name __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
+        local __packdirname; u_basename __packdirname "${_packdir_path}"
         # NOTE: do NOT use an integer for __size: it is treated as string
         local __size
-        # Create a dedicated dir to pack: copy & tar: is much faster than: to tar, untar and retar
-        #   __packdirname: add the 0 so it will be usually the first dir
-        local __packdirname="00_pkgarchive_packdir_00"
-        local __packdir_path="${_build_pkgdir}/${__packdirname}"
-    
-        mkdir "${__packdir_path}" || i_exit 1 ${LINENO}  "$(_g "Packdir should not exist: <%s> Pkgfile: <%s>")" \
-                                    "${__packdir_path}" "${_pkgfile}"
+        local __complete_name __path __archive_path __final_arch __loc __group __dir __grp_refpath_sysarch __grp_refpath_any
+        local __pkginfo_out
+
+        mkdir -p "${_packdir_path}" || i_exit 1 ${LINENO}  "$(_g "Packdir should not exist: <%s> Pkgfile: <%s>")" \
+                                    "${_packdir_path}" "${_pkgfile}"
 
         if [[ ${__archive_type} == "main" ]]; then
             __final_arch=${_sysarch}
             __complete_name=${_portname}
             __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
-            [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
+            if [[ -f "${__archive_path}" ]]; then rm -f "${__archive_path}"; fi
 
-            # remove any left locale, doc, info and man folders
+            # remove any left locale, doc, default info and man folders
             rm -rf \
                 "${_build_pkgdir}/usr/share/locale"     \
                 "${_build_pkgdir}/usr/share/doc"        \
                 "${_build_pkgdir}/usr/share/gtk-doc"    \
-                "${_build_pkgdir}/usr/share/info"       \
                 "${_build_pkgdir}/usr/share/man"        \
-                "${_build_pkgdir}/opt/*/share/locale"   \
-                "${_build_pkgdir}/opt/*/share/doc"      \
-                "${_build_pkgdir}/opt/*/share/gtk-doc"  \
-                "${_build_pkgdir}/opt/*/share/info"     \
-                "${_build_pkgdir}/opt/*/share/man"
+                "${_build_pkgdir}/usr/share/info"       \
+                "${_build_pkgdir}/opt/"*"/share/locale"   \
+                "${_build_pkgdir}/opt/"*"/share/doc"      \
+                "${_build_pkgdir}/opt/"*"/share/gtk-doc"  \
+                "${_build_pkgdir}/opt/"*"/share/man"      \
+                "${_build_pkgdir}/opt/"*"/share/info"
 
-            # remove some dirs if empty also there parents: always return true as it will fail on none existing folders
+            # remove within the _build_pkgdir any other: */share/man" or "*/share/info"
+            shopt -s globstar
+            rm -rf -v "${_build_pkgdir}/"**"/share/info" "${_build_pkgdir}/"**"/share/man"
+            shopt -u globstar
+
+            # remove some dirs if empty also the parent dirs: always return true as it will fail on none existing folders
             rmdir --ignore-fail-on-non-empty        \
                 "${_build_pkgdir}/usr/include"      \
                 "${_build_pkgdir}/usr/lib"          \
                 "${_build_pkgdir}/usr/lib64"        \
                 "${_build_pkgdir}/usr/share"        \
-                "${_build_pkgdir}/opt/*/include"    \
-                "${_build_pkgdir}/opt/*/lib"        \
-                "${_build_pkgdir}/opt/*/lib64"      \
-                "${_build_pkgdir}/opt/*/share"      \
+                "${_build_pkgdir}/opt/"*"/include"    \
+                "${_build_pkgdir}/opt/"*"/lib"        \
+                "${_build_pkgdir}/opt/"*"/lib64"      \
+                "${_build_pkgdir}/opt/"*"/share"      \
                 "${_build_pkgdir}/bin"              \
                 "${_build_pkgdir}/boot"             \
                 "${_build_pkgdir}/dev"              \
@@ -602,52 +611,44 @@ p_pack_archives() {
                 cp -f "${__path}" "${_build_pkgdir}/.POST"
             fi
 
-            # Move all to the: __packdir_path: so we can use one tar command
-            mv "${_build_pkgdir}/"!("${__packdirname}") "${__packdir_path}"
+            # Move all to the: _packdir_path: so we can use one tar command: skip __packdirname
+            mv "${_build_pkgdir}/"!("${__packdirname}") "${_packdir_path}"
         elif [[ ${__archive_type} == "locale" ]]; then
             __loc=${__type_info}
             __final_arch="any"
             __complete_name="${_portname}.${__loc}"
             __archive_path="${_portpath}/${__complete_name}${_buildvers}${__final_arch}.${_ref_ext}"
-            [[ -f "${__archive_path}" ]] || rm -f "${__archive_path}"
+            if [[ -f "${__archive_path}" ]]; then rm -f "${__archive_path}"; fi
 
-            # PATH: usr/share/locale AND opt/*/share/locale
-            for __dir in "usr/share/locale/${__loc}" "opt/*/share/locale/${__loc}"; do
+            for __dir in "usr/share/locale/${__loc}" "opt/"*"/share/locale/${__loc}"; do
                 __path="${_build_pkgdir}/${__dir}"
                 if [[ -d ${__path} ]]; then
-                    LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
+                    cp -ra --parents "${__dir}" "${_packdir_path}"
+                    rm -rf "${__path}"
                 fi
-                rm -rf "${__path}"
             done
+
         elif [[ ${__archive_type} == "group" ]]; then
             __group=${__type_info}
             __complete_name="${_portname}.${__group}"
-            # NOTE: because the group path can be changed in a Pkgfile we get it afterwards by checking the created files
+            # NOTE: the group path can be changed through the Pkgfile group function: first passed argument: __final_arch
             __grp_refpath_sysarch="${_portpath}/${__complete_name}${_buildvers}${_sysarch}.${_ref_ext}"
             __grp_refpath_any="${_portpath}/${__complete_name}${_buildvers}any.${_ref_ext}"
 
-            [[ -f "${__grp_refpath_sysarch}" ]] || rm -f "${__grp_refpath_sysarch}"
-            [[ -f "${__grp_refpath_any}" ]] || rm -f "${__grp_refpath_any}"
+            if [[ -f "${__grp_refpath_sysarch}" ]]; then rm -f "${__grp_refpath_sysarch}"; fi
+            if [[ -f "${__grp_refpath_any}" ]]; then rm -f "${__grp_refpath_any}"; fi
 
             if [[  ${__group} == "lib" ]]; then
                 __final_arch=${_sysarch}
-                __archive_path="${__grp_refpath_sysarch}"
                 if u_got_function "${__group}"; then
                     _run_customary_group_func
-                    # Check which file was generated: we check only the one which is not the default one
-                    #   because the other is alredy assigned
-                    if [[ -f ${__grp_refpath_any} ]]; then
-                        __final_arch="any"
-                        __archive_path="${__grp_refpath_any}"
-                    fi
                 else
-                    # PATH: usr/lib, usr/lib64, opt/*/lib, opt/*/lib64
-                    for __dir in "usr/lib" "usr/lib64" "opt/*/lib" "opt/*/lib64"; do
+                    for __dir in "usr/lib" "usr/lib64" "opt/"*"/lib" "opt/"*"/lib64"; do
                         __path="${_build_pkgdir}/${__dir}"
                         if [[ -d ${__path} ]]; then
+                            cp -ra --parents "${__dir}" "${_packdir_path}"
                             # Note: pkgconfig folders are excluded from group lib
-                            LANG=C bsdtar -C "${_build_pkgdir}" --exclude="${__dir}/pkgconfig" \
-                                -rf "${__archive_path}" "${__dir}"
+                            rm -rf "${_packdir_path}/${__dir}/pkgconfig"
                             rm -rf "${__path}/"!("pkgconfig")
                         fi
                     done
@@ -655,91 +656,119 @@ p_pack_archives() {
             else
                 # Alle these are using the same default architecture
                 __final_arch="any"
-                __archive_path="${__grp_refpath_any}"
                 if u_got_function "${__group}"; then
                     _run_customary_group_func
-                    if [[ -f ${__grp_refpath_sysarch} ]]; then
-                        __final_arch=${_sysarch}
-                        __archive_path="${__grp_refpath_sysarch}"
-                    fi
                 else
                     if [[  ${__group} == "devel" ]]; then
-                        for __dir in "usr/include"   "usr/lib/pkgconfig"   "usr/lib64/pkgconfig" \
-                                     "opt/*/include" "opt/*/lib/pkgconfig" "opt/*/lib64/pkgconfig"; do
+                        for __dir in "usr/include"     "usr/lib/pkgconfig"     "usr/lib64/pkgconfig" \
+                                     "opt/"*"/include" "opt/"*"/lib/pkgconfig" "opt/"*"/lib64/pkgconfig"; do
                             __path="${_build_pkgdir}/${__dir}"
                             if [[ -d ${__path} ]]; then
-                                LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
-                                rm -rf  "${__path}"
+                                cp -ra --parents "${__dir}" "${_packdir_path}"
+                                rm -rf "${__path}"
                             fi
                         done
                     elif [[  ${__group} == "doc" ]]; then
-                        for __dir in "usr/share/doc" "usr/share/gtk-doc" "opt/*/share/doc" "opt/*/share/gtk-doc"; do
+                        for __dir in "usr/share/doc" "usr/share/gtk-doc" "opt/"*"/share/doc" "opt/"*"/share/gtk-doc"; do
                             __path="${_build_pkgdir}/${__dir}"
                             if [[ -d ${__path} ]]; then
-                                LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
-                                rm -rf  "${__path}/"
+                                cp -ra --parents "${__dir}" "${_packdir_path}"
+                                rm -rf "${__path}"
                             fi
                         done
                     elif [[  ${__group} == "man" ]]; then
-                        for __dir in "usr/share/info" "usr/share/man" "opt/*/share/info" "opt/*/share/man"; do
+                        # Compress manpages
+                        p_compress_man_info_pages "${_build_pkgdir}/usr/share/man"
+                        p_compress_man_info_pages "${_build_pkgdir}/opt/"*"/share/man"
+                        # Compress infopages
+                        p_compress_man_info_pages "${_build_pkgdir}/usr/share/info"
+                        p_compress_man_info_pages "${_build_pkgdir}/opt/"*"/share/info"
+
+                        for __dir in "usr/share/info" "usr/share/man" "opt/"*"/share/info" "opt/"*"/share/man"; do
                             __path="${_build_pkgdir}/${__dir}"
                             if [[ -d ${__path} ]]; then
-                                LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
-                                rm -rf  "${__path}"
+                                cp -ra --parents "${__dir}" "${_packdir_path}"
+                                rm -rf "${__path}"
                             fi
                         done
                     elif [[  ${__group} == "service" ]]; then
                         __dir="etc/rc.d"
                         __path="${_build_pkgdir}/${__dir}"
                         if [[ -d ${__path} ]]; then
-                            LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" "${__dir}"
-                            rm -rf  "${__path}"
+                            cp -ra --parents "${__dir}" "${_packdir_path}"
+                            rm -rf "${__path}"
                         fi
                     fi
                 fi
+            fi
+
+            # get the groups final archive part
+            if [[ ${__final_arch} == ${_sysarch} ]]; then
+                __archive_path="${__grp_refpath_sysarch}"
+            elif [[ ${__final_arch} == "any" ]]; then
+                __archive_path="${__grp_refpath_any}"
+            else
+                i_exit 1 ${LINENO} \
+                "$(_g "Group pkgarchive: architecture MUST be 'any' or '%s' Got: '%s' File: <%s>")"  "${_sysarch}" \
+                    "${__final_arch}" "${_pkgfile}"
             fi
         else
             i_exit 1 ${LINENO} "$(_g "FUNCTION: p_pack_archives()_create_pkgarchive(): CODE-ERROR")"
         fi
 
-        ##### ONLY DO THIS IF WE GOT any content in __packdir_path
-        
-        #LANG=C bsdtar -C "${__packdir_path}" -rf "${__archive_path}" *
-        if [[ -f ${__archive_path} ]]; then
-            i_msg_i "$(_g "Created pkgarchive: '%s'")" "${__complete_name}"
+        ##### ONLY DO THIS IF WE GOT any content in _packdir_path
+
+        _content=("${_packdir_path}/"*)
+        # Do this much faster check if only 1 item is in the dir instead of 'shopt -s nullglob' in subshell
+        if [[ ${_content[0]} != "${_packdir_path}/*" ]]; then
+            i_msg_i "$(_g "Creating pkgarchive: '%s'")" "${__complete_name}"
             ### Generate .META file
-            i_more_i  "$(_g "Adding meta data to pkgarchive: '%s'")" "${__complete_name}"
+            i_more_i  "$(_g "Adding meta data for pkgarchive: '%s'")" "${__complete_name}"
             __meta_str+="N${_portname}\nD${pkgdesc}\nU${pkgurl}\nP${pkgpackager}\n"
 
-            __size=$(du -b "${__archive_path}")
-            # NOTE Can not use: u_prefix_shortest_empty __size because the input is treated as a string
-            __size=${__size%%[[:blank:]]*}
-            [[ -n ${__size} ]] || i_exit 1 ${LINENO} "$(_g "Could not get the Size of the new pkgarchive: <%s>")" \
-                                    "${__archive_path}"
-
+            u_prefix_shortest_empty __size "$(du -b --summarize "${_packdir_path}")" [[:blank:]]
             __meta_str+="S${__size}\nV${pkgvers}\nr${pkgrel}\nB${_buildvers}\na${__final_arch}"
+
             if [[ ${_got_pkginfo} == "yes" ]]; then
                 if [[ ${_ignore_runtimedeps} == "no" ]]; then
-                    echo "============= _create_pkgarchive(): TODO: Add the 'pkginfo runtime dependencies' to the .META file"
-                    # ===== IMPORTANT: REDO THIS WITHOUT Extracting/repacking the archive =====
+                    # 1. Internally extracted info using command: `pkginfo`
+                    __pkginfo_out=$(pkginfo --runtimedepfiles "${_packdir_path}")
+                    echo "::::::::::::::<$__pkginfo_out>"
+                    if [[ -n ${__pkginfo_out} ]]; then
+                        _savedifs=${IFS}
+                        while IFS= read -r _rdep; do
+                            # TODO: Decide if we want to skip any .devel. dependencies here
+                            # the original card code did
+                            # We don't want any .devel dependencies here
+                            #for dep in `pkginfo --runtimedepfiles $TAR|grep -v ^[A-Z]`; do
+                            #    echo "R$dep" >> .META
+                            #done
+                            # We don't want any .devel dependencies here
+                            #sed -i '/^R[[a-z0-9]*[-_+]*]*\.devel/d' .META
 
-                    #for _rdep in $(pkginfo --runtimedepfiles ${TAR|grep -v ^[A-Z]); do  # TODO Check if grep is really needed
-                        #echo "R${_rdep}" >> .META
-                    #done
-                    ## We don't want any .devel dependencies here: NOTE: DEVEL Dependencies should be added
-                    #   if not 'devel' group was specified          Check speed for the sed vs. bash only filter
-                    #sed -i '/^R[[a-z0-9]*[-_+]*]*\.devel/d' .META
-                    #if [ ! -z $run ] && [ "$NAME" == "$name" ]; then
-                        #info "Adding runtime deps to Archive $NAME"
-                        #for rd in ${run[@]}; do
-                            #if [ "`pkginfo -b $rd`" == "0" ] || [ "`pkginfo -b $rd`" == "" ]; then
-                                #error "Runtime dependency $rd not found, cannot continue"
-                                #clean
-                                #exit $E_DEPS;
-                            #fi
-                            #echo "R$rd`pkginfo -b $rd`" >> .META
-                        #done
-                    #fi
+                            # add a new line in front instead of the end
+                            __meta_str+="\nR${_rdep}"
+                        done <<< "$(pkginfo --runtimedepfiles "${_packdir_path}")"
+                        IFS=${_savedifs}
+                    fi
+
+                    # 2. Pkgfile 'pkgdepsrun' array: always check do not use elif
+                    if [[ -v pkgdepsrun[@] &&  ${__archive_type} == "main" ]]; then
+                        i_more_i  "$(_g "Adding runtime dependencies from pkgdepsrun array to pkgarchive: '%s'")" \
+                            "${__complete_name}"
+                        for _rdep in "${pkgdepsrun[@]}"; do
+                            _tmpstr=$(pkginfo -b "${_rdep}")
+                            if [[ ${_tmpstr} == "0" || ! -n ${_tmpstr} ]]; then
+                                i_err2 "$(_g "Could not find runtime dependency: '%s'")" "${_rdep}"
+                                a_rm_pkgarchives "${_portname}" "${_portpath}" "${_sysarch}" "${_ref_ext}" "NONE"
+                                i_exit 1 ${LINENO} "$(_g "Could not find runtime dependency: '%s'")" "${_rdep}"
+                            fi
+                            # add a new line in front instead of the end
+                            __meta_str+="\nR${_rdep}${_tmpstr}"
+                        done
+                    fi
+
+                    # 3. Port '.run' Dependency File: always check do not use elif
                     if [[ -f "${_portpath}/${__complete_name}.run" ]]; then
                         i_more_i  "$(_g "Adding runtime dependencies from file to pkgarchive: '%s'")" "${__complete_name}"
                         _savedifs=${IFS}
@@ -756,21 +785,26 @@ p_pack_archives() {
                         IFS=${_savedifs}
                     fi
                 elif [[ ${_ignore_runtimedeps} != "yes" ]]; then
-                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
+                    i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 16 (_ignore_runtimedeps) MUST be 'yes' or 'no'. Got: '%s'")" \
                         "${_ignore_runtimedeps}"
                 fi
             elif [[ ${_got_pkginfo} != "no" ]]; then
-                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 14 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" \
+                i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 15 (_got_pkginfo) MUST be 'yes' or 'no'. Got: '%s'")" \
                     "${_got_pkginfo}"
             fi
 
-            echo -e "${__meta_str}" > .META || exit 1
+            echo -e "${__meta_str}" > "${_build_pkgdir}/.META" || exit 1
 
-            ### Generate .MTREE file
-            bsdtar -tf "${__archive_path}" > .MTREE || exit 1
+            ### Create the archive
+            pushd "${_packdir_path}" &> /dev/null
+            LANG=C bsdtar -rf "${__archive_path}" *
+            popd &> /dev/null
+
+            #### Generate .MTREE file: use the actual info from the archive: note the size we got from the folder before taring
+            bsdtar -tf "${__archive_path}" > "${_build_pkgdir}/.MTREE" || exit 1
 
             ### Add the .MTREE .META file
-            LANG=C bsdtar -C "${_build_pkgdir}" -rf "${__archive_path}" ".META" ".MTREE" || exit 1
+            LANG=C bsdtar -rf "${__archive_path}" -C "${_build_pkgdir}" ".META" ".MTREE" || exit 1
 
             ### Compress if needed
             if [[ ${_use_comp} == "yes" ]]; then
@@ -781,10 +815,11 @@ p_pack_archives() {
                 i_exit 1 ${LINENO} "$(_g "FUNCTION Argument 7 (_use_comp) MUST be 'yes' or 'no'. Got: '%s'")" "${_use_comp}"
             fi
         fi
-        rm -rf "${__packdir_path}"
+
+        rm -rf "${_packdir_path}"
     }
 
-    i_exact_args_exit ${LINENO} 15 ${#}
+    i_exact_args_exit ${LINENO} 16 ${#}
     local _pkgfile=${1}
     local _portname=${2}
     local _portpath=${3}
@@ -798,9 +833,10 @@ p_pack_archives() {
     local -n _in__cm_groups_default_func_names=${11}
     local -n _in_cm_locales=${12}
     local _build_pkgdir=${13}
-    local _got_pkginfo=${14}
-    local _ignore_runtimedeps=${15}
-    local _group _archive_path _cm_locale _tmpstr 
+    local _packdir_path=${14}
+    local _got_pkginfo=${15}
+    local _ignore_runtimedeps=${16}
+    local _group _archive_path _cm_locale _tmpstr
 
     i_msg "$(_g "Packing pkgarchives for Port: <%s>")" "${_portpath}"
 
@@ -814,13 +850,9 @@ p_pack_archives() {
             p_strip_files "${_build_pkgdir}"
         fi
 
-        ## Compress manpages
-        p_compress_man_info_pages "${_build_pkgdir}" "*/share/man*/*"
-        ## Compress infopages
-        p_compress_man_info_pages "${_build_pkgdir}" "*/share/info/*"
-
         echo "TODO: REMOVE THIS LATER: _in_cm_groups=()"
-        _in_cm_groups=(lib devel doc man service)
+        #_in_cm_groups=(lib devel doc man service)
+        _in_cm_groups=(devel)
         ### Process any groups
         if [[ -v _in_cm_groups[@] ]]; then
             for _group in "${_in_cm_groups[@]}"; do
@@ -835,6 +867,8 @@ p_pack_archives() {
         fi
 
         ### Process any locale
+        echo "TODO: REMOVE THIS LATER: _in_cm_locales=()"
+        _in_cm_locales=()
         if [[ -v _in_cm_locales[@] ]]; then
             for _cm_locale in "${_in_cm_locales[@]}"; do
                 _create_pkgarchive "locale" "${_cm_locale}"
